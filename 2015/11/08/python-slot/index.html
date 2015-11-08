@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="python," />
 
 
 
@@ -53,15 +53,37 @@
 
 
 
-<meta name="description" content="里面有我的个人感悟和牢骚">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Whosemario的家">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
+&amp;gt;&amp;gt;&amp;gt; class A(object):
+...     __slots__ = [&quot;v&quot;]
+...
+&amp;gt;&amp;gt;&amp;gt; a = A() 
+&amp;gt;&amp;gt;&amp;gt; a.v = 1
+&amp;gt;&amp;gt;&amp;gt; a.b = 1
+Trace">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python-slot">
+<meta property="og:url" content="http://yoursite.com/2015/11/08/python-slot/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="里面有我的个人感悟和牢骚">
+<meta property="og:description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
+&amp;gt;&amp;gt;&amp;gt; class A(object):
+...     __slots__ = [&quot;v&quot;]
+...
+&amp;gt;&amp;gt;&amp;gt; a = A() 
+&amp;gt;&amp;gt;&amp;gt; a.v = 1
+&amp;gt;&amp;gt;&amp;gt; a.b = 1
+Trace">
+<meta property="og:updated_time" content="2015-11-08T10:59:00.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Whosemario的家">
-<meta name="twitter:description" content="里面有我的个人感悟和牢骚">
+<meta name="twitter:title" content="python-slot">
+<meta name="twitter:description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
+&amp;gt;&amp;gt;&amp;gt; class A(object):
+...     __slots__ = [&quot;v&quot;]
+...
+&amp;gt;&amp;gt;&amp;gt; a = A() 
+&amp;gt;&amp;gt;&amp;gt; a.v = 1
+&amp;gt;&amp;gt;&amp;gt; a.b = 1
+Trace">
 
 
 
@@ -73,7 +95,7 @@
   };
 </script>
 
-  <title> Whosemario的家 </title>
+  <title> python-slot | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -94,9 +116,7 @@
 
 
 
-  <div class="container one-column 
-   page-home 
-">
+  <div class="container one-column page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -203,24 +223,9 @@
       <div class="main-inner">
         <div id="content" class="content">
           
-  <section id="posts" class="posts-expand">
 
+  <div id="posts" class="posts-expand">
     
-
-    
-    
-      
-      
-        
-        
-        
-      
-
-      
-    
-
-    
-      
 
   
   
@@ -240,10 +245,7 @@
             
             
               
-                
-                <a class="post-title-link" href="/2015/11/08/python-slot/" itemprop="url">
-                  python-slot
-                </a>
+                python-slot
               
             
           </h1>
@@ -291,10 +293,7 @@
       
 
       
-        
-          <span itemprop="articleBody">
-            
-              <p><a href="http://www.jianshu.com/p/82ce2151d73b" target="_blank" rel="external">上一篇</a>翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。</p>
+        <span itemprop="articleBody"><p><a href="http://www.jianshu.com/p/82ce2151d73b" target="_blank" rel="external">上一篇</a>翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。</p>
 <pre><code>&gt;&gt;&gt; class <span class="function"><span class="title">A</span><span class="params">(object)</span></span>:
 ...     __slots__ = [<span class="string">"v"</span>]
 ...
@@ -426,305 +425,46 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
 </span>}
 </code></pre><p>对于slots定义的变量，会找到对应的descr，调用对应的set方法，对于slots没有定义的变量，最终会跑到抛出异常的那段逻辑。</p>
 <h4 id="总结">总结</h4><p>__slots__的实现还是比较好懂的，Python在构建类的时候，会检查__slots__变量是否存在，如果存在，为slots变量建立member_descriptor，并放入tp_dict里面，并且这个类的tp<em>dictoffset为0，它的实例将不会有自己的\</em>_dict__。</p>
-
-            
-          </span>
-        
+</span>
       
     </div>
 
     <footer class="post-footer">
       
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/11/08/libuv-timer/" itemprop="url">
-                  libuv_timer
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T18:54:56+08:00" content="2015-11-08">
-              2015-11-08
-            </time>
-          </span>
-
+        <div class="post-tags">
           
-
+            <a href="/tags/python/" rel="tag">#python</a>
           
-            
-          
-
-          
-
         </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
       
 
       
-        
-          <span itemprop="articleBody">
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
             
-              <blockquote>
-<p>Timer handles are used to schedule callbacks to be called in the future.</p>
-</blockquote>
-<p>libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。</p>
-<h3 id="数据结构">数据结构</h3><hr>
-<p>Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：</p>
-<pre><code><span class="keyword">struct</span> uv_timer_s {
-    UV_HANDLE_FIELDS
-    UV_TIMER_PRIVATE_FIELDS
-};
-
-<span class="preprocessor">#<span class="keyword">define</span> UV_TIMER_PRIVATE_FIELDS                           </span>
-  uv_timer_cb timer_cb;    <span class="preprocessor">#timer到期时的回调函数                                         </span>
-  <span class="keyword">void</span>* heap_node[<span class="number">3</span>];      <span class="preprocessor">#用于维护timer的最小堆    </span>
-  <span class="keyword">uint64_t</span> timeout;        <span class="preprocessor">#timer的超时时间，其实是到多长时间后timer被触发       </span>
-  <span class="keyword">uint64_t</span> repeat;         <span class="preprocessor">#timer是否重复                                                 </span>
-  <span class="keyword">uint64_t</span> start_id;
-</code></pre><h3 id="接口">接口</h3><hr>
-<h4 id="1-_uv_timer_init">1. uv_timer_init</h4><p>uv_timer_init接口的实现很简单。</p>
-<pre><code><span class="preprocessor"># file: timer.c</span>
-<span class="function"><span class="keyword">int</span> <span class="title">uv_timer_init</span><span class="params">(uv_loop_t* loop, uv_timer_t* handle)</span> </span>{
-    uv__handle_init(loop, (<span class="keyword">uv_handle_t</span>*)handle, UV_TIMER);   [<span class="number">1</span>]
-    handle-&gt;timer_cb = <span class="literal">NULL</span>;
-    handle-&gt;repeat = <span class="number">0</span>;
-    <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><p>代码[1]对uv_handle_t进行了初始化。来看一下uv__handle_init宏定义。</p>
-<pre><code><span class="comment">#define uv__handle_init(loop_, h, type_)                                    </span>
-    <span class="keyword">do</span> {                                                                        
-        <span class="function"><span class="params">(h)</span>-&gt;</span><span class="keyword">loop</span> = (loop_);                                                   
-        <span class="function"><span class="params">(h)</span>-&gt;</span>type = (type_);                                                  
-        <span class="function"><span class="params">(h)</span>-&gt;</span>flags = UV__HANDLE_REF;  
-        QUEUE_INSERT_TAIL<span class="function"><span class="params">(&amp;(loop_)-&gt;handle_queue, &amp;(h)-&gt;handle_queue)</span>; [1]
-        <span class="title">uv__handle_platform_init</span><span class="params">(h)</span>;                                             
-    }                                                                           
-    <span class="title">while</span> <span class="params">(<span class="number">0</span>)</span></span>
-</code></pre><p>其中最关键的部分是将h(uv_handle_t)加入loop-&gt;handle_queue的队列中去。</p>
-<h4 id="2-_uv_timer_start">2. uv_timer_start</h4><p>uv_timer_start接口的主要任务就是将uv_timer_t这个handler加入loop维护的一个最小堆中(timer_heap)</p>
-<pre><code>int uv_timer_start(uv_timer_t* <span class="keyword">handle</span>,
-               uv_timer_cb cb,
-               uint64_t timeout,
-               uint64_t repeat) {
-    uint64_t clamped_timeout;
-
-    <span class="keyword">if</span> (cb == <span class="built_in">NULL</span>)
-        <span class="keyword">return</span> <span class="attribute">-EINVAL</span>;
-
-    <span class="keyword">if</span> (uv__is_active(<span class="keyword">handle</span>))
-        uv_timer_stop(<span class="keyword">handle</span>);
-
-     <span class="attribute">...</span><span class="attribute">...</span>
-     heap_insert((struct heap*) <span class="subst">&amp;</span><span class="keyword">handle</span><span class="subst">-&gt;</span><span class="keyword">loop</span><span class="subst">-&gt;</span>timer_heap,
-          (struct heap_node*) <span class="subst">&amp;</span><span class="keyword">handle</span><span class="subst">-&gt;</span>heap_node,
-          timer_less_than);
-     uv__handle_start(<span class="keyword">handle</span>);
-
-      <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><h4 id="3-uv_timer_stop">3.uv_timer_stop</h4><p>uv_timer_stop做的事情更简单了，他将Timer中timer_heap中删除掉并关闭handler。</p>
-<h3 id="小结">小结</h3><hr>
-<p>libuv里面Timer是非常简单的模块了，</p>
-
+              <a href="/2015/11/08/libuv-timer/" rel="next" title="libuv_timer">
+                <i class="fa fa-chevron-left"></i> libuv_timer
+              </a>
             
-          </span>
-        
-      
-    </div>
+          </div>
 
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
+          <div class="post-nav-prev post-nav-item">
             
-            
-              
-                
-                <a class="post-title-link" href="/2015/11/08/python-inspect-module/" itemprop="url">
-                  Python Inspect Module 小结
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T12:07:06+08:00" content="2015-11-08">
-              2015-11-08
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-
+          </div>
         </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
       
 
       
-        
-          <span itemprop="articleBody">
-            
-              <p>python的<a href="https://docs.python.org/2/library/inspect.html" target="_blank" rel="external">inspect</a>模块正如他们的命名一样，是用于检查运行模块的一些基本信息，有了inspect模块，我们可以做很多有意思的事情，下面主要想探究一下inspect模块</p>
-<h2 id="inspect-getmembers">inspect.getmembers</h2><pre><code><span class="function"><span class="keyword">def</span> <span class="title">getmembers</span><span class="params">(object, predicate=None)</span>:</span>
-<span class="string">"""Return all members of an object as (name, value) pairs sorted by name.
-Optionally, only return members that satisfy a given predicate."""</span>
-results = []
-<span class="comment"># 使用dir(builtin)获取所有的attr-key</span>
-<span class="keyword">for</span> key <span class="keyword">in</span> dir(object):
-    <span class="keyword">try</span>:
-        value = getattr(object, key)
-    <span class="keyword">except</span> AttributeError:
-        <span class="keyword">continue</span>
-    <span class="comment"># 如果有预测函数则进行预测</span>
-    <span class="keyword">if</span> <span class="keyword">not</span> predicate <span class="keyword">or</span> predicate(value):
-        results.append((key, value))
-results.sort()
-<span class="keyword">return</span> results
-</code></pre><p>getmembers方法的实现非常简单，其内部的实现就是用内建函数dir实现的。</p>
-<h2 id="inspect-currentframe">inspect.currentframe</h2><p>currentframe内部实现是通过sys._getframe实现的。在使用currentframe的时候要注意防止循环引用。</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">handle_stackframe_without_leak</span><span class="params">()</span>:</span>
-    frame = inspect.currentframe()
-<span class="keyword">try</span>:
-    <span class="comment"># do something with the frame</span>
-<span class="keyword">finally</span>:
-    <span class="keyword">del</span> frame
-</code></pre><h2 id="inspect的使用">inspect的使用</h2><p>获取调用函数的实例</p>
-<pre><code><span class="comment"># file: util.py</span>
-<span class="function"><span class="keyword">def</span> <span class="title">get_caller</span><span class="params">()</span>:</span>
-    <span class="keyword">import</span> inspect
-    <span class="keyword">try</span>:
-        frame = inspect.currentframe()
-        call_frame = frame.f_back.f_back
-        call_frame_name = call_frame.f_code.co_varnames[<span class="number">0</span>]
-        call_frame_self = call_frame.f_locals.get(call_frame_name, <span class="keyword">None</span>)
-    <span class="keyword">except</span>:
-        call_frame_self = <span class="keyword">None</span>
-    <span class="keyword">finally</span>:
-        <span class="keyword">del</span> frame
-    <span class="keyword">return</span> call_frame_self
-</code></pre>
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </article>
 
 
-    
 
-  </section>
-
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
         </div>
@@ -733,6 +473,10 @@ results.sort()
 
 
         
+  <div class="comments" id="comments">
+    
+  </div>
+
 
       </div>
 
@@ -753,8 +497,17 @@ results.sort()
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目錄
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            本站概覽
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel  sidebar-panel-active ">
+      <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" src="/images/avatar.jpg" alt="whosemario" itemprop="image"/>
           <p class="site-author-name" itemprop="name">whosemario</p>
@@ -809,6 +562,23 @@ results.sort()
 
       </section>
 
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator">
+            <i class="fa fa-angle-double-up"></i>
+          </div>
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Class_A的创建"><span class="nav-number">1.</span> <span class="nav-text">Class A的创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Class_A的属性设置"><span class="nav-number">2.</span> <span class="nav-text">Class A的属性设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator">
+            <i class="fa fa-angle-double-down"></i>
+          </div>
+        </section>
       
 
     </div>
@@ -879,6 +649,167 @@ results.sort()
   <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
 
   
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 1 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
 
   <script type="text/javascript" src="/js/bootstrap.js"></script>
 

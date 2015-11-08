@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python," />
+  <meta name="keywords" content="async io,libuv," />
 
 
 
@@ -53,22 +53,31 @@
 
 
 
-<meta name="description" content="python的inspect模块正如他们的命名一样，是用于检查运行模块的一些基本信息，有了inspect模块，我们可以做很多有意思的事情，下面主要想探究一下inspect模块
-inspect.getmembersdef getmembers(object, predicate=None):
-&quot;&quot;&quot;Return all members of an object as (name, value) pa">
+<meta name="description" content="Timer handles are used to schedule callbacks to be called in the future.
+
+libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。
+数据结构
+Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：
+struct uv_timer_">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python Inspect Module 小结">
-<meta property="og:url" content="http://yoursite.com/2015/11/08/python-inspect-module/index.html">
+<meta property="og:title" content="libuv_timer">
+<meta property="og:url" content="http://yoursite.com/2015/11/08/libuv-timer/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="python的inspect模块正如他们的命名一样，是用于检查运行模块的一些基本信息，有了inspect模块，我们可以做很多有意思的事情，下面主要想探究一下inspect模块
-inspect.getmembersdef getmembers(object, predicate=None):
-&quot;&quot;&quot;Return all members of an object as (name, value) pa">
-<meta property="og:updated_time" content="2015-11-08T10:57:08.000Z">
+<meta property="og:description" content="Timer handles are used to schedule callbacks to be called in the future.
+
+libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。
+数据结构
+Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：
+struct uv_timer_">
+<meta property="og:updated_time" content="2015-11-08T10:56:34.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python Inspect Module 小结">
-<meta name="twitter:description" content="python的inspect模块正如他们的命名一样，是用于检查运行模块的一些基本信息，有了inspect模块，我们可以做很多有意思的事情，下面主要想探究一下inspect模块
-inspect.getmembersdef getmembers(object, predicate=None):
-&quot;&quot;&quot;Return all members of an object as (name, value) pa">
+<meta name="twitter:title" content="libuv_timer">
+<meta name="twitter:description" content="Timer handles are used to schedule callbacks to be called in the future.
+
+libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。
+数据结构
+Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：
+struct uv_timer_">
 
 
 
@@ -80,7 +89,7 @@ inspect.getmembersdef getmembers(object, predicate=None):
   };
 </script>
 
-  <title> Python Inspect Module 小结 | Whosemario的家 </title>
+  <title> libuv_timer | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -230,7 +239,7 @@ inspect.getmembersdef getmembers(object, predicate=None):
             
             
               
-                Python Inspect Module 小结
+                libuv_timer
               
             
           </h1>
@@ -239,26 +248,11 @@ inspect.getmembersdef getmembers(object, predicate=None):
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T12:07:06+08:00" content="2015-11-08">
+            <time itemprop="dateCreated" datetime="2015-11-08T18:54:56+08:00" content="2015-11-08">
               2015-11-08
             </time>
           </span>
 
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
           
 
           
@@ -278,45 +272,68 @@ inspect.getmembersdef getmembers(object, predicate=None):
       
 
       
-        <span itemprop="articleBody"><p>python的<a href="https://docs.python.org/2/library/inspect.html" target="_blank" rel="external">inspect</a>模块正如他们的命名一样，是用于检查运行模块的一些基本信息，有了inspect模块，我们可以做很多有意思的事情，下面主要想探究一下inspect模块</p>
-<h2 id="inspect-getmembers">inspect.getmembers</h2><pre><code><span class="function"><span class="keyword">def</span> <span class="title">getmembers</span><span class="params">(object, predicate=None)</span>:</span>
-<span class="string">"""Return all members of an object as (name, value) pairs sorted by name.
-Optionally, only return members that satisfy a given predicate."""</span>
-results = []
-<span class="comment"># 使用dir(builtin)获取所有的attr-key</span>
-<span class="keyword">for</span> key <span class="keyword">in</span> dir(object):
-    <span class="keyword">try</span>:
-        value = getattr(object, key)
-    <span class="keyword">except</span> AttributeError:
-        <span class="keyword">continue</span>
-    <span class="comment"># 如果有预测函数则进行预测</span>
-    <span class="keyword">if</span> <span class="keyword">not</span> predicate <span class="keyword">or</span> predicate(value):
-        results.append((key, value))
-results.sort()
-<span class="keyword">return</span> results
-</code></pre><p>getmembers方法的实现非常简单，其内部的实现就是用内建函数dir实现的。</p>
-<h2 id="inspect-currentframe">inspect.currentframe</h2><p>currentframe内部实现是通过sys._getframe实现的。在使用currentframe的时候要注意防止循环引用。</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">handle_stackframe_without_leak</span><span class="params">()</span>:</span>
-    frame = inspect.currentframe()
-<span class="keyword">try</span>:
-    <span class="comment"># do something with the frame</span>
-<span class="keyword">finally</span>:
-    <span class="keyword">del</span> frame
-</code></pre><h2 id="inspect的使用">inspect的使用</h2><p>获取调用函数的实例</p>
-<pre><code><span class="comment"># file: util.py</span>
-<span class="function"><span class="keyword">def</span> <span class="title">get_caller</span><span class="params">()</span>:</span>
-    <span class="keyword">import</span> inspect
-    <span class="keyword">try</span>:
-        frame = inspect.currentframe()
-        call_frame = frame.f_back.f_back
-        call_frame_name = call_frame.f_code.co_varnames[<span class="number">0</span>]
-        call_frame_self = call_frame.f_locals.get(call_frame_name, <span class="keyword">None</span>)
-    <span class="keyword">except</span>:
-        call_frame_self = <span class="keyword">None</span>
-    <span class="keyword">finally</span>:
-        <span class="keyword">del</span> frame
-    <span class="keyword">return</span> call_frame_self
-</code></pre></span>
+        <span itemprop="articleBody"><blockquote>
+<p>Timer handles are used to schedule callbacks to be called in the future.</p>
+</blockquote>
+<p>libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。</p>
+<h3 id="数据结构">数据结构</h3><hr>
+<p>Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：</p>
+<pre><code><span class="keyword">struct</span> uv_timer_s {
+    UV_HANDLE_FIELDS
+    UV_TIMER_PRIVATE_FIELDS
+};
+
+<span class="preprocessor">#<span class="keyword">define</span> UV_TIMER_PRIVATE_FIELDS                           </span>
+  uv_timer_cb timer_cb;    <span class="preprocessor">#timer到期时的回调函数                                         </span>
+  <span class="keyword">void</span>* heap_node[<span class="number">3</span>];      <span class="preprocessor">#用于维护timer的最小堆    </span>
+  <span class="keyword">uint64_t</span> timeout;        <span class="preprocessor">#timer的超时时间，其实是到多长时间后timer被触发       </span>
+  <span class="keyword">uint64_t</span> repeat;         <span class="preprocessor">#timer是否重复                                                 </span>
+  <span class="keyword">uint64_t</span> start_id;
+</code></pre><h3 id="接口">接口</h3><hr>
+<h4 id="1-_uv_timer_init">1. uv_timer_init</h4><p>uv_timer_init接口的实现很简单。</p>
+<pre><code><span class="preprocessor"># file: timer.c</span>
+<span class="function"><span class="keyword">int</span> <span class="title">uv_timer_init</span><span class="params">(uv_loop_t* loop, uv_timer_t* handle)</span> </span>{
+    uv__handle_init(loop, (<span class="keyword">uv_handle_t</span>*)handle, UV_TIMER);   [<span class="number">1</span>]
+    handle-&gt;timer_cb = <span class="literal">NULL</span>;
+    handle-&gt;repeat = <span class="number">0</span>;
+    <span class="keyword">return</span> <span class="number">0</span>;
+}
+</code></pre><p>代码[1]对uv_handle_t进行了初始化。来看一下uv__handle_init宏定义。</p>
+<pre><code><span class="comment">#define uv__handle_init(loop_, h, type_)                                    </span>
+    <span class="keyword">do</span> {                                                                        
+        <span class="function"><span class="params">(h)</span>-&gt;</span><span class="keyword">loop</span> = (loop_);                                                   
+        <span class="function"><span class="params">(h)</span>-&gt;</span>type = (type_);                                                  
+        <span class="function"><span class="params">(h)</span>-&gt;</span>flags = UV__HANDLE_REF;  
+        QUEUE_INSERT_TAIL<span class="function"><span class="params">(&amp;(loop_)-&gt;handle_queue, &amp;(h)-&gt;handle_queue)</span>; [1]
+        <span class="title">uv__handle_platform_init</span><span class="params">(h)</span>;                                             
+    }                                                                           
+    <span class="title">while</span> <span class="params">(<span class="number">0</span>)</span></span>
+</code></pre><p>其中最关键的部分是将h(uv_handle_t)加入loop-&gt;handle_queue的队列中去。</p>
+<h4 id="2-_uv_timer_start">2. uv_timer_start</h4><p>uv_timer_start接口的主要任务就是将uv_timer_t这个handler加入loop维护的一个最小堆中(timer_heap)</p>
+<pre><code>int uv_timer_start(uv_timer_t* <span class="keyword">handle</span>,
+               uv_timer_cb cb,
+               uint64_t timeout,
+               uint64_t repeat) {
+    uint64_t clamped_timeout;
+
+    <span class="keyword">if</span> (cb == <span class="built_in">NULL</span>)
+        <span class="keyword">return</span> <span class="attribute">-EINVAL</span>;
+
+    <span class="keyword">if</span> (uv__is_active(<span class="keyword">handle</span>))
+        uv_timer_stop(<span class="keyword">handle</span>);
+
+     <span class="attribute">...</span><span class="attribute">...</span>
+     heap_insert((struct heap*) <span class="subst">&amp;</span><span class="keyword">handle</span><span class="subst">-&gt;</span><span class="keyword">loop</span><span class="subst">-&gt;</span>timer_heap,
+          (struct heap_node*) <span class="subst">&amp;</span><span class="keyword">handle</span><span class="subst">-&gt;</span>heap_node,
+          timer_less_than);
+     uv__handle_start(<span class="keyword">handle</span>);
+
+      <span class="keyword">return</span> <span class="number">0</span>;
+}
+</code></pre><h4 id="3-uv_timer_stop">3.uv_timer_stop</h4><p>uv_timer_stop做的事情更简单了，他将Timer中timer_heap中删除掉并关闭handler。</p>
+<h3 id="小结">小结</h3><hr>
+<p>libuv里面Timer是非常简单的模块了，</p>
+</span>
       
     </div>
 
@@ -324,7 +341,9 @@ results.sort()
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/async-io/" rel="tag">#async io</a>
+          
+            <a href="/tags/libuv/" rel="tag">#libuv</a>
           
         </div>
       
@@ -333,12 +352,16 @@ results.sort()
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2015/11/08/python-inspect-module/" rel="next" title="Python Inspect Module 小结">
+                <i class="fa fa-chevron-left"></i> Python Inspect Module 小结
+              </a>
+            
           </div>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/11/08/libuv-timer/" rel="prev" title="libuv_timer">
-                libuv_timer <i class="fa fa-chevron-right"></i>
+              <a href="/2015/11/08/python-slot/" rel="prev" title="python-slot">
+                python-slot <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -463,7 +486,7 @@ results.sort()
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#inspect-getmembers"><span class="nav-number">1.</span> <span class="nav-text">inspect.getmembers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#inspect-currentframe"><span class="nav-number">2.</span> <span class="nav-text">inspect.currentframe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#inspect的使用"><span class="nav-number">3.</span> <span class="nav-text">inspect的使用</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据结构"><span class="nav-number">1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口"><span class="nav-number">2.</span> <span class="nav-text">接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-_uv_timer_init"><span class="nav-number">2.1.</span> <span class="nav-text">1. uv_timer_init</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-_uv_timer_start"><span class="nav-number">2.2.</span> <span class="nav-text">2. uv_timer_start</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-uv_timer_stop"><span class="nav-number">2.3.</span> <span class="nav-text">3.uv_timer_stop</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
