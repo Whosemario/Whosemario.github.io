@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="cocurrent," />
+  <meta name="keywords" content="python," />
 
 
 
@@ -53,22 +53,22 @@
 
 
 
-<meta name="description" content="Libtask是Go语言的作者之一拉斯·考克斯(Russ Cox)实现的一个轻量级的协程库。代码量很少，很好理解。所以最近在阅读其源码，并同时对源码做注释。我将注释的源码提交在了Github上https://github.com/Whosemario/libtask-comment。同时，我也会实时更新这篇博客，加入自己对Libtask的理解。
-
-taskdelay的内部实现">
+<meta name="description" content="起因我们的游戏进程是用Python实现的，有时候为了调试一些游戏逻辑，我们不得不打印很多的log，并且有时候少打印了一些log还要补上这些log后重新走一遍游戏逻辑，甚是麻烦。Python提供了pdb模块，是否可以随时调试一个Python进程的某段代码呢？
+Python Pdb模块我们先从Python的Pdb模块入手，如下是Pdb的构造函数。
+class Pdb(bdb.Bdb, cmd.Cmd)">
 <meta property="og:type" content="article">
-<meta property="og:title" content="libtask源码注释">
-<meta property="og:url" content="http://whosemario.github.io/2015/11/12/libtask/index.html">
+<meta property="og:title" content="远程调试Python进程的小工具">
+<meta property="og:url" content="http://whosemario.github.io/2015/12/01/python-remote-debug-py/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="Libtask是Go语言的作者之一拉斯·考克斯(Russ Cox)实现的一个轻量级的协程库。代码量很少，很好理解。所以最近在阅读其源码，并同时对源码做注释。我将注释的源码提交在了Github上https://github.com/Whosemario/libtask-comment。同时，我也会实时更新这篇博客，加入自己对Libtask的理解。
-
-taskdelay的内部实现">
-<meta property="og:updated_time" content="2015-11-15T14:27:42.000Z">
+<meta property="og:description" content="起因我们的游戏进程是用Python实现的，有时候为了调试一些游戏逻辑，我们不得不打印很多的log，并且有时候少打印了一些log还要补上这些log后重新走一遍游戏逻辑，甚是麻烦。Python提供了pdb模块，是否可以随时调试一个Python进程的某段代码呢？
+Python Pdb模块我们先从Python的Pdb模块入手，如下是Pdb的构造函数。
+class Pdb(bdb.Bdb, cmd.Cmd)">
+<meta property="og:updated_time" content="2015-12-01T05:14:01.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="libtask源码注释">
-<meta name="twitter:description" content="Libtask是Go语言的作者之一拉斯·考克斯(Russ Cox)实现的一个轻量级的协程库。代码量很少，很好理解。所以最近在阅读其源码，并同时对源码做注释。我将注释的源码提交在了Github上https://github.com/Whosemario/libtask-comment。同时，我也会实时更新这篇博客，加入自己对Libtask的理解。
-
-taskdelay的内部实现">
+<meta name="twitter:title" content="远程调试Python进程的小工具">
+<meta name="twitter:description" content="起因我们的游戏进程是用Python实现的，有时候为了调试一些游戏逻辑，我们不得不打印很多的log，并且有时候少打印了一些log还要补上这些log后重新走一遍游戏逻辑，甚是麻烦。Python提供了pdb模块，是否可以随时调试一个Python进程的某段代码呢？
+Python Pdb模块我们先从Python的Pdb模块入手，如下是Pdb的构造函数。
+class Pdb(bdb.Bdb, cmd.Cmd)">
 
 
 
@@ -80,7 +80,7 @@ taskdelay的内部实现">
   };
 </script>
 
-  <title> libtask源码注释 | Whosemario的家 </title>
+  <title> 远程调试Python进程的小工具 | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -230,7 +230,7 @@ taskdelay的内部实现">
             
             
               
-                libtask源码注释
+                远程调试Python进程的小工具
               
             
           </h1>
@@ -239,8 +239,8 @@ taskdelay的内部实现">
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2015-11-12T12:31:12+08:00" content="2015-11-12">
-              2015-11-12
+            <time itemprop="dateCreated" datetime="2015-12-01T12:47:36+08:00" content="2015-12-01">
+              2015-12-01
             </time>
           </span>
 
@@ -249,8 +249,8 @@ taskdelay的内部实现">
               &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
                   </a>
                 </span>
 
@@ -265,8 +265,8 @@ taskdelay的内部实现">
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2015/11/12/libtask/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/12/libtask/" itemprop="commentsCount"></span>
+                <a href="/2015/12/01/python-remote-debug-py/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/01/python-remote-debug-py/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -285,9 +285,162 @@ taskdelay的内部实现">
       
 
       
-        <span itemprop="articleBody"><p><a href="https://swtch.com/libtask/" target="_blank" rel="external">Libtask</a>是Go语言的作者之一拉斯·考克斯(Russ Cox)实现的一个轻量级的协程库。代码量很少，很好理解。所以最近在阅读其源码，并同时对源码做注释。<br>我将注释的源码提交在了Github上<a href="https://github.com/Whosemario/libtask-comment" target="_blank" rel="external">https://github.com/Whosemario/libtask-comment</a>。同时，我也会实时更新这篇博客，加入自己对Libtask的理解。</p>
-<ol>
-<li><a href="http://whosemario.github.io/2015/11/12/timer/">taskdelay的内部实现</a></li>
+        <span itemprop="articleBody"><h3 id="起因">起因</h3><p>我们的游戏进程是用Python实现的，有时候为了调试一些游戏逻辑，我们不得不打印很多的log，并且有时候少打印了一些log还要补上这些log后重新走一遍游戏逻辑，甚是麻烦。<br>Python提供了pdb模块，是否可以随时调试一个Python进程的某段代码呢？</p>
+<h3 id="Python_Pdb模块">Python Pdb模块</h3><p>我们先从Python的Pdb模块入手，如下是Pdb的构造函数。</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Pdb</span><span class="params">(bdb.Bdb, cmd.Cmd)</span>:</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, completekey=<span class="string">'tab'</span>, stdin=None, stdout=None, skip=None)</span>:</span>
+        bdb.Bdb.__init__(self, skip=skip)
+        cmd.Cmd.__init__(self, completekey, stdin, stdout)
+</code></pre><p>Pdb的构造函数会传入<strong>stdin</strong>和<strong>stdout</strong>，如果为None则是真标准输入输出。好了，我传入一个其他的文件描述符这不就可以将pdb的调试信息重定向了嘛，pdb模块完全可扩展，不需要改pdb了。</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">runcall</span><span class="params">(*args, **kwds)</span>:</span>
+    <span class="keyword">return</span> Pdb().runcall(*args, **kwds)
+</code></pre><p>Pdb模块有runcall方法（其实runcall的实现是在bdb模块里面的），也好了，我们可以利用这个方法来实现debug一个函数了。</p>
+<h3 id="进程之间通信">进程之间通信</h3><p>我的目标是在同一台机器上实现两个进程之间的通信，服务端进程就是我们游戏的Game进程，客户端是一个Python程序。这里我使用了两个FIFO（有名管道）来实现了进程间的通信，参考了reference1。</p>
+<pre><code><span class="comment">#-*- coding:utf-8 -*-</span>
+
+<span class="string">"""\
+    使用FIFO模拟一个双工管道用于两个进程之间的通信
+"""</span>
+
+<span class="keyword">import</span> os
+<span class="keyword">import</span> tempfile
+
+__all__ = [<span class="string">"NamePipe"</span>]
+
+<span class="class"><span class="keyword">class</span> <span class="title">NamePipe</span><span class="params">(object)</span>:</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, pid, is_client = True, mode = <span class="number">0666</span>)</span>:</span>
+        super(NamePipe, self).__init__()
+
+        name = self._get_pipe_name(pid)
+        self.in_name = name + <span class="string">".in"</span>
+        self.out_name = name + <span class="string">".out"</span>
+
+        <span class="keyword">try</span>:
+            os.mkfifo(self.in_name, mode)
+            os.chmod(self.in_name, mode)
+        <span class="keyword">except</span> OSError: <span class="keyword">pass</span>
+        <span class="keyword">try</span> : 
+            os.mkfifo(self.out_name, mode)
+            os.chmod(self.out_name, mode)
+        <span class="keyword">except</span> OSError: <span class="keyword">pass</span>
+
+        self.is_client = is_client
+
+        <span class="keyword">if</span> is_client:
+            <span class="comment"># client</span>
+            self.in_fd = open(self.in_name, <span class="string">"r"</span>)
+            self.out_fd = open(self.out_name, <span class="string">"w"</span>)
+        <span class="keyword">else</span>:
+            <span class="comment"># server</span>
+            self.out_fd = open(self.in_name, <span class="string">"w"</span>)
+            self.in_fd = open(self.out_name, <span class="string">"r"</span>)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">write</span><span class="params">(self, msg)</span>:</span>
+        <span class="keyword">if</span> self.is_open():
+            self.out_fd.write(<span class="string">"%d\n"</span> % len(msg))
+            self.out_fd.write(msg)
+            self.out_fd.flush()
+            <span class="keyword">return</span> <span class="keyword">True</span>
+        <span class="keyword">else</span>:
+            <span class="keyword">return</span> <span class="keyword">False</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">read</span><span class="params">(self)</span>:</span>
+        <span class="keyword">if</span> self.is_open():
+            sz = self.in_fd.readline()
+            <span class="keyword">if</span> sz:
+                <span class="keyword">return</span> self.in_fd.read(int(sz))
+            <span class="keyword">else</span>:
+                <span class="keyword">return</span> <span class="string">""</span>
+        <span class="keyword">else</span>:
+            <span class="keyword">return</span> <span class="keyword">None</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">flush</span><span class="params">(self)</span>:</span>
+        <span class="keyword">pass</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">readline</span><span class="params">(self)</span>:</span>
+        <span class="keyword">return</span> self.read()
+
+    <span class="function"><span class="keyword">def</span> <span class="title">is_open</span><span class="params">(self)</span>:</span>
+        <span class="comment">#return True</span>
+        <span class="keyword">return</span> <span class="keyword">not</span> (self.in_fd.closed <span class="keyword">or</span> self.out_fd.closed)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">close</span><span class="params">(self)</span>:</span>
+        <span class="string">"""  只尝试unlink掉读端
+        """</span>
+        <span class="keyword">if</span> self.is_client:
+            <span class="keyword">try</span>: os.remove(self.in_name)
+            <span class="keyword">except</span> OSError: <span class="keyword">pass</span>
+        <span class="keyword">else</span>:
+            <span class="keyword">try</span>: os.remove(self.out_name)
+            <span class="keyword">except</span> OSError: <span class="keyword">pass</span>
+        self.in_fd.close()
+        self.out_fd.close()
+
+
+    <span class="function"><span class="keyword">def</span> <span class="title">_get_pipe_name</span><span class="params">(self, pid)</span>:</span>
+        <span class="keyword">return</span> os.path.join(tempfile.gettempdir(), <span class="string">"pipe-%d"</span> % pid)
+</code></pre><h3 id="Debug修饰器">Debug修饰器</h3><p>针对要Debug得函数，我们可以使用修饰器进行修饰。</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">remote_debug</span><span class="params">(func)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">(*args, **kwargs)</span>:</span>
+        <span class="keyword">import</span> pdb
+        <span class="keyword">if</span> _pipe:
+            <span class="keyword">try</span>:
+                pdb.Pdb(stdin = _pipe, stdout = _pipe).runcall(func, *args, **kwargs)
+            <span class="keyword">except</span> IOError:
+                _pipe.close()
+                _pipe = <span class="keyword">None</span>
+        <span class="keyword">else</span>:
+            <span class="keyword">return</span> func(*args, **kwargs)
+    <span class="keyword">return</span> wrapper    
+</code></pre><h3 id="建立通信">建立通信</h3><p>客户端通过SIGUSR2信号来通知服务端建立通信。</p>
+<pre><code><span class="comment"># server</span>
+_pipe = <span class="keyword">None</span>
+
+<span class="function"><span class="keyword">def</span> <span class="title">remote_connect</span><span class="params">(sig, frame)</span>:</span>
+    <span class="keyword">if</span> _pipe:
+        _pipe.close()
+    _pipe = NamePipe.NamePipe(os.getpid(), <span class="keyword">False</span>)
+
+<span class="function"><span class="keyword">def</span> <span class="title">reg_listener</span><span class="params">()</span>:</span>
+    <span class="keyword">import</span> signal
+    signal.signal(signal.SIGUSR1, remote_connect)
+
+-------------------------------------------------------
+
+<span class="comment"># clent</span>
+<span class="comment">#-*- coding:utf-8 -*-</span>
+
+<span class="keyword">import</span> signal
+<span class="keyword">import</span> os
+<span class="keyword">import</span> sys
+<span class="keyword">import</span> NamePipe
+<span class="keyword">import</span> pdb
+
+Prefix = pdb.Pdb().prompt
+
+pid = int(sys.argv[<span class="number">1</span>])
+
+os.kill(pid, signal.SIGUSR1)
+
+pipe = NamePipe.NamePipe(pid, <span class="keyword">True</span>)
+
+<span class="keyword">while</span> <span class="keyword">True</span>:
+
+    <span class="keyword">while</span> <span class="keyword">True</span>:
+        txt = pipe.read()
+        <span class="keyword">if</span> txt:
+            sys.stdout.write(<span class="string">"%s"</span> % txt)
+            sys.stdout.flush()
+            <span class="keyword">if</span> txt.startswith(Prefix):
+                <span class="keyword">break</span>
+
+
+    txt = raw_input(<span class="string">""</span>)
+    pipe.write(txt)
+</code></pre><h3 id="reference:">reference:</h3><ol>
+<li>Debugging a running python process - <a href="http://code.activestate.com/recipes/576515/" target="_blank" rel="external">http://code.activestate.com/recipes/576515/</a></li>
 </ol>
 </span>
       
@@ -297,7 +450,7 @@ taskdelay的内部实现">
       
         <div class="post-tags">
           
-            <a href="/tags/cocurrent/" rel="tag">#cocurrent</a>
+            <a href="/tags/python/" rel="tag">#python</a>
           
         </div>
       
@@ -306,17 +459,13 @@ taskdelay的内部实现">
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/11/08/python-slot/" rel="next" title="python __slots__">
-                <i class="fa fa-chevron-left"></i> python __slots__
+              <a href="/2015/11/22/python-coroutine/" rel="next" title="Python Coroutine 初探">
+                <i class="fa fa-chevron-left"></i> Python Coroutine 初探
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2015/11/12/timer/" rel="prev" title="怎样实现一个Timer">
-                怎样实现一个Timer <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -331,10 +480,10 @@ taskdelay的内部实现">
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2015/11/12/libtask/"
-     data-title="libtask源码注释"
+        <div class="ds-share flat" data-thread-key="2015/12/01/python-remote-debug-py/"
+     data-title="远程调试Python进程的小工具"
      data-content=""
-     data-url="http://whosemario.github.io/2015/11/12/libtask/">
+     data-url="http://whosemario.github.io/2015/12/01/python-remote-debug-py/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -362,8 +511,8 @@ taskdelay的内部实现">
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2015/11/12/libtask/"
-           data-title="libtask源码注释" data-url="http://whosemario.github.io/2015/11/12/libtask/">
+      <div class="ds-thread" data-thread-key="2015/12/01/python-remote-debug-py/"
+           data-title="远程调试Python进程的小工具" data-url="http://whosemario.github.io/2015/12/01/python-remote-debug-py/">
       </div>
     
   </div>
@@ -463,7 +612,7 @@ taskdelay的内部实现">
               
             
             
-              <p class="post-toc-empty">此文章未包含目錄</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#起因"><span class="nav-number">1.</span> <span class="nav-text">起因</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Python_Pdb模块"><span class="nav-number">2.</span> <span class="nav-text">Python Pdb模块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程之间通信"><span class="nav-number">3.</span> <span class="nav-text">进程之间通信</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Debug修饰器"><span class="nav-number">4.</span> <span class="nav-text">Debug修饰器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#建立通信"><span class="nav-number">5.</span> <span class="nav-text">建立通信</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reference:"><span class="nav-number">6.</span> <span class="nav-text">reference:</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
