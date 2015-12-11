@@ -53,37 +53,28 @@
 
 
 
-<meta name="description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
-&amp;gt;&amp;gt;&amp;gt; class A(object):
-...     __slots__ = [&quot;v&quot;]
-...
-&amp;gt;&amp;gt;&amp;gt; a = A() 
-&amp;gt;&amp;gt;&amp;gt; a.v = 1
-&amp;gt;&amp;gt;&amp;gt; a.b = 1
-Trace">
+<meta name="description" content="1.关于单元测试的思考怎样对游戏进行单元测试是我在一直思考的问题，我们的游戏服务端是用Python写的，我们开发的测试方式确实很原始，服务端游戏逻辑写完后，都要借助于客户端链接上服务器，然后利用GM指令，或者其他蹩脚的方式才能测试服务端的逻辑是否正确，这个过程存在很多显而易见的弊端：
+
+测试流程太过繁琐，并且测试点有可能不全面
+没有规范的单元测试，自动化测试也很难实施
+单元测试也是理解代码逻辑的一">
 <meta property="og:type" content="article">
-<meta property="og:title" content="python __slots__">
-<meta property="og:url" content="http://whosemario.github.io/2015/11/08/python-slot/index.html">
+<meta property="og:title" content="Python单元测试(1) —— Mock模块">
+<meta property="og:url" content="http://whosemario.github.io/2015/12/10/python-unittest-mock/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
-&amp;gt;&amp;gt;&amp;gt; class A(object):
-...     __slots__ = [&quot;v&quot;]
-...
-&amp;gt;&amp;gt;&amp;gt; a = A() 
-&amp;gt;&amp;gt;&amp;gt; a.v = 1
-&amp;gt;&amp;gt;&amp;gt; a.b = 1
-Trace">
-<meta property="og:updated_time" content="2015-11-09T01:09:56.000Z">
+<meta property="og:description" content="1.关于单元测试的思考怎样对游戏进行单元测试是我在一直思考的问题，我们的游戏服务端是用Python写的，我们开发的测试方式确实很原始，服务端游戏逻辑写完后，都要借助于客户端链接上服务器，然后利用GM指令，或者其他蹩脚的方式才能测试服务端的逻辑是否正确，这个过程存在很多显而易见的弊端：
+
+测试流程太过繁琐，并且测试点有可能不全面
+没有规范的单元测试，自动化测试也很难实施
+单元测试也是理解代码逻辑的一">
+<meta property="og:updated_time" content="2015-12-11T12:46:10.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="python __slots__">
-<meta name="twitter:description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
-&amp;gt;&amp;gt;&amp;gt; class A(object):
-...     __slots__ = [&quot;v&quot;]
-...
-&amp;gt;&amp;gt;&amp;gt; a = A() 
-&amp;gt;&amp;gt;&amp;gt; a.v = 1
-&amp;gt;&amp;gt;&amp;gt; a.b = 1
-Trace">
+<meta name="twitter:title" content="Python单元测试(1) —— Mock模块">
+<meta name="twitter:description" content="1.关于单元测试的思考怎样对游戏进行单元测试是我在一直思考的问题，我们的游戏服务端是用Python写的，我们开发的测试方式确实很原始，服务端游戏逻辑写完后，都要借助于客户端链接上服务器，然后利用GM指令，或者其他蹩脚的方式才能测试服务端的逻辑是否正确，这个过程存在很多显而易见的弊端：
+
+测试流程太过繁琐，并且测试点有可能不全面
+没有规范的单元测试，自动化测试也很难实施
+单元测试也是理解代码逻辑的一">
 
 
 
@@ -95,7 +86,7 @@ Trace">
   };
 </script>
 
-  <title> python __slots__ | Whosemario的家 </title>
+  <title> Python单元测试(1) —— Mock模块 | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -245,7 +236,7 @@ Trace">
             
             
               
-                python __slots__
+                Python单元测试(1) —— Mock模块
               
             
           </h1>
@@ -254,8 +245,8 @@ Trace">
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T18:57:49+08:00" content="2015-11-08">
-              2015-11-08
+            <time itemprop="dateCreated" datetime="2015-12-10T19:27:10+08:00" content="2015-12-10">
+              2015-12-10
             </time>
           </span>
 
@@ -280,8 +271,8 @@ Trace">
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2015/11/08/python-slot/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/08/python-slot/" itemprop="commentsCount"></span>
+                <a href="/2015/12/10/python-unittest-mock/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/10/python-unittest-mock/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -300,138 +291,77 @@ Trace">
       
 
       
-        <span itemprop="articleBody"><p><a href="http://www.jianshu.com/p/82ce2151d73b" target="_blank" rel="external">上一篇</a>翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。</p>
-<pre><code>&gt;&gt;&gt; class <span class="function"><span class="title">A</span><span class="params">(object)</span></span>:
-...     __slots__ = [<span class="string">"v"</span>]
+        <span itemprop="articleBody"><h2 id="1-关于单元测试的思考">1.关于单元测试的思考</h2><p>怎样对游戏进行单元测试是我在一直思考的问题，我们的游戏服务端是用Python写的，我们开发的测试方式确实很原始，服务端游戏逻辑写完后，都要借助于客户端链接上服务器，然后利用GM指令，或者其他蹩脚的方式才能测试服务端的逻辑是否正确，这个过程存在很多显而易见的弊端：</p>
+<ol>
+<li>测试流程太过繁琐，并且测试点有可能不全面</li>
+<li>没有规范的单元测试，自动化测试也很难实施</li>
+<li>单元测试也是理解代码逻辑的一种方式，如果单元测试都没有，理解代码的渠道就少了一层</li>
+</ol>
+<p>目前的困难：</p>
+<ol>
+<li>Python2.7 有自己的单元测试框架，可以好好的利用这个模块，怎样将此模块与游戏逻辑结合在一起也是要仔细考虑的问题</li>
+<li>依赖于客户端的登录是因为一个模块的逻辑依赖于很多其他模块，使用客户端端登录，其他模块自然也就存在了，怎样摆脱客户端，完全在服务端进行单元测试也是一个难点</li>
+<li>单元测试模块怎样构建，怎样可扩展</li>
+</ol>
+<p>单元测试我也是最近开始研究，这篇博文不仅写给大家，也写给我自己。我也将会将自己对单元测试的理解写成一个系列，今天先来说说对Python Mock模块的理解。</p>
+<h2 id="2-Python_Mock">2.Python Mock</h2><p>Mock模块在Python3.3被加入到Python标准库中，如果Python2.x要使用Mock模块可以使用<strong>pip</strong>进行安装。</p>
+<pre><code>&gt; sudo pip <span class="keyword">install</span> mock
+</code></pre><p>先罗列一下Mock模块的几个关键的内容：</p>
+<ol>
+<li>Mock类本身</li>
+<li>MagicMock</li>
+<li>patch修饰器</li>
+</ol>
+<h2 id="3-Mock">3.Mock</h2><p>介绍Mock模块首先要说一下Mock类，Mock类的构造函数如下：</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="type">Mock</span><span class="container">(<span class="title">spec</span>=<span class="type">None</span>, <span class="title">side_effect</span>=<span class="type">None</span>, <span class="title">return_value</span>=<span class="type">DEFAULT</span>, <span class="title">wraps</span>=<span class="type">None</span>, <span class="title">name</span>=<span class="type">None</span>, <span class="title">spec_set</span>=<span class="type">None</span>, <span class="title">unsafe</span>=<span class="type">False</span>, **<span class="title">kwargs</span>)</span></span>
+</code></pre><p>个人比较关注如下几个参数：</p>
+<h4 id="spec">spec</h4><p>spec的参数可以是一个Python类。</p>
+<pre><code><span class="prompt">&gt;&gt;&gt; </span><span class="class"><span class="keyword">class</span> <span class="title">Foo</span><span class="params">(object)</span>:</span>
+<span class="prompt">... </span>    val_a = <span class="number">1</span>
+<span class="prompt">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">func_a</span><span class="params">(self)</span>:</span>
+<span class="prompt">... </span>            <span class="keyword">print</span> <span class="string">"call in func_a"</span>
 ...
-&gt;&gt;&gt; <span class="tag">a</span> = <span class="function"><span class="title">A</span><span class="params">()</span></span> 
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.v</span> = <span class="number">1</span>
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.b</span> = <span class="number">1</span>
+<span class="prompt">&gt;&gt;&gt; </span>m = Mock(spec = Foo)
+<span class="prompt">&gt;&gt;&gt; </span>m.val_a
+&lt;Mock name=<span class="string">'mock.val_a'</span> id=<span class="string">'4501041936'</span>&gt;
+<span class="prompt">&gt;&gt;&gt; </span>m.func_a()
+&lt;Mock name=<span class="string">'mock.func_a()'</span> id=<span class="string">'4501044176'</span>&gt;
+<span class="prompt">&gt;&gt;&gt; </span>m.func_b()
 Traceback (most recent call last):
   File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;
-AttributeError: <span class="string">'A'</span> <span class="tag">object</span> has no attribute <span class="string">'b'</span>
-&gt;&gt;&gt; <span class="function"><span class="title">type</span><span class="params">(A.v)</span></span>
-&lt;type <span class="string">'member_descriptor'</span>&gt;
-</code></pre><p>上面这一段代码，Class A声明了__slots__参数，对实例a的v变量进行赋值没有问题，但对实例a的b变量赋值，则会有个AttributeError的异常发生。再仔细看看A.v，原来他是一个<a href="https://docs.python.org/2/howto/descriptor.html" target="_blank" rel="external">descriptor</a>(有时间可以写一篇Python descriptor相关的文章，Python中很多功能的实现都离不开descriptor)！<br>那么，Python在构建Class A的时候到底都做了什么，我们慢慢地解析下去。</p>
-<h4 id="Class_A的创建">Class A的创建</h4><p>Python中类的构建的相关字节码是BUILD_CLASS:</p>
-<pre><code># in ceval.c
-case BUILD_CLASS:
-      u = TOP()<span class="comment">;</span>
-      v = SECOND()<span class="comment">;</span>
-      w = THIRD()<span class="comment">;</span>
-      STACKADJ(-2)<span class="comment">;</span>
-      x = build_class(u, v, w)<span class="comment">;</span>
-      SET_TOP(x)<span class="comment">;</span>
-      Py_DECREF(u)<span class="comment">;</span>
-      Py_DECREF(v)<span class="comment">;</span>
-      Py_DECREF(w)<span class="comment">;</span>
-</code></pre><p>顺着这段起始代码顺藤摸瓜，最后会到命名为type_new的方法中去：</p>
-<pre><code>  # <span class="keyword">in</span> typeobject.c
-  <span class="keyword">static</span> PyObject *
-  type_new(PyTypeObject *metatype, PyObject *args, PyObject *kwds) {
-        ....
-        <span class="comment">// dict 可以理解为你将要新建的类的locals，里面便含有__slots__字段</span>
-        <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"SO!O!:type"</span>, kwlist,
-                                 &amp;name,
-                                 &amp;PyTuple_Type, &amp;bases,
-                                 &amp;PyDict_Type, &amp;dict))
-            <span class="keyword">return</span> NULL;
-        ....
-        <span class="comment">// 获取__slots__参数</span>
-        slots = PyDict_GetItemString(dict, <span class="string">"__slots__"</span>);
-        nslots = <span class="number">0</span>;
-        add_dict = <span class="number">0</span>;    <span class="comment">// 是否要加入__dict__</span>
-        add_weak = <span class="number">0</span>;  <span class="comment">// 是否要加入__weakref__</span>
-
-        <span class="keyword">if</span> (slots == NULL) {
-              <span class="comment">//... ignore</span>
-        } <span class="keyword">else</span> {
-              <span class="comment">// 会对slots做一下处理，包括计算nslots，但不影响我们对slots实现的理解</span>
-        }
-
-        <span class="comment">// 为需要创建的类分配空间</span>
-        <span class="class"><span class="keyword">type</span> </span>= (PyTypeObject *)metatype-&gt;tp_alloc(metatype, nslots);
-        ....
-        <span class="comment">// 转换指针，变为PyHeapTypeObject，PyHeapTypeObject和PyTypeObject的关系可以认为是包含关系，具体的细节可以再写一篇文章了</span>
-        et = (PyHeapTypeObject *)<span class="class"><span class="keyword">type</span>;</span>
-        ....
-        <span class="comment">// 将slots相关的参数设置为members</span>
-        mp = PyHeapType_GET_MEMBERS(et);
-        slotoffset = <span class="keyword">base</span>-&gt;tp_basicsize;
-        <span class="keyword">if</span> (slots != NULL) {
-            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nslots; i++, mp++) {
-                mp-&gt;name = PyString_AS_STRING(
-                              PyTuple_GET_ITEM(slots, i));
-                mp-&gt;<span class="class"><span class="keyword">type</span> </span>= T_OBJECT_EX;
-                mp-&gt;offset = slotoffset;
-                ....
-                slotoffset += sizeof(PyObject *);
-             }
-         }
-         ....
-         <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_members</span> </span>= PyHeapType_GET_MEMBERS(et);
-         ....
-         PyType_Ready(<span class="class"><span class="keyword">type</span>);</span>
-         ....
-}
-</code></pre><p>上面我们忽略了一些不相干的代码，代码的主要逻辑就是将__slots__定义的内容放到type的末尾，并且让type的tp_members变量指向type的末尾，这些内容将会在PyType_Ready函数中用到。<br>这里忽略PyType_Ready的内容，只说明在PyType_Ready中会调用add_members方法，下面看一下add_members的实现：</p>
-<pre><code><span class="preprocessor"># in typeobject.c</span>
-<span class="function"><span class="keyword">static</span> <span class="keyword">int</span>
-<span class="title">add_members</span><span class="params">(PyTypeObject *type, PyMemberDef *memb)</span> </span>{
-    PyObject *dict = type-&gt;tp_dict;
-    <span class="keyword">for</span> (; memb-&gt;name != <span class="literal">NULL</span>; memb++) {
-          PyObject *descr;
-          <span class="keyword">if</span> (PyDict_GetItemString(dict, memb-&gt;name))
-              <span class="keyword">continue</span>;
-          descr = PyDescr_NewMember(type, memb);
-          <span class="keyword">if</span> (descr == <span class="literal">NULL</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          <span class="keyword">if</span> (PyDict_SetItemString(dict, memb-&gt;name, descr) &lt; <span class="number">0</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          Py_DECREF(descr);
-      }
-      <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><p>上面的代码逻辑还是很好理解的，将memb里面的内容（即slots的内容）创建为member_descriptor，加入到tp_dict里面去。</p>
-<h4 id="Class_A的属性设置">Class A的属性设置</h4><p>实例的属性设置最终会在PyObject_GenericSetAttr方法中处理，PyObject_GenericSetAttr方法又会调用_PyObject_GenericSetAttrWithDict方法，我们来看一下_PyObject_GenericSetAttrWithDict方法到底怎么做的，才可以实现文章开始展示的效果。</p>
-<pre><code>int
-_PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
-                             PyObject *value, PyObject *dict) {
-    PyTypeObject *tp = Py_TYPE(obj);
-    descr = _PyType_Lookup(tp, name);
-    f = <span class="built_in">NULL</span>;
-    <span class="keyword">if</span> (descr != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span>
-        PyType_HasFeature(descr<span class="subst">-&gt;</span>ob_type,Py_TPFLAGS_HAVE_CLASS)) {
-        f = descr<span class="subst">-&gt;</span>ob_type<span class="subst">-&gt;</span>tp_descr_set;
-        <span class="comment">// 对于slots相关的参数将会进入下面的if语句</span>
-        <span class="keyword">if</span> (f != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span> PyDescr_IsData(descr)) {
-            res = f(descr, obj, value);
-            goto done;
-        }
-    }
-    <span class="attribute">...</span><span class="built_in">.
-    </span><span class="keyword">if</span> (dict == <span class="built_in">NULL</span>) {
-        <span class="comment">// 对于不是slots提供的属性，尝试去obj自己的dict中查找，</span>
-        <span class="comment">// 但在构建类时，由于有__slots__属性，所以tp_dictoffset为0，</span>
-        <span class="comment">// 因此dictptr等于NULL</span>
-        dictptr = _PyObject_GetDictPtr(obj);
-        <span class="keyword">if</span> (dictptr != <span class="built_in">NULL</span>) {
-              <span class="attribute">...</span><span class="built_in">. 
-        </span>}
-    }
-    <span class="keyword">if</span> (dict != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (f != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (descr == <span class="built_in">NULL</span>) {
-        <span class="comment">// 此时输出错误信息</span>
-        PyErr_Format(PyExc_AttributeErr<span class="subst">or</span>,
-                 <span class="string">"'%.100s' object has no attribute '%.200s'"</span>,
-                 tp<span class="subst">-&gt;</span>tp_name, PyString_AS_STRING(name));
-        goto done;
-    }
-    <span class="attribute">...</span><span class="built_in">.
-</span>}
-</code></pre><p>对于slots定义的变量，会找到对应的descr，调用对应的set方法，对于slots没有定义的变量，最终会跑到抛出异常的那段逻辑。</p>
-<h4 id="总结">总结</h4><p>__slots__的实现还是比较好懂的，Python在构建类的时候，会检查__slots__变量是否存在，如果存在，为slots变量建立member_descriptor，并放入tp_dict里面，并且这个类的tp<em>dictoffset为0，它的实例将不会有自己的\</em>_dict__。</p>
+  File <span class="string">"mock/mock.py"</span>, line <span class="number">717</span>, <span class="keyword">in</span> __getattr__
+<span class="keyword">raise</span> AttributeError(<span class="string">"Mock object has no attribute %r"</span> % name)
+AttributeError: Mock object has no attribute <span class="string">'func_b'</span>
+</code></pre><p>Foo类有一个参数<strong>val_a</strong>和方法<strong>func_a</strong>，实例<strong>m</strong>调用<strong>val_a</strong>和<strong>func_a</strong>都没有问题，但是调用Foo没有的参数或者方法则会抛出<strong>AttributeError</strong>异常。</p>
+<h4 id="return_value">return_value</h4><p>return_value定义mock被调用时的返回值。</p>
+<pre><code><span class="prompt">&gt;&gt;</span>&gt; m = <span class="constant">Mock</span>(return_value = <span class="number">1</span>)
+<span class="prompt">&gt;&gt;</span>&gt; m
+&lt;<span class="constant">Mock</span> id=<span class="string">'4501997840'</span>&gt;
+<span class="prompt">&gt;&gt;</span>&gt; m()
+<span class="number">1</span>
+</code></pre><h4 id="side_effect">side_effect</h4><p>side_effect和return_value正好相反，side_effect赋值后，mock的调用将会是side_effect的内容。side_effect可以是一个exception，也可以是一个可迭代的实例。</p>
+<pre><code>&gt;&gt;&gt; <span class="tag">li</span> = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
+&gt;&gt;&gt; m = <span class="function"><span class="title">Mock</span><span class="params">(side_effect = li)</span></span>
+&gt;&gt;&gt; <span class="function"><span class="title">m</span><span class="params">()</span></span>
+<span class="number">1</span>
+&gt;&gt;&gt; <span class="function"><span class="title">m</span><span class="params">()</span></span>
+<span class="number">2</span>
+&gt;&gt;&gt; <span class="function"><span class="title">m</span><span class="params">()</span></span>
+<span class="number">3</span>
+&gt;&gt;&gt; <span class="function"><span class="title">m</span><span class="params">()</span></span>
+Traceback (most recent call last):
+      File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;
+      File <span class="string">"mock/mock.py"</span>, line <span class="number">1063</span>, <span class="keyword">in</span> __call__
+        return _mock_self._mock_call(*args, **kwargs)
+      File <span class="string">"mock/mock.py"</span>, line <span class="number">1122</span>, <span class="keyword">in</span> _mock_call
+        result = <span class="function"><span class="title">next</span><span class="params">(effect)</span></span>
+      File <span class="string">"mock/mock.py"</span>, line <span class="number">127</span>, <span class="keyword">in</span> next
+        return _next(obj)
+StopIteration
+</code></pre><h2 id="Reference">Reference</h2><ol>
+<li>使用 Python Mock 类进行单元测试 - <a href="http://www.oschina.net/translate/unit-testing-with-the-python-mock-class" target="_blank" rel="external">http://www.oschina.net/translate/unit-testing-with-the-python-mock-class</a></li>
+<li>Python Mock Doc - <a href="https://docs.python.org/3/library/unittest.mock.html" target="_blank" rel="external">https://docs.python.org/3/library/unittest.mock.html</a></li>
+</ol>
 </span>
       
     </div>
@@ -449,17 +379,13 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/11/08/libuv-timer/" rel="next" title="libuv Timer 模块">
-                <i class="fa fa-chevron-left"></i> libuv Timer 模块
+              <a href="/2015/12/01/python-remote-debug-py/" rel="next" title="远程调试Python进程的小工具">
+                <i class="fa fa-chevron-left"></i> 远程调试Python进程的小工具
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2015/11/12/libtask/" rel="prev" title="libtask源码注释">
-                libtask源码注释 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -474,10 +400,10 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2015/11/08/python-slot/"
-     data-title="python __slots__"
+        <div class="ds-share flat" data-thread-key="2015/12/10/python-unittest-mock/"
+     data-title="Python单元测试(1) —— Mock模块"
      data-content=""
-     data-url="http://whosemario.github.io/2015/11/08/python-slot/">
+     data-url="http://whosemario.github.io/2015/12/10/python-unittest-mock/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -505,8 +431,8 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2015/11/08/python-slot/"
-           data-title="python __slots__" data-url="http://whosemario.github.io/2015/11/08/python-slot/">
+      <div class="ds-thread" data-thread-key="2015/12/10/python-unittest-mock/"
+           data-title="Python单元测试(1) —— Mock模块" data-url="http://whosemario.github.io/2015/12/10/python-unittest-mock/">
       </div>
     
   </div>
@@ -606,7 +532,7 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Class_A的创建"><span class="nav-number">1.</span> <span class="nav-text">Class A的创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Class_A的属性设置"><span class="nav-number">2.</span> <span class="nav-text">Class A的属性设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-关于单元测试的思考"><span class="nav-number">1.</span> <span class="nav-text">1.关于单元测试的思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Python_Mock"><span class="nav-number">2.</span> <span class="nav-text">2.Python Mock</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Mock"><span class="nav-number">3.</span> <span class="nav-text">3.Mock</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#spec"><span class="nav-number">3.0.1.</span> <span class="nav-text">spec</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#return_value"><span class="nav-number">3.0.2.</span> <span class="nav-text">return_value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#side_effect"><span class="nav-number">3.0.3.</span> <span class="nav-text">side_effect</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
