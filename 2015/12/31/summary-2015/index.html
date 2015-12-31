@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python," />
+  <meta name="keywords" content="Hexo, NexT" />
 
 
 
@@ -53,37 +53,28 @@
 
 
 
-<meta name="description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
-&amp;gt;&amp;gt;&amp;gt; class A(object):
-...     __slots__ = [&quot;v&quot;]
-...
-&amp;gt;&amp;gt;&amp;gt; a = A() 
-&amp;gt;&amp;gt;&amp;gt; a.v = 1
-&amp;gt;&amp;gt;&amp;gt; a.b = 1
-Trace">
+<meta name="description" content="2015年的最后一天了，是该总结一下
+
+宝贝女儿出生这一年最重要的事情就是我的宝贝女儿出生了，在2015年12月29号，下午15点30分，宝贝女儿来到了这个世界，以后生活的中心也就开始围绕着她来转咯。
+女儿的出生也意味着我的人生迈入了另一个阶段，我成为了一个父亲，预示着自己要更有责任感，要有耐心，做事要多为老婆和女儿考虑。
+辛苦&amp;amp;纠结这也是辛苦的一年，我们的游戏上线了，在上线的几个月工作也">
 <meta property="og:type" content="article">
-<meta property="og:title" content="python __slots__">
-<meta property="og:url" content="http://whosemario.github.io/2015/11/08/python-slot/index.html">
+<meta property="og:title" content="2015年终总结">
+<meta property="og:url" content="http://whosemario.github.io/2015/12/31/summary-2015/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
-&amp;gt;&amp;gt;&amp;gt; class A(object):
-...     __slots__ = [&quot;v&quot;]
-...
-&amp;gt;&amp;gt;&amp;gt; a = A() 
-&amp;gt;&amp;gt;&amp;gt; a.v = 1
-&amp;gt;&amp;gt;&amp;gt; a.b = 1
-Trace">
-<meta property="og:updated_time" content="2015-11-09T01:09:56.000Z">
+<meta property="og:description" content="2015年的最后一天了，是该总结一下
+
+宝贝女儿出生这一年最重要的事情就是我的宝贝女儿出生了，在2015年12月29号，下午15点30分，宝贝女儿来到了这个世界，以后生活的中心也就开始围绕着她来转咯。
+女儿的出生也意味着我的人生迈入了另一个阶段，我成为了一个父亲，预示着自己要更有责任感，要有耐心，做事要多为老婆和女儿考虑。
+辛苦&amp;amp;纠结这也是辛苦的一年，我们的游戏上线了，在上线的几个月工作也">
+<meta property="og:updated_time" content="2015-12-31T13:54:49.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="python __slots__">
-<meta name="twitter:description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
-&amp;gt;&amp;gt;&amp;gt; class A(object):
-...     __slots__ = [&quot;v&quot;]
-...
-&amp;gt;&amp;gt;&amp;gt; a = A() 
-&amp;gt;&amp;gt;&amp;gt; a.v = 1
-&amp;gt;&amp;gt;&amp;gt; a.b = 1
-Trace">
+<meta name="twitter:title" content="2015年终总结">
+<meta name="twitter:description" content="2015年的最后一天了，是该总结一下
+
+宝贝女儿出生这一年最重要的事情就是我的宝贝女儿出生了，在2015年12月29号，下午15点30分，宝贝女儿来到了这个世界，以后生活的中心也就开始围绕着她来转咯。
+女儿的出生也意味着我的人生迈入了另一个阶段，我成为了一个父亲，预示着自己要更有责任感，要有耐心，做事要多为老婆和女儿考虑。
+辛苦&amp;amp;纠结这也是辛苦的一年，我们的游戏上线了，在上线的几个月工作也">
 
 
 
@@ -95,7 +86,7 @@ Trace">
   };
 </script>
 
-  <title> python __slots__ | Whosemario的家 </title>
+  <title> 2015年终总结 | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -245,7 +236,7 @@ Trace">
             
             
               
-                python __slots__
+                2015年终总结
               
             
           </h1>
@@ -254,34 +245,19 @@ Trace">
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T18:57:49+08:00" content="2015-11-08">
-              2015-11-08
+            <time itemprop="dateCreated" datetime="2015-12-31T20:53:14+08:00" content="2015-12-31">
+              2015-12-31
             </time>
           </span>
 
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
           
 
           
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2015/11/08/python-slot/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/08/python-slot/" itemprop="commentsCount"></span>
+                <a href="/2015/12/31/summary-2015/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/31/summary-2015/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -300,166 +276,43 @@ Trace">
       
 
       
-        <span itemprop="articleBody"><p><a href="http://www.jianshu.com/p/82ce2151d73b" target="_blank" rel="external">上一篇</a>翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。</p>
-<pre><code>&gt;&gt;&gt; class <span class="function"><span class="title">A</span><span class="params">(object)</span></span>:
-...     __slots__ = [<span class="string">"v"</span>]
-...
-&gt;&gt;&gt; <span class="tag">a</span> = <span class="function"><span class="title">A</span><span class="params">()</span></span> 
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.v</span> = <span class="number">1</span>
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.b</span> = <span class="number">1</span>
-Traceback (most recent call last):
-  File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;
-AttributeError: <span class="string">'A'</span> <span class="tag">object</span> has no attribute <span class="string">'b'</span>
-&gt;&gt;&gt; <span class="function"><span class="title">type</span><span class="params">(A.v)</span></span>
-&lt;type <span class="string">'member_descriptor'</span>&gt;
-</code></pre><p>上面这一段代码，Class A声明了__slots__参数，对实例a的v变量进行赋值没有问题，但对实例a的b变量赋值，则会有个AttributeError的异常发生。再仔细看看A.v，原来他是一个<a href="https://docs.python.org/2/howto/descriptor.html" target="_blank" rel="external">descriptor</a>(有时间可以写一篇Python descriptor相关的文章，Python中很多功能的实现都离不开descriptor)！<br>那么，Python在构建Class A的时候到底都做了什么，我们慢慢地解析下去。</p>
-<h4 id="Class_A的创建">Class A的创建</h4><p>Python中类的构建的相关字节码是BUILD_CLASS:</p>
-<pre><code># in ceval.c
-case BUILD_CLASS:
-      u = TOP()<span class="comment">;</span>
-      v = SECOND()<span class="comment">;</span>
-      w = THIRD()<span class="comment">;</span>
-      STACKADJ(-2)<span class="comment">;</span>
-      x = build_class(u, v, w)<span class="comment">;</span>
-      SET_TOP(x)<span class="comment">;</span>
-      Py_DECREF(u)<span class="comment">;</span>
-      Py_DECREF(v)<span class="comment">;</span>
-      Py_DECREF(w)<span class="comment">;</span>
-</code></pre><p>顺着这段起始代码顺藤摸瓜，最后会到命名为type_new的方法中去：</p>
-<pre><code>  # <span class="keyword">in</span> typeobject.c
-  <span class="keyword">static</span> PyObject *
-  type_new(PyTypeObject *metatype, PyObject *args, PyObject *kwds) {
-        ....
-        <span class="comment">// dict 可以理解为你将要新建的类的locals，里面便含有__slots__字段</span>
-        <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"SO!O!:type"</span>, kwlist,
-                                 &amp;name,
-                                 &amp;PyTuple_Type, &amp;bases,
-                                 &amp;PyDict_Type, &amp;dict))
-            <span class="keyword">return</span> NULL;
-        ....
-        <span class="comment">// 获取__slots__参数</span>
-        slots = PyDict_GetItemString(dict, <span class="string">"__slots__"</span>);
-        nslots = <span class="number">0</span>;
-        add_dict = <span class="number">0</span>;    <span class="comment">// 是否要加入__dict__</span>
-        add_weak = <span class="number">0</span>;  <span class="comment">// 是否要加入__weakref__</span>
-
-        <span class="keyword">if</span> (slots == NULL) {
-              <span class="comment">//... ignore</span>
-        } <span class="keyword">else</span> {
-              <span class="comment">// 会对slots做一下处理，包括计算nslots，但不影响我们对slots实现的理解</span>
-        }
-
-        <span class="comment">// 为需要创建的类分配空间</span>
-        <span class="class"><span class="keyword">type</span> </span>= (PyTypeObject *)metatype-&gt;tp_alloc(metatype, nslots);
-        ....
-        <span class="comment">// 转换指针，变为PyHeapTypeObject，PyHeapTypeObject和PyTypeObject的关系可以认为是包含关系，具体的细节可以再写一篇文章了</span>
-        et = (PyHeapTypeObject *)<span class="class"><span class="keyword">type</span>;</span>
-        ....
-        <span class="comment">// 将slots相关的参数设置为members</span>
-        mp = PyHeapType_GET_MEMBERS(et);
-        slotoffset = <span class="keyword">base</span>-&gt;tp_basicsize;
-        <span class="keyword">if</span> (slots != NULL) {
-            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nslots; i++, mp++) {
-                mp-&gt;name = PyString_AS_STRING(
-                              PyTuple_GET_ITEM(slots, i));
-                mp-&gt;<span class="class"><span class="keyword">type</span> </span>= T_OBJECT_EX;
-                mp-&gt;offset = slotoffset;
-                ....
-                slotoffset += sizeof(PyObject *);
-             }
-         }
-         ....
-         <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_members</span> </span>= PyHeapType_GET_MEMBERS(et);
-         ....
-         PyType_Ready(<span class="class"><span class="keyword">type</span>);</span>
-         ....
-}
-</code></pre><p>上面我们忽略了一些不相干的代码，代码的主要逻辑就是将__slots__定义的内容放到type的末尾，并且让type的tp_members变量指向type的末尾，这些内容将会在PyType_Ready函数中用到。<br>这里忽略PyType_Ready的内容，只说明在PyType_Ready中会调用add_members方法，下面看一下add_members的实现：</p>
-<pre><code><span class="preprocessor"># in typeobject.c</span>
-<span class="function"><span class="keyword">static</span> <span class="keyword">int</span>
-<span class="title">add_members</span><span class="params">(PyTypeObject *type, PyMemberDef *memb)</span> </span>{
-    PyObject *dict = type-&gt;tp_dict;
-    <span class="keyword">for</span> (; memb-&gt;name != <span class="literal">NULL</span>; memb++) {
-          PyObject *descr;
-          <span class="keyword">if</span> (PyDict_GetItemString(dict, memb-&gt;name))
-              <span class="keyword">continue</span>;
-          descr = PyDescr_NewMember(type, memb);
-          <span class="keyword">if</span> (descr == <span class="literal">NULL</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          <span class="keyword">if</span> (PyDict_SetItemString(dict, memb-&gt;name, descr) &lt; <span class="number">0</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          Py_DECREF(descr);
-      }
-      <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><p>上面的代码逻辑还是很好理解的，将memb里面的内容（即slots的内容）创建为member_descriptor，加入到tp_dict里面去。</p>
-<h4 id="Class_A的属性设置">Class A的属性设置</h4><p>实例的属性设置最终会在PyObject_GenericSetAttr方法中处理，PyObject_GenericSetAttr方法又会调用_PyObject_GenericSetAttrWithDict方法，我们来看一下_PyObject_GenericSetAttrWithDict方法到底怎么做的，才可以实现文章开始展示的效果。</p>
-<pre><code>int
-_PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
-                             PyObject *value, PyObject *dict) {
-    PyTypeObject *tp = Py_TYPE(obj);
-    descr = _PyType_Lookup(tp, name);
-    f = <span class="built_in">NULL</span>;
-    <span class="keyword">if</span> (descr != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span>
-        PyType_HasFeature(descr<span class="subst">-&gt;</span>ob_type,Py_TPFLAGS_HAVE_CLASS)) {
-        f = descr<span class="subst">-&gt;</span>ob_type<span class="subst">-&gt;</span>tp_descr_set;
-        <span class="comment">// 对于slots相关的参数将会进入下面的if语句</span>
-        <span class="keyword">if</span> (f != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span> PyDescr_IsData(descr)) {
-            res = f(descr, obj, value);
-            goto done;
-        }
-    }
-    <span class="attribute">...</span><span class="built_in">.
-    </span><span class="keyword">if</span> (dict == <span class="built_in">NULL</span>) {
-        <span class="comment">// 对于不是slots提供的属性，尝试去obj自己的dict中查找，</span>
-        <span class="comment">// 但在构建类时，由于有__slots__属性，所以tp_dictoffset为0，</span>
-        <span class="comment">// 因此dictptr等于NULL</span>
-        dictptr = _PyObject_GetDictPtr(obj);
-        <span class="keyword">if</span> (dictptr != <span class="built_in">NULL</span>) {
-              <span class="attribute">...</span><span class="built_in">. 
-        </span>}
-    }
-    <span class="keyword">if</span> (dict != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (f != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (descr == <span class="built_in">NULL</span>) {
-        <span class="comment">// 此时输出错误信息</span>
-        PyErr_Format(PyExc_AttributeErr<span class="subst">or</span>,
-                 <span class="string">"'%.100s' object has no attribute '%.200s'"</span>,
-                 tp<span class="subst">-&gt;</span>tp_name, PyString_AS_STRING(name));
-        goto done;
-    }
-    <span class="attribute">...</span><span class="built_in">.
-</span>}
-</code></pre><p>对于slots定义的变量，会找到对应的descr，调用对应的set方法，对于slots没有定义的变量，最终会跑到抛出异常的那段逻辑。</p>
-<h4 id="总结">总结</h4><p>__slots__的实现还是比较好懂的，Python在构建类的时候，会检查__slots__变量是否存在，如果存在，为slots变量建立member_descriptor，并放入tp_dict里面，并且这个类的tp<em>dictoffset为0，它的实例将不会有自己的\</em>_dict__。</p>
+        <span itemprop="articleBody"><blockquote>
+<p>2015年的最后一天了，是该总结一下</p>
+</blockquote>
+<h3 id="宝贝女儿出生">宝贝女儿出生</h3><p>这一年最重要的事情就是我的宝贝女儿出生了，在2015年12月29号，下午15点30分，宝贝女儿来到了这个世界，以后生活的中心也就开始围绕着她来转咯。</p>
+<p>女儿的出生也意味着我的人生迈入了另一个阶段，我成为了一个父亲，预示着自己要更有责任感，要有耐心，做事要多为老婆和女儿考虑。</p>
+<h3 id="辛苦&amp;纠结">辛苦&amp;纠结</h3><p>这也是辛苦的一年，我们的游戏上线了，在上线的几个月工作也是非常的辛苦，但游戏和我们预期的也一样，最终结果也并不好，这里面也有很多因素，但现在不想去总结什么，但从个人角度来说，经历了一次从游戏开发初期到游戏上线的过程，也是一份难得的经历。</p>
+<p>为何纠结，自己也很难说清楚。主要是觉得，在公司的这两年，自己的成长还是太慢了，究其原因，我个人主要觉得有如下几点：</p>
+<ol>
+<li>不够专注，一开始想客户端服务端两手抓，起初感觉很好，但持续下去你会发现哪一点你都不够深入，<strong>接下来一年深入服务端研究，主要深入网络，Python两个方面。网络涉及的面比较广，先把业务方面的东西搞懂，然后根据业务需求了解网络底层，同时关注Go，Erlang这些分布式语言，他们的好处，他们涉及的领域；Python方面这一整年都在研究，但研究的还是不深入，主要是读代码的工具不行，只是在看书，印象不深刻，接下来借助Xcode进行Debug，再次深入解析Python</strong></li>
+<li>迷惘，游戏这个行业真的是自己喜欢的行业么，我希望去做一些更有意义的工作，而不是现在的螺丝钉。但如果让你带一个团队，你真的有能力去做这件事情么？话题又回到了对自己的<strong>准确认识</strong>上面了。要正确的评估自己目前的实力！<strong>其实目前自己历练还是太少，大局观都没有，比如怎样设计架构，怎样优化系统，都没有明确的概念。这是为什么？归根结底还是自己懒，游戏在开发阶段有一段时间的MangoDB系统调优，自己没有参与；到游戏上线时期，又有系统性能调优自己也没有参加，如果当时自己参与，或许可以从中学到更多。</strong></li>
+<li>关于团队，自己所在的团队就是一个正在成长的团队，你的leader也很年轻，从他身上学习的东西也很少，但并不是没有。在这种情况下，自己就要想法子从其他方面学习，会走很多弯路，甚至没有走过正确的路。</li>
+</ol>
+<h3 id="2016年要做什么">2016年要做什么</h3><ol>
+<li>业务一定要更加熟练，其实无论是留下还是另寻出路，都要对当前的业务熟练，这样对自己和团队都是一种负责的表现</li>
+<li>多多参与服务端的优化，多尝试考虑怎样让服务端的架构更合理，更健壮，更高效。这个过程也是开阔知识面的过程。</li>
+<li>开阔思路，不要一味的去写代码，开阔眼界，多去学习其他方面的知识，不限于编程。</li>
+<li>2016的新的技术栈：Redis，MangoDB，Erlang，Golang</li>
+<li><strong>心疼老婆、孝敬老妈，爱我的女儿</strong></li>
+</ol>
 </span>
       
     </div>
 
     <footer class="post-footer">
       
-        <div class="post-tags">
-          
-            <a href="/tags/python/" rel="tag">#python</a>
-          
-        </div>
-      
 
       
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/11/08/libuv-timer/" rel="next" title="libuv Timer 模块">
-                <i class="fa fa-chevron-left"></i> libuv Timer 模块
+              <a href="/2015/12/27/python-xcode/" rel="next" title="Python2.7 Xcode Project">
+                <i class="fa fa-chevron-left"></i> Python2.7 Xcode Project
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2015/11/12/libtask/" rel="prev" title="libtask源码注释">
-                libtask源码注释 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -474,10 +327,10 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2015/11/08/python-slot/"
-     data-title="python __slots__"
+        <div class="ds-share flat" data-thread-key="2015/12/31/summary-2015/"
+     data-title="2015年终总结"
      data-content=""
-     data-url="http://whosemario.github.io/2015/11/08/python-slot/">
+     data-url="http://whosemario.github.io/2015/12/31/summary-2015/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -505,8 +358,8 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2015/11/08/python-slot/"
-           data-title="python __slots__" data-url="http://whosemario.github.io/2015/11/08/python-slot/">
+      <div class="ds-thread" data-thread-key="2015/12/31/summary-2015/"
+           data-title="2015年终总结" data-url="http://whosemario.github.io/2015/12/31/summary-2015/">
       </div>
     
   </div>
@@ -606,7 +459,7 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Class_A的创建"><span class="nav-number">1.</span> <span class="nav-text">Class A的创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Class_A的属性设置"><span class="nav-number">2.</span> <span class="nav-text">Class A的属性设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#宝贝女儿出生"><span class="nav-number">1.</span> <span class="nav-text">宝贝女儿出生</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#辛苦&纠结"><span class="nav-number">2.</span> <span class="nav-text">辛苦&纠结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2016年要做什么"><span class="nav-number">3.</span> <span class="nav-text">2016年要做什么</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
