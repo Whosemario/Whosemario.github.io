@@ -241,6 +241,181 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/03/python-PyType-GenericAlloc/" itemprop="url">
+                  Python源码解析——PyType_GenericAlloc
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-01-03T22:16:21+08:00" content="2016-01-03">
+              2016-01-03
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/03/python-PyType-GenericAlloc/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/03/python-PyType-GenericAlloc/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>为什么要写PyType_GenericAlloc函数，原因是本人想写一篇关于创建Class的源码解析的博文，发现内容比较多，因此就打算分开解析里面比较重要的内容。</p>
+<p>PyType_GenericAlloc用来做什么，从函数命名可以看出<strong>GenericAlloc</strong>说明是用于一般情况的内存空间分配，<strong>PyType</strong>说明是针对PyTypeObject进行内存空间分配的。</p>
+</blockquote>
+<h3 id="1-关于GC">1.关于GC</h3><p>Python有自己的GC逻辑，这里不多讲，主要想说明Python会维护需要GC的各种PyObject，因此Python在PyObject的头部又加入了一个PyGC_Head。</p>
+<pre><code><span class="comment"># 内存分布</span>
+
+        |<span class="string">-------------</span>|
+        |<span class="string">  PyGC_Head  </span>|
+        |<span class="string">-------------</span>|
+        |<span class="string">  PyObject   </span>|
+        |<span class="string">             </span>|
+        |<span class="string">     ...     </span>|
+</code></pre><p>因此有一个函数<strong>_PyObject_GC_Malloc</strong>负责分配上述的内存空间。</p>
+<pre><code>PyObject *
+_PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
+{
+    PyObject *op;
+    PyGC_Head *g;
+    <span class="keyword">if</span> (basicsize &gt; PY_SSIZE_T_MAX - <span class="keyword">sizeof</span>(PyGC_Head))
+        <span class="keyword">return</span> PyErr_NoMemory();
+    g = (PyGC_Head *)PyObject_MALLOC(
+        <span class="keyword">sizeof</span>(PyGC_Head) + basicsize);
+    ...
+    op = FROM_GC(g);
+    <span class="keyword">return</span> op;
+ }
+</code></pre><h3 id="2-PyType_GenericAlloc全景">2.PyType_GenericAlloc全景</h3><pre><code><span class="type">PyObject</span> *
+<span class="type">PyType_GenericAlloc</span>(<span class="type">PyTypeObject</span> *<span class="class"><span class="keyword">type</span>, <span class="title">Py_ssize_t</span> <span class="title">nitems</span>)
+</span>{
+    <span class="type">PyObject</span> *obj;
+    const size_t size = _PyObject_VAR_SIZE(<span class="class"><span class="keyword">type</span>, <span class="title">nitems+1</span>);</span>   [<span class="number">1</span>]
+    <span class="comment">/* note that we need to add one, for the sentinel */</span>
+
+    <span class="keyword">if</span> (<span class="type">PyType_IS_GC</span>(<span class="class"><span class="keyword">type</span>))
+</span>        obj = _PyObject_GC_Malloc(size);    [<span class="number">2</span>]
+    <span class="keyword">else</span>
+        obj = (<span class="type">PyObject</span> *)<span class="type">PyObject_MALLOC</span>(size);
+
+    <span class="keyword">if</span> (obj == <span class="type">NULL</span>)
+        <span class="keyword">return</span> <span class="type">PyErr_NoMemory</span>();
+
+    memset(obj, '\<span class="number">0</span>', size);
+
+    <span class="keyword">if</span> (<span class="class"><span class="keyword">type</span><span class="title">-&gt;tp_flags</span> <span class="title">&amp;</span> <span class="title">Py_TPFLAGS_HEAPTYPE</span>)
+</span>        <span class="type">Py_INCREF</span>(<span class="class"><span class="keyword">type</span>);</span>
+
+    <span class="keyword">if</span> (<span class="class"><span class="keyword">type</span><span class="title">-&gt;tp_itemsize</span> <span class="title">==</span> 0)
+</span>        <span class="type">PyObject_INIT</span>(obj, <span class="class"><span class="keyword">type</span>);</span>
+    <span class="keyword">else</span>
+        (void) <span class="type">PyObject_INIT_VAR</span>((<span class="type">PyVarObject</span> *)obj, <span class="class"><span class="keyword">type</span>, <span class="title">nitems</span>);</span>  [<span class="number">3</span>]
+
+    <span class="keyword">if</span> (<span class="type">PyType_IS_GC</span>(<span class="class"><span class="keyword">type</span>))
+</span>        _PyObject_GC_TRACK(obj);
+    <span class="keyword">return</span> obj;
+}
+</code></pre><p>关注三点，[1]处，计算要创建的PyObject的大小（nitems为什么要加1需要再深入看一下）。</p>
+<pre><code><span class="comment">#define _PyObject_VAR_SIZE(typeobj, nitems)     \</span>
+(size_t)                                    <span class="string">\</span>
+<span class="function"><span class="params">( ( (typeobj)-&gt;tp_basicsize +               <span class="string">\</span>
+    (nitems)*(typeobj)-&gt;tp_itemsize +       <span class="string">\</span>
+    (SIZEOF_VOID_P - <span class="number">1</span>)                     <span class="string">\</span>
+  ) &amp; ~(SIZEOF_VOID_P - <span class="number">1</span>)                  <span class="string">\</span>
+)</span></span>
+</code></pre><p>size的组成是tp_basicsize + nitems * tp_itemsize，后面加上SIZEOF_VOID_P - 1是为了内存对齐。</p>
+<p>[2]处使用<strong>_PyObject_GC_Malloc</strong>进行真正的内存分配。</p>
+<p>[3]处初始化PyObject，确切的说应该是PyVarObject，看一下具体初始化了哪些东西</p>
+<ol>
+<li>ob_size = nitems 初始化数量</li>
+<li>ob_type = type 初始化对应的PyObjectType</li>
+<li>ob_refcnt = 1 初始化引用计数为1</li>
+<li>调用_Py_AddToAllObjects，将obj加入到<strong>refchain</strong>双向链表中</li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2015/12/31/summary-2015/" itemprop="url">
                   2015年终总结
                 </a>
@@ -1958,154 +2133,6 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/11/08/libuv-timer/" itemprop="url">
-                  libuv Timer 模块
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T18:54:56+08:00" content="2015-11-08">
-              2015-11-08
-            </time>
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/11/08/libuv-timer/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/08/libuv-timer/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>Timer handles are used to schedule callbacks to be called in the future.</p>
-</blockquote>
-<p>libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。</p>
-<h3 id="数据结构">数据结构</h3><hr>
-<p>Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：</p>
-<pre><code><span class="keyword">struct</span> uv_timer_s {
-    UV_HANDLE_FIELDS
-    UV_TIMER_PRIVATE_FIELDS
-};
-
-<span class="preprocessor">#<span class="keyword">define</span> UV_TIMER_PRIVATE_FIELDS                           </span>
-  uv_timer_cb timer_cb;    <span class="preprocessor">#timer到期时的回调函数                                         </span>
-  <span class="keyword">void</span>* heap_node[<span class="number">3</span>];      <span class="preprocessor">#用于维护timer的最小堆    </span>
-  <span class="keyword">uint64_t</span> timeout;        <span class="preprocessor">#timer的超时时间，其实是到多长时间后timer被触发       </span>
-  <span class="keyword">uint64_t</span> repeat;         <span class="preprocessor">#timer是否重复                                                 </span>
-  <span class="keyword">uint64_t</span> start_id;
-</code></pre><h3 id="接口">接口</h3><hr>
-<h4 id="1-_uv_timer_init">1. uv_timer_init</h4><p>uv_timer_init接口的实现很简单。</p>
-<pre><code><span class="preprocessor"># file: timer.c</span>
-<span class="function"><span class="keyword">int</span> <span class="title">uv_timer_init</span><span class="params">(uv_loop_t* loop, uv_timer_t* handle)</span> </span>{
-    uv__handle_init(loop, (<span class="keyword">uv_handle_t</span>*)handle, UV_TIMER);   [<span class="number">1</span>]
-    handle-&gt;timer_cb = <span class="literal">NULL</span>;
-    handle-&gt;repeat = <span class="number">0</span>;
-    <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><p>代码[1]对uv_handle_t进行了初始化。来看一下uv__handle_init宏定义。</p>
-<pre><code><span class="comment">#define uv__handle_init(loop_, h, type_)                                    </span>
-    <span class="keyword">do</span> {                                                                        
-        <span class="function"><span class="params">(h)</span>-&gt;</span><span class="keyword">loop</span> = (loop_);                                                   
-        <span class="function"><span class="params">(h)</span>-&gt;</span>type = (type_);                                                  
-        <span class="function"><span class="params">(h)</span>-&gt;</span>flags = UV__HANDLE_REF;  
-        QUEUE_INSERT_TAIL<span class="function"><span class="params">(&amp;(loop_)-&gt;handle_queue, &amp;(h)-&gt;handle_queue)</span>; [1]
-        <span class="title">uv__handle_platform_init</span><span class="params">(h)</span>;                                             
-    }                                                                           
-    <span class="title">while</span> <span class="params">(<span class="number">0</span>)</span></span>
-</code></pre><p>其中最关键的部分是将h(uv_handle_t)加入loop-&gt;handle_queue的队列中去。</p>
-<h4 id="2-_uv_timer_start">2. uv_timer_start</h4><p>uv_timer_start接口的主要任务就是将uv_timer_t这个handler加入loop维护的一个最小堆中(timer_heap)</p>
-<pre><code>int uv_timer_start(uv_timer_t* <span class="keyword">handle</span>,
-               uv_timer_cb cb,
-               uint64_t timeout,
-               uint64_t repeat) {
-    uint64_t clamped_timeout;
-
-    <span class="keyword">if</span> (cb == <span class="built_in">NULL</span>)
-        <span class="keyword">return</span> <span class="attribute">-EINVAL</span>;
-
-    <span class="keyword">if</span> (uv__is_active(<span class="keyword">handle</span>))
-        uv_timer_stop(<span class="keyword">handle</span>);
-
-     <span class="attribute">...</span><span class="attribute">...</span>
-     heap_insert((struct heap*) <span class="subst">&amp;</span><span class="keyword">handle</span><span class="subst">-&gt;</span><span class="keyword">loop</span><span class="subst">-&gt;</span>timer_heap,
-          (struct heap_node*) <span class="subst">&amp;</span><span class="keyword">handle</span><span class="subst">-&gt;</span>heap_node,
-          timer_less_than);
-     uv__handle_start(<span class="keyword">handle</span>);
-
-      <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><h4 id="3-uv_timer_stop">3.uv_timer_stop</h4><p>uv_timer_stop做的事情更简单了，他将Timer中timer_heap中删除掉并关闭handler。</p>
-<h3 id="小结">小结</h3><hr>
-<p>libuv里面Timer是非常简单的模块了，</p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2152,21 +2179,21 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">11</span>
+              <span class="site-state-item-count">12</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             <a href="/categories">
-              <span class="site-state-item-count">3</span>
+              <span class="site-state-item-count">4</span>
               <span class="site-state-item-name">分類</span>
               </a>
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">5</span>
+              <span class="site-state-item-count">7</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>
@@ -2212,7 +2239,7 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
         <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2015</span>
+  <span itemprop="copyrightYear">2016</span>
   <span class="with-love">
     <i class="icon-next-heart fa fa-heart"></i>
   </span>

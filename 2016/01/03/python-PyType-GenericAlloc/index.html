@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python," />
+  <meta name="keywords" content="Python," />
 
 
 
@@ -53,19 +53,25 @@
 
 
 
-<meta name="description" content="平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：
-https://github.com/Whosemario/python2x-xcodeproj">
+<meta name="description" content="为什么要写PyType_GenericAlloc函数，原因是本人想写一篇关于创建Class的源码解析的博文，发现内容比较多，因此就打算分开解析里面比较重要的内容。
+PyType_GenericAlloc用来做什么，从函数命名可以看出GenericAlloc说明是用于一般情况的内存空间分配，PyType说明是针对PyTypeObject进行内存空间分配的。
+
+1.关于GCPython有自己的GC逻辑">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python2.7 Xcode Project">
-<meta property="og:url" content="http://whosemario.github.io/2015/12/27/python-xcode/index.html">
+<meta property="og:title" content="Python源码解析——PyType_GenericAlloc">
+<meta property="og:url" content="http://whosemario.github.io/2016/01/03/python-PyType-GenericAlloc/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：
-https://github.com/Whosemario/python2x-xcodeproj">
-<meta property="og:updated_time" content="2015-12-27T07:22:12.000Z">
+<meta property="og:description" content="为什么要写PyType_GenericAlloc函数，原因是本人想写一篇关于创建Class的源码解析的博文，发现内容比较多，因此就打算分开解析里面比较重要的内容。
+PyType_GenericAlloc用来做什么，从函数命名可以看出GenericAlloc说明是用于一般情况的内存空间分配，PyType说明是针对PyTypeObject进行内存空间分配的。
+
+1.关于GCPython有自己的GC逻辑">
+<meta property="og:updated_time" content="2016-01-03T14:45:14.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python2.7 Xcode Project">
-<meta name="twitter:description" content="平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：
-https://github.com/Whosemario/python2x-xcodeproj">
+<meta name="twitter:title" content="Python源码解析——PyType_GenericAlloc">
+<meta name="twitter:description" content="为什么要写PyType_GenericAlloc函数，原因是本人想写一篇关于创建Class的源码解析的博文，发现内容比较多，因此就打算分开解析里面比较重要的内容。
+PyType_GenericAlloc用来做什么，从函数命名可以看出GenericAlloc说明是用于一般情况的内存空间分配，PyType说明是针对PyTypeObject进行内存空间分配的。
+
+1.关于GCPython有自己的GC逻辑">
 
 
 
@@ -77,7 +83,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
   };
 </script>
 
-  <title> Python2.7 Xcode Project | Whosemario的家 </title>
+  <title> Python源码解析——PyType_GenericAlloc | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -227,7 +233,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
             
             
               
-                Python2.7 Xcode Project
+                Python源码解析——PyType_GenericAlloc
               
             
           </h1>
@@ -236,8 +242,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2015-12-27T15:16:25+08:00" content="2015-12-27">
-              2015-12-27
+            <time itemprop="dateCreated" datetime="2016-01-03T22:16:21+08:00" content="2016-01-03">
+              2016-01-03
             </time>
           </span>
 
@@ -262,8 +268,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2015/12/27/python-xcode/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/27/python-xcode/" itemprop="commentsCount"></span>
+                <a href="/2016/01/03/python-PyType-GenericAlloc/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/03/python-PyType-GenericAlloc/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -282,8 +288,79 @@ https://github.com/Whosemario/python2x-xcodeproj">
       
 
       
-        <span itemprop="articleBody"><p>平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：</p>
-<p><a href="https://github.com/Whosemario/python2x-xcodeproj" target="_blank" rel="external">https://github.com/Whosemario/python2x-xcodeproj</a></p>
+        <span itemprop="articleBody"><blockquote>
+<p>为什么要写PyType_GenericAlloc函数，原因是本人想写一篇关于创建Class的源码解析的博文，发现内容比较多，因此就打算分开解析里面比较重要的内容。</p>
+<p>PyType_GenericAlloc用来做什么，从函数命名可以看出<strong>GenericAlloc</strong>说明是用于一般情况的内存空间分配，<strong>PyType</strong>说明是针对PyTypeObject进行内存空间分配的。</p>
+</blockquote>
+<h3 id="1-关于GC">1.关于GC</h3><p>Python有自己的GC逻辑，这里不多讲，主要想说明Python会维护需要GC的各种PyObject，因此Python在PyObject的头部又加入了一个PyGC_Head。</p>
+<pre><code><span class="comment"># 内存分布</span>
+
+        |<span class="string">-------------</span>|
+        |<span class="string">  PyGC_Head  </span>|
+        |<span class="string">-------------</span>|
+        |<span class="string">  PyObject   </span>|
+        |<span class="string">             </span>|
+        |<span class="string">     ...     </span>|
+</code></pre><p>因此有一个函数<strong>_PyObject_GC_Malloc</strong>负责分配上述的内存空间。</p>
+<pre><code>PyObject *
+_PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
+{
+    PyObject *op;
+    PyGC_Head *g;
+    <span class="keyword">if</span> (basicsize &gt; PY_SSIZE_T_MAX - <span class="keyword">sizeof</span>(PyGC_Head))
+        <span class="keyword">return</span> PyErr_NoMemory();
+    g = (PyGC_Head *)PyObject_MALLOC(
+        <span class="keyword">sizeof</span>(PyGC_Head) + basicsize);
+    ...
+    op = FROM_GC(g);
+    <span class="keyword">return</span> op;
+ }
+</code></pre><h3 id="2-PyType_GenericAlloc全景">2.PyType_GenericAlloc全景</h3><pre><code><span class="type">PyObject</span> *
+<span class="type">PyType_GenericAlloc</span>(<span class="type">PyTypeObject</span> *<span class="class"><span class="keyword">type</span>, <span class="title">Py_ssize_t</span> <span class="title">nitems</span>)
+</span>{
+    <span class="type">PyObject</span> *obj;
+    const size_t size = _PyObject_VAR_SIZE(<span class="class"><span class="keyword">type</span>, <span class="title">nitems+1</span>);</span>   [<span class="number">1</span>]
+    <span class="comment">/* note that we need to add one, for the sentinel */</span>
+
+    <span class="keyword">if</span> (<span class="type">PyType_IS_GC</span>(<span class="class"><span class="keyword">type</span>))
+</span>        obj = _PyObject_GC_Malloc(size);    [<span class="number">2</span>]
+    <span class="keyword">else</span>
+        obj = (<span class="type">PyObject</span> *)<span class="type">PyObject_MALLOC</span>(size);
+
+    <span class="keyword">if</span> (obj == <span class="type">NULL</span>)
+        <span class="keyword">return</span> <span class="type">PyErr_NoMemory</span>();
+
+    memset(obj, '\<span class="number">0</span>', size);
+
+    <span class="keyword">if</span> (<span class="class"><span class="keyword">type</span><span class="title">-&gt;tp_flags</span> <span class="title">&amp;</span> <span class="title">Py_TPFLAGS_HEAPTYPE</span>)
+</span>        <span class="type">Py_INCREF</span>(<span class="class"><span class="keyword">type</span>);</span>
+
+    <span class="keyword">if</span> (<span class="class"><span class="keyword">type</span><span class="title">-&gt;tp_itemsize</span> <span class="title">==</span> 0)
+</span>        <span class="type">PyObject_INIT</span>(obj, <span class="class"><span class="keyword">type</span>);</span>
+    <span class="keyword">else</span>
+        (void) <span class="type">PyObject_INIT_VAR</span>((<span class="type">PyVarObject</span> *)obj, <span class="class"><span class="keyword">type</span>, <span class="title">nitems</span>);</span>  [<span class="number">3</span>]
+
+    <span class="keyword">if</span> (<span class="type">PyType_IS_GC</span>(<span class="class"><span class="keyword">type</span>))
+</span>        _PyObject_GC_TRACK(obj);
+    <span class="keyword">return</span> obj;
+}
+</code></pre><p>关注三点，[1]处，计算要创建的PyObject的大小（nitems为什么要加1需要再深入看一下）。</p>
+<pre><code><span class="comment">#define _PyObject_VAR_SIZE(typeobj, nitems)     \</span>
+(size_t)                                    <span class="string">\</span>
+<span class="function"><span class="params">( ( (typeobj)-&gt;tp_basicsize +               <span class="string">\</span>
+    (nitems)*(typeobj)-&gt;tp_itemsize +       <span class="string">\</span>
+    (SIZEOF_VOID_P - <span class="number">1</span>)                     <span class="string">\</span>
+  ) &amp; ~(SIZEOF_VOID_P - <span class="number">1</span>)                  <span class="string">\</span>
+)</span></span>
+</code></pre><p>size的组成是tp_basicsize + nitems * tp_itemsize，后面加上SIZEOF_VOID_P - 1是为了内存对齐。</p>
+<p>[2]处使用<strong>_PyObject_GC_Malloc</strong>进行真正的内存分配。</p>
+<p>[3]处初始化PyObject，确切的说应该是PyVarObject，看一下具体初始化了哪些东西</p>
+<ol>
+<li>ob_size = nitems 初始化数量</li>
+<li>ob_type = type 初始化对应的PyObjectType</li>
+<li>ob_refcnt = 1 初始化引用计数为1</li>
+<li>调用_Py_AddToAllObjects，将obj加入到<strong>refchain</strong>双向链表中</li>
+</ol>
 </span>
       
     </div>
@@ -292,7 +369,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/Python/" rel="tag">#Python</a>
           
         </div>
       
@@ -301,17 +378,13 @@ https://github.com/Whosemario/python2x-xcodeproj">
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/12/19/python-gevent/" rel="next" title="Python gevent (1) 之 greenlet模块">
-                <i class="fa fa-chevron-left"></i> Python gevent (1) 之 greenlet模块
+              <a href="/2015/12/31/summary-2015/" rel="next" title="2015年终总结">
+                <i class="fa fa-chevron-left"></i> 2015年终总结
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2015/12/31/summary-2015/" rel="prev" title="2015年终总结">
-                2015年终总结 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -326,10 +399,10 @@ https://github.com/Whosemario/python2x-xcodeproj">
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2015/12/27/python-xcode/"
-     data-title="Python2.7 Xcode Project"
+        <div class="ds-share flat" data-thread-key="2016/01/03/python-PyType-GenericAlloc/"
+     data-title="Python源码解析——PyType_GenericAlloc"
      data-content=""
-     data-url="http://whosemario.github.io/2015/12/27/python-xcode/">
+     data-url="http://whosemario.github.io/2016/01/03/python-PyType-GenericAlloc/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -357,8 +430,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2015/12/27/python-xcode/"
-           data-title="Python2.7 Xcode Project" data-url="http://whosemario.github.io/2015/12/27/python-xcode/">
+      <div class="ds-thread" data-thread-key="2016/01/03/python-PyType-GenericAlloc/"
+           data-title="Python源码解析——PyType_GenericAlloc" data-url="http://whosemario.github.io/2016/01/03/python-PyType-GenericAlloc/">
       </div>
     
   </div>
@@ -458,7 +531,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
               
             
             
-              <p class="post-toc-empty">此文章未包含目錄</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-关于GC"><span class="nav-number">1.</span> <span class="nav-text">1.关于GC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-PyType_GenericAlloc全景"><span class="nav-number">2.</span> <span class="nav-text">2.PyType_GenericAlloc全景</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
