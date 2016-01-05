@@ -133,7 +133,7 @@
             
               <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
             
-            首頁
+            首页
           </a>
         </li>
       
@@ -143,7 +143,7 @@
             
               <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
             
-            分類
+            分类
           </a>
         </li>
       
@@ -153,7 +153,7 @@
             
               <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
             
-            關於
+            关于
           </a>
         </li>
       
@@ -163,7 +163,7 @@
             
               <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
             
-            歸檔
+            归档
           </a>
         </li>
       
@@ -173,7 +173,7 @@
             
               <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
             
-            標籤
+            标签
           </a>
         </li>
       
@@ -241,6 +241,169 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/05/python-class-instance/" itemprop="url">
+                  Python源码解析——Class实例创建
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2016-01-05T09:12:28+08:00" content="2016-01-05">
+              2016-01-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/05/python-class-instance/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/05/python-class-instance/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>本文只分析Python类实例的创建，不涉及类本身的构建（类本身的构建将会在接下来的文章中介绍）。</p>
+</blockquote>
+<pre><code><span class="comment"># example</span>
+<span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span>
+    <span class="keyword">pass</span>
+obj_a = A()
+</code></pre><p>上面这一段代码对应的opcode如下：</p>
+<pre><code> <span class="number">0</span> LOAD_CONST               <span class="number">1</span> (<span class="string">'A'</span>)
+ <span class="number">3</span> LOAD_GLOBAL              <span class="number">0</span> (object)
+ <span class="number">6</span> BUILD_TUPLE              <span class="number">1</span>
+ <span class="number">9</span> LOAD_CONST               <span class="number">2</span> (&lt;code object A at <span class="number">0x104f367b0</span>, file <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">2</span>&gt;)
+<span class="number">12</span> MAKE_FUNCTION            <span class="number">0</span>
+<span class="number">15</span> CALL_FUNCTION            <span class="number">0</span>
+<span class="number">18</span> BUILD_CLASS
+<span class="number">19</span> STORE_FAST               <span class="number">0</span> (A)
+
+<span class="number">22</span> LOAD_FAST                <span class="number">0</span> (A)
+<span class="number">25</span> CALL_FUNCTION            <span class="number">0</span>
+<span class="number">28</span> STORE_FAST               <span class="number">1</span> (obj_a)
+</code></pre><p>说明几个关键的opcode，<strong>BUILD_CLASS</strong>用于创建一个名为<strong>A</strong>的Class，在<strong>LOAD_FAST</strong>的时候Python虚拟机加载<strong>A</strong>，然后执行<strong>CALL_FUNCTION</strong>。</p>
+<h4 id="1-从CALL_FUNCTION机器码看起">1.从CALL_FUNCTION机器码看起</h4><p>下面是从CALL_FUNCTION开始的函数调用流程:</p>
+<pre><code>CALL_FUNCTION<span class="subst">-&gt;</span>call_function<span class="subst">-&gt;</span>do_call<span class="subst">-&gt;</span>PyObject_Call<span class="attribute">...</span>
+</code></pre><p><strong>PyObject_Call</strong>从函数命名很容易理解，这个函数是对PyObject进行调用。</p>
+<pre><code><span class="type">PyObject</span> *
+<span class="type">PyObject_Call</span>(<span class="type">PyObject</span> *func, <span class="type">PyObject</span> *arg, <span class="type">PyObject</span> *kw) {
+    <span class="keyword">if</span> ((call = func-&gt;ob_type-&gt;tp_call) != <span class="type">NULL</span>) {
+        ...
+        <span class="literal">result</span> = (*call)(func, arg, kw);
+        ...
+    }
+    ...
+</code></pre><p>func在这里对应的就是<strong>类A</strong>，当然我们在创建obj_a的时候是没有参数的，因此arg和kw便没有任何东西。在if语句中获取func-&gt;ob_type-&gt;tp_call，func就是A，那么ob_type在这里是PyType_Type。</p>
+<pre><code><span class="comment"># in typeobject.c</span>
+PyTypeObject PyType_Type = {
+    ....
+    (ternaryfunc)type_call,                     /<span class="keyword">*</span> tp_call <span class="keyword">*</span>/
+    ....
+</code></pre><p>就是上面这个实例，其对应的tp_call是<strong>type_call</strong>这个函数。</p>
+<pre><code><span class="keyword">static</span> PyObject *
+type_call(PyTypeObject *<span class="class"><span class="keyword">type</span>, <span class="title">PyObject</span> *<span class="title">args</span>, <span class="title">PyObject</span> *<span class="title">kwds</span>) {</span>
+    ....
+    obj = <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_new</span></span>(<span class="class"><span class="keyword">type</span>, <span class="title">args</span>, <span class="title">kwds</span>);</span>
+    ....
+</code></pre><p>type-&gt;tp_new中的type还是<strong>类A</strong>，tp_new则是其基类object的tp<em>new（原因很简单，我们在A的定义中并没有重载\</em>_new__函数），object的真面目就是PyBaseObject_Type。</p>
+<pre><code><span class="comment"># in typeobject.c</span>
+PyTypeObject PyBaseObject_Type = { 
+    ....
+    object_new,                                 /<span class="keyword">*</span> tp_new <span class="keyword">*</span>/
+    ....
+</code></pre><h4 id="2-object_new都做了什么">2.object_new都做了什么</h4><pre><code><span class="keyword">static</span> PyObject *
+object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, <span class="title">PyObject</span> *<span class="title">args</span>, <span class="title">PyObject</span> *<span class="title">kwds</span>) {</span>
+    ....
+    <span class="keyword">return</span> <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_alloc</span></span>(<span class="class"><span class="keyword">type</span>, 0);</span>
+}
+</code></pre><p>object_new做的事情很简单，就是调用类A的tp_alloc，这里的tp_alloc的实现是PyType_GenericAlloc函数，我们在<a href="http://whosemario.github.io/2016/01/03/python-PyType-GenericAlloc/">前文</a>也提到过。</p>
+<h4 id="3-总结">3.总结</h4><p>到这里obj_a的创建流程基本走完，无非后面会调用tp<em>new（如果我们定义了\</em>_init__就会调用我们的这个方法），但obj_a在内存中的形式已经确定，就是一个简单的PyObject。</p>
+<pre><code><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">object</span> </span>{
+    PyObject_HEAD
+} PyObject;
+</code></pre><p>其ob_type对应的就是<strong>类A</strong>。    </p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/01/03/python-PyType-GenericAlloc/" itemprop="url">
                   Python源码解析——PyType_GenericAlloc
                 </a>
@@ -251,7 +414,7 @@
 
         <div class="post-meta">
           <span class="post-time">
-            發表於
+            发表于
             <time itemprop="dateCreated" datetime="2016-01-03T22:16:21+08:00" content="2016-01-03">
               2016-01-03
             </time>
@@ -259,7 +422,7 @@
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
+              &nbsp; | &nbsp; 分类于
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -426,7 +589,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
         <div class="post-meta">
           <span class="post-time">
-            發表於
+            发表于
             <time itemprop="dateCreated" datetime="2015-12-31T20:53:14+08:00" content="2015-12-31">
               2015-12-31
             </time>
@@ -532,7 +695,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
         <div class="post-meta">
           <span class="post-time">
-            發表於
+            发表于
             <time itemprop="dateCreated" datetime="2015-12-27T15:16:25+08:00" content="2015-12-27">
               2015-12-27
             </time>
@@ -540,7 +703,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
+              &nbsp; | &nbsp; 分类于
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -636,7 +799,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
         <div class="post-meta">
           <span class="post-time">
-            發表於
+            发表于
             <time itemprop="dateCreated" datetime="2015-12-19T20:56:21+08:00" content="2015-12-19">
               2015-12-19
             </time>
@@ -644,7 +807,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
+              &nbsp; | &nbsp; 分类于
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -967,7 +1130,7 @@ dummymarker    |<span class="string">___________</span>|<span class="string">  &
 
         <div class="post-meta">
           <span class="post-time">
-            發表於
+            发表于
             <time itemprop="dateCreated" datetime="2015-12-10T19:27:10+08:00" content="2015-12-10">
               2015-12-10
             </time>
@@ -975,7 +1138,7 @@ dummymarker    |<span class="string">___________</span>|<span class="string">  &
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
+              &nbsp; | &nbsp; 分类于
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -1140,7 +1303,7 @@ StopIteration
 
         <div class="post-meta">
           <span class="post-time">
-            發表於
+            发表于
             <time itemprop="dateCreated" datetime="2015-12-01T12:47:36+08:00" content="2015-12-01">
               2015-12-01
             </time>
@@ -1148,7 +1311,7 @@ StopIteration
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
+              &nbsp; | &nbsp; 分类于
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -1399,7 +1562,7 @@ pipe = NamePipe.NamePipe(pid, <span class="keyword">True</span>)
 
         <div class="post-meta">
           <span class="post-time">
-            發表於
+            发表于
             <time itemprop="dateCreated" datetime="2015-11-22T16:07:06+08:00" content="2015-11-22">
               2015-11-22
             </time>
@@ -1407,7 +1570,7 @@ pipe = NamePipe.NamePipe(pid, <span class="keyword">True</span>)
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
+              &nbsp; | &nbsp; 分类于
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -1591,7 +1754,7 @@ PyTypeObject PyCoro_Type = {
 
         <div class="post-meta">
           <span class="post-time">
-            發表於
+            发表于
             <time itemprop="dateCreated" datetime="2015-11-12T21:28:05+08:00" content="2015-11-12">
               2015-11-12
             </time>
@@ -1599,7 +1762,7 @@ PyTypeObject PyCoro_Type = {
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
+              &nbsp; | &nbsp; 分类于
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/网路/" itemprop="url" rel="index">
@@ -1824,7 +1987,7 @@ taskdelay(uint ms)
 
         <div class="post-meta">
           <span class="post-time">
-            發表於
+            发表于
             <time itemprop="dateCreated" datetime="2015-11-12T12:31:12+08:00" content="2015-11-12">
               2015-11-12
             </time>
@@ -1832,7 +1995,7 @@ taskdelay(uint ms)
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
+              &nbsp; | &nbsp; 分类于
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/网络/" itemprop="url" rel="index">
@@ -1878,240 +2041,6 @@ taskdelay(uint ms)
 <ol>
 <li><a href="http://whosemario.github.io/2015/11/12/timer/">taskdelay的内部实现</a></li>
 </ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/11/08/python-slot/" itemprop="url">
-                  python __slots__
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T18:57:49+08:00" content="2015-11-08">
-              2015-11-08
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/11/08/python-slot/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/08/python-slot/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <p><a href="http://www.jianshu.com/p/82ce2151d73b" target="_blank" rel="external">上一篇</a>翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。</p>
-<pre><code>&gt;&gt;&gt; class <span class="function"><span class="title">A</span><span class="params">(object)</span></span>:
-...     __slots__ = [<span class="string">"v"</span>]
-...
-&gt;&gt;&gt; <span class="tag">a</span> = <span class="function"><span class="title">A</span><span class="params">()</span></span> 
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.v</span> = <span class="number">1</span>
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.b</span> = <span class="number">1</span>
-Traceback (most recent call last):
-  File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;
-AttributeError: <span class="string">'A'</span> <span class="tag">object</span> has no attribute <span class="string">'b'</span>
-&gt;&gt;&gt; <span class="function"><span class="title">type</span><span class="params">(A.v)</span></span>
-&lt;type <span class="string">'member_descriptor'</span>&gt;
-</code></pre><p>上面这一段代码，Class A声明了__slots__参数，对实例a的v变量进行赋值没有问题，但对实例a的b变量赋值，则会有个AttributeError的异常发生。再仔细看看A.v，原来他是一个<a href="https://docs.python.org/2/howto/descriptor.html" target="_blank" rel="external">descriptor</a>(有时间可以写一篇Python descriptor相关的文章，Python中很多功能的实现都离不开descriptor)！<br>那么，Python在构建Class A的时候到底都做了什么，我们慢慢地解析下去。</p>
-<h4 id="Class_A的创建">Class A的创建</h4><p>Python中类的构建的相关字节码是BUILD_CLASS:</p>
-<pre><code># in ceval.c
-case BUILD_CLASS:
-      u = TOP()<span class="comment">;</span>
-      v = SECOND()<span class="comment">;</span>
-      w = THIRD()<span class="comment">;</span>
-      STACKADJ(-2)<span class="comment">;</span>
-      x = build_class(u, v, w)<span class="comment">;</span>
-      SET_TOP(x)<span class="comment">;</span>
-      Py_DECREF(u)<span class="comment">;</span>
-      Py_DECREF(v)<span class="comment">;</span>
-      Py_DECREF(w)<span class="comment">;</span>
-</code></pre><p>顺着这段起始代码顺藤摸瓜，最后会到命名为type_new的方法中去：</p>
-<pre><code>  # <span class="keyword">in</span> typeobject.c
-  <span class="keyword">static</span> PyObject *
-  type_new(PyTypeObject *metatype, PyObject *args, PyObject *kwds) {
-        ....
-        <span class="comment">// dict 可以理解为你将要新建的类的locals，里面便含有__slots__字段</span>
-        <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"SO!O!:type"</span>, kwlist,
-                                 &amp;name,
-                                 &amp;PyTuple_Type, &amp;bases,
-                                 &amp;PyDict_Type, &amp;dict))
-            <span class="keyword">return</span> NULL;
-        ....
-        <span class="comment">// 获取__slots__参数</span>
-        slots = PyDict_GetItemString(dict, <span class="string">"__slots__"</span>);
-        nslots = <span class="number">0</span>;
-        add_dict = <span class="number">0</span>;    <span class="comment">// 是否要加入__dict__</span>
-        add_weak = <span class="number">0</span>;  <span class="comment">// 是否要加入__weakref__</span>
-
-        <span class="keyword">if</span> (slots == NULL) {
-              <span class="comment">//... ignore</span>
-        } <span class="keyword">else</span> {
-              <span class="comment">// 会对slots做一下处理，包括计算nslots，但不影响我们对slots实现的理解</span>
-        }
-
-        <span class="comment">// 为需要创建的类分配空间</span>
-        <span class="class"><span class="keyword">type</span> </span>= (PyTypeObject *)metatype-&gt;tp_alloc(metatype, nslots);
-        ....
-        <span class="comment">// 转换指针，变为PyHeapTypeObject，PyHeapTypeObject和PyTypeObject的关系可以认为是包含关系，具体的细节可以再写一篇文章了</span>
-        et = (PyHeapTypeObject *)<span class="class"><span class="keyword">type</span>;</span>
-        ....
-        <span class="comment">// 将slots相关的参数设置为members</span>
-        mp = PyHeapType_GET_MEMBERS(et);
-        slotoffset = <span class="keyword">base</span>-&gt;tp_basicsize;
-        <span class="keyword">if</span> (slots != NULL) {
-            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nslots; i++, mp++) {
-                mp-&gt;name = PyString_AS_STRING(
-                              PyTuple_GET_ITEM(slots, i));
-                mp-&gt;<span class="class"><span class="keyword">type</span> </span>= T_OBJECT_EX;
-                mp-&gt;offset = slotoffset;
-                ....
-                slotoffset += sizeof(PyObject *);
-             }
-         }
-         ....
-         <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_members</span> </span>= PyHeapType_GET_MEMBERS(et);
-         ....
-         PyType_Ready(<span class="class"><span class="keyword">type</span>);</span>
-         ....
-}
-</code></pre><p>上面我们忽略了一些不相干的代码，代码的主要逻辑就是将__slots__定义的内容放到type的末尾，并且让type的tp_members变量指向type的末尾，这些内容将会在PyType_Ready函数中用到。<br>这里忽略PyType_Ready的内容，只说明在PyType_Ready中会调用add_members方法，下面看一下add_members的实现：</p>
-<pre><code><span class="preprocessor"># in typeobject.c</span>
-<span class="function"><span class="keyword">static</span> <span class="keyword">int</span>
-<span class="title">add_members</span><span class="params">(PyTypeObject *type, PyMemberDef *memb)</span> </span>{
-    PyObject *dict = type-&gt;tp_dict;
-    <span class="keyword">for</span> (; memb-&gt;name != <span class="literal">NULL</span>; memb++) {
-          PyObject *descr;
-          <span class="keyword">if</span> (PyDict_GetItemString(dict, memb-&gt;name))
-              <span class="keyword">continue</span>;
-          descr = PyDescr_NewMember(type, memb);
-          <span class="keyword">if</span> (descr == <span class="literal">NULL</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          <span class="keyword">if</span> (PyDict_SetItemString(dict, memb-&gt;name, descr) &lt; <span class="number">0</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          Py_DECREF(descr);
-      }
-      <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><p>上面的代码逻辑还是很好理解的，将memb里面的内容（即slots的内容）创建为member_descriptor，加入到tp_dict里面去。</p>
-<h4 id="Class_A的属性设置">Class A的属性设置</h4><p>实例的属性设置最终会在PyObject_GenericSetAttr方法中处理，PyObject_GenericSetAttr方法又会调用_PyObject_GenericSetAttrWithDict方法，我们来看一下_PyObject_GenericSetAttrWithDict方法到底怎么做的，才可以实现文章开始展示的效果。</p>
-<pre><code>int
-_PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
-                             PyObject *value, PyObject *dict) {
-    PyTypeObject *tp = Py_TYPE(obj);
-    descr = _PyType_Lookup(tp, name);
-    f = <span class="built_in">NULL</span>;
-    <span class="keyword">if</span> (descr != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span>
-        PyType_HasFeature(descr<span class="subst">-&gt;</span>ob_type,Py_TPFLAGS_HAVE_CLASS)) {
-        f = descr<span class="subst">-&gt;</span>ob_type<span class="subst">-&gt;</span>tp_descr_set;
-        <span class="comment">// 对于slots相关的参数将会进入下面的if语句</span>
-        <span class="keyword">if</span> (f != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span> PyDescr_IsData(descr)) {
-            res = f(descr, obj, value);
-            goto done;
-        }
-    }
-    <span class="attribute">...</span><span class="built_in">.
-    </span><span class="keyword">if</span> (dict == <span class="built_in">NULL</span>) {
-        <span class="comment">// 对于不是slots提供的属性，尝试去obj自己的dict中查找，</span>
-        <span class="comment">// 但在构建类时，由于有__slots__属性，所以tp_dictoffset为0，</span>
-        <span class="comment">// 因此dictptr等于NULL</span>
-        dictptr = _PyObject_GetDictPtr(obj);
-        <span class="keyword">if</span> (dictptr != <span class="built_in">NULL</span>) {
-              <span class="attribute">...</span><span class="built_in">. 
-        </span>}
-    }
-    <span class="keyword">if</span> (dict != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (f != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (descr == <span class="built_in">NULL</span>) {
-        <span class="comment">// 此时输出错误信息</span>
-        PyErr_Format(PyExc_AttributeErr<span class="subst">or</span>,
-                 <span class="string">"'%.100s' object has no attribute '%.200s'"</span>,
-                 tp<span class="subst">-&gt;</span>tp_name, PyString_AS_STRING(name));
-        goto done;
-    }
-    <span class="attribute">...</span><span class="built_in">.
-</span>}
-</code></pre><p>对于slots定义的变量，会找到对应的descr，调用对应的set方法，对于slots没有定义的变量，最终会跑到抛出异常的那段逻辑。</p>
-<h4 id="总结">总结</h4><p>__slots__的实现还是比较好懂的，Python在构建类的时候，会检查__slots__变量是否存在，如果存在，为slots变量建立member_descriptor，并放入tp_dict里面，并且这个类的tp<em>dictoffset为0，它的实例将不会有自己的\</em>_dict__。</p>
 
             
           </span>
@@ -2179,22 +2108,22 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">12</span>
-              <span class="site-state-item-name">文章</span>
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">日志</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             <a href="/categories">
               <span class="site-state-item-count">4</span>
-              <span class="site-state-item-name">分類</span>
+              <span class="site-state-item-name">分类</span>
               </a>
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
               <span class="site-state-item-count">7</span>
-              <span class="site-state-item-name">標籤</span>
+              <span class="site-state-item-name">标签</span>
               </a>
           </div>
 
@@ -2247,11 +2176,11 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
 </div>
 
 <div class="powered-by">
-  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 強力驅動
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
 </div>
 
 <div class="theme-info">
-  主題 -
+  主题 -
   <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
     NexT
   </a>
