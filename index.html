@@ -133,7 +133,7 @@
             
               <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
             
-            首页
+            首頁
           </a>
         </li>
       
@@ -143,7 +143,7 @@
             
               <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
             
-            分类
+            分類
           </a>
         </li>
       
@@ -153,7 +153,7 @@
             
               <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
             
-            关于
+            關於
           </a>
         </li>
       
@@ -163,7 +163,7 @@
             
               <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
             
-            归档
+            歸檔
           </a>
         </li>
       
@@ -173,7 +173,7 @@
             
               <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
             
-            标签
+            標籤
           </a>
         </li>
       
@@ -241,6 +241,306 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/10/python-import/" itemprop="url">
+                  Python Import机制（一）
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-01-10T22:57:56+08:00" content="2016-01-10">
+              2016-01-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/10/python-import/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/10/python-import/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>理解Python Import机制可以对Python的Package结构进行更深刻的理解。</p>
+</blockquote>
+<h3 id="1-__import__函数">1.__import__函数</h3><p>__import__函数是import关键字的内部实现。</p>
+<pre><code><span class="function"><span class="keyword">static</span> PyObject *
+<span class="title">builtin___import__</span><span class="params">(PyObject *self, PyObject *args, PyObject *kwds)</span> </span>{
+    <span class="keyword">static</span> <span class="keyword">char</span> *kwlist[] = {<span class="string">"name"</span>, <span class="string">"globals"</span>, <span class="string">"locals"</span>, <span class="string">"fromlist"</span>,
+                         <span class="string">"level"</span>, <span class="number">0</span>};
+    <span class="keyword">char</span> *name;
+    PyObject *globals = <span class="literal">NULL</span>;
+    PyObject *locals = <span class="literal">NULL</span>;
+    PyObject *fromlist = <span class="literal">NULL</span>;
+    <span class="keyword">int</span> level = -<span class="number">1</span>;
+
+    <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"s|OOOi:__import__"</span>,
+                kwlist, &amp;name, &amp;globals, &amp;locals, &amp;fromlist, &amp;level))
+        <span class="keyword">return</span> <span class="literal">NULL</span>;
+
+    <span class="keyword">return</span> PyImport_ImportModuleLevel(name, globals, locals,
+                                  fromlist, level);
+}
+</code></pre><p>builtin___import__函数内部很简单，主要是提取kwlist列出的几个参数，然后就进入了<strong>PyImport_ImportModuleLevel</strong>方法内。<strong>PyImport_ImportModuleLevel</strong>函数只是对即将进行的操作进行<strong>加锁</strong>，然后调用方法<strong>import_module_level</strong>。</p>
+<pre><code><span class="function"><span class="keyword">static</span> PyObject *
+<span class="title">import_module_level</span><span class="params">(<span class="keyword">char</span> *name, PyObject *globals, PyObject *locals,
+                    PyObject *fromlist, <span class="keyword">int</span> level)</span> </span>{
+
+    <span class="comment">// [1] 获取import发生时的package</span>
+    parent = get_parent(globals, buf, &amp;buflen, level);
+
+    <span class="comment">// [2] 解析module的路径结构，依次加载每一个package/module</span>
+    head = load_next(parent, level &lt; <span class="number">0</span> ? Py_None : parent, &amp;name, buf,
+                    &amp;buflen);
+    <span class="keyword">if</span> (head == <span class="literal">NULL</span>)
+        <span class="keyword">goto</span> error_exit;
+
+    tail = head;
+    Py_INCREF(tail);
+    <span class="keyword">while</span> (name) {
+        next = load_next(tail, tail, &amp;name, buf, &amp;buflen);
+        Py_DECREF(tail);
+        <span class="keyword">if</span> (next == <span class="literal">NULL</span>) {
+            Py_DECREF(head);
+            <span class="keyword">goto</span> error_exit;
+        }
+        tail = next;
+    }
+
+    <span class="comment">// import xx.xx.xx 形式</span>
+    <span class="keyword">if</span> (fromlist == <span class="literal">NULL</span>) {
+        Py_DECREF(tail);
+        PyMem_FREE(buf);
+        <span class="keyword">return</span> head;
+    }
+
+    Py_DECREF(head);
+    <span class="comment">// from xx.xx import xx 形式</span>
+    <span class="keyword">if</span> (!ensure_fromlist(tail, fromlist, buf, buflen, <span class="number">0</span>)) {
+        Py_DECREF(tail);
+        <span class="keyword">goto</span> error_exit;
+    }
+
+    PyMem_FREE(buf);
+    <span class="keyword">return</span> tail;
+}
+</code></pre><p><strong>get_parent</strong>方法用于获取当前import动作所在的package。<strong>load_next</strong>可以认为是在导入name中声明的每一个模块，每次调用load_next都会返回本次导入的模块的PyObject，并且修改name的信息，将上次导入的模块的名称删除。</p>
+<h3 id="2-get_parent函数">2.get_parent函数</h3><pre><code><span class="function"><span class="keyword">static</span> PyObject *
+<span class="title">get_parent</span><span class="params">(PyObject *globals, <span class="keyword">char</span> *buf, Py_ssize_t *p_buflen, <span class="keyword">int</span> level)</span>
+</span>{
+
+    ......
+    <span class="comment">// 获取__package__信息，就是当前import的环境下，其所在的package叫什么名字</span>
+    pkgname = PyDict_GetItem(globals, pkgstr);
+
+    <span class="keyword">if</span> ((pkgname != <span class="literal">NULL</span>) &amp;&amp; (pkgname != Py_None)) {
+        ......
+        <span class="comment">// 如果package是存在的，那么我们直接使用它</span>
+        <span class="comment">// 将package的内容直接设置到buf里面</span>
+        <span class="built_in">strcpy</span>(buf, PyString_AS_STRING(pkgname));
+    } <span class="keyword">else</span> {
+        <span class="comment">// __package__并没有设置，我们通过其他方法找出来</span>
+        <span class="comment">// 先获得我们import的环境的__name__变量</span>
+        modname = PyDict_GetItem(globals, namestr);
+        <span class="keyword">if</span> (modname == <span class="literal">NULL</span> || !PyString_Check(modname))
+            <span class="keyword">return</span> Py_None;
+
+        <span class="comment">// 再获得__path__变量，需要知道的一点是在__init__.py</span>
+        <span class="comment">// 内部__path__变量是存在的，但其他module内部__path__</span>
+        <span class="comment">// 变量是为None的</span>
+        modpath = PyDict_GetItem(globals, pathstr);
+        <span class="keyword">if</span> (modpath != <span class="literal">NULL</span>) {
+            ......
+            <span class="comment">// __path__已经被设置了，那么__name__的值就是package的名称</span>
+            <span class="comment">// 将package的内容直接设置到buf里面</span>
+            <span class="built_in">strcpy</span>(buf, PyString_AS_STRING(modname));
+            ......
+        } <span class="keyword">else</span> {
+            <span class="comment">// __package__名称为空，那么import的动作是在某个module内部的</span>
+            <span class="keyword">char</span> *start = PyString_AS_STRING(modname);
+            <span class="comment">// lastdot就是当前module所在的package的名称</span>
+            <span class="keyword">char</span> *lastdot = <span class="built_in">strrchr</span>(start, <span class="string">'.'</span>);
+            <span class="keyword">size_t</span> len;
+            <span class="keyword">int</span> error;
+            <span class="keyword">if</span> (lastdot == <span class="literal">NULL</span> &amp;&amp; level &gt; <span class="number">0</span>) {
+                PyErr_SetString(PyExc_ValueError,
+                    <span class="string">"Attempted relative import in non-package"</span>);
+                <span class="keyword">return</span> <span class="literal">NULL</span>;
+            }
+            <span class="keyword">if</span> (lastdot == <span class="literal">NULL</span>) {
+                <span class="comment">// 我们import的环境是最上层的环境</span>
+                <span class="comment">// 比如说得命令行环境</span>
+                <span class="comment">// 程序最初的运行文件等</span>
+                error = PyDict_SetItem(globals, pkgstr, Py_None);
+                <span class="keyword">if</span> (error) {
+                    PyErr_SetString(PyExc_ValueError,
+                        <span class="string">"Could not set __package__"</span>);
+                    <span class="keyword">return</span> <span class="literal">NULL</span>;
+                }
+                <span class="keyword">return</span> Py_None;
+            }
+            len = lastdot - start;
+            <span class="comment">// 将__package__的信息设置到buf里面去</span>
+            <span class="built_in">strncpy</span>(buf, start, len);
+            ......
+        }
+    }
+    <span class="comment">// level &gt; 0 的情况很多时候都是</span>
+    <span class="comment">// from ... import a.b</span>
+    <span class="comment">// 上面的level=3</span>
+    <span class="keyword">while</span> (--level &gt; <span class="number">0</span>) {
+        <span class="keyword">char</span> *dot = <span class="built_in">strrchr</span>(buf, <span class="string">'.'</span>);
+        <span class="keyword">if</span> (dot == <span class="literal">NULL</span>) {
+            PyErr_SetString(PyExc_ValueError,
+                <span class="string">"Attempted relative import beyond "</span>
+                <span class="string">"toplevel package"</span>);
+            <span class="keyword">return</span> <span class="literal">NULL</span>;
+        }
+        *dot = <span class="string">'\0'</span>;
+    }
+    *p_buflen = <span class="built_in">strlen</span>(buf);
+
+    modules = PyImport_GetModuleDict();
+    <span class="comment">// 从sys.modules中获取对应的package</span>
+    parent = PyDict_GetItemString(modules, buf);
+    <span class="keyword">return</span> parent;
+}    
+</code></pre><h3 id="3-load_next函数">3.load_next函数</h3><pre><code><span class="keyword">static</span> <span class="type">PyObject</span> *
+load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, <span class="type">PyObject</span> *altmod, <span class="type">char</span> **p_name, <span class="type">char</span> *buf,
+          <span class="type">Py_ssize_t</span> *p_buflen)
+{
+    ... ...
+    // p_name指向被截取后的路径名称
+    <span class="keyword">if</span> (dot == <span class="type">NULL</span>) {
+        *p_name = <span class="type">NULL</span>;
+        len = strlen(name);
+    }
+    <span class="keyword">else</span> {
+        *p_name = dot+<span class="number">1</span>;
+        len = dot-name;
+    }
+    ... ...
+    // 修改buf的内容，将截取的模块内容拷贝到buf后
+    p = buf + *p_buflen;
+    <span class="keyword">if</span> (p != buf)
+        *p++ = '.';
+    <span class="keyword">if</span> (p+len-buf &gt;= <span class="type">MAXPATHLEN</span>) {
+        <span class="type">PyErr_SetString</span>(<span class="type">PyExc_ValueError</span>,
+                        <span class="string">"Module name too long"</span>);
+        <span class="keyword">return</span> <span class="type">NULL</span>;
+    }
+    strncpy(p, name, len);
+    p[len] = '\<span class="number">0</span>';
+    *p_buflen = p+len-buf;
+
+    // <span class="keyword">import</span>模块
+    <span class="literal">result</span> = import_submodule(<span class="keyword">mod</span>, p, buf);
+    <span class="keyword">if</span> (<span class="literal">result</span> == <span class="type">Py_None</span> &amp;&amp; altmod != <span class="keyword">mod</span>) {
+        //如果没有<span class="keyword">import</span>成功，那么我们从默认路径开始<span class="keyword">import</span>
+        <span class="type">Py_DECREF</span>(<span class="literal">result</span>);
+        /* <span class="type">Here</span>, altmod must be <span class="type">None</span> <span class="keyword">and</span> <span class="keyword">mod</span> must <span class="keyword">not</span> be <span class="type">None</span> */
+        <span class="literal">result</span> = import_submodule(altmod, p, p);
+        <span class="keyword">if</span> (<span class="literal">result</span> != <span class="type">NULL</span> &amp;&amp; <span class="literal">result</span> != <span class="type">Py_None</span>) {
+            <span class="keyword">if</span> (mark_miss(buf) != <span class="number">0</span>) {
+                <span class="type">Py_DECREF</span>(<span class="literal">result</span>);
+                <span class="keyword">return</span> <span class="type">NULL</span>;
+            }
+            strncpy(buf, name, len);
+            buf[len] = '\<span class="number">0</span>';
+            *p_buflen = len;
+        }
+    }
+    ... ...
+
+    <span class="keyword">return</span> <span class="literal">result</span>;
+}
+</code></pre><h3 id="4-领悟">4.领悟</h3><ol>
+<li>import是不能import进module内部的类的，比如说module A中实现了类A，那么<strong>import A_p.A.A</strong>会有问题，需要改为<strong>from A_p.A import A</strong></li>
+<li>对应<strong>from A_p.A import a</strong>形式，我们可以看成<strong>__import__(name = “A_p.A”, from_list = [“a”])</strong>，函数返回的是module A</li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/01/05/python-class-instance/" itemprop="url">
                   Python源码解析——Class实例创建
                 </a>
@@ -251,7 +551,7 @@
 
         <div class="post-meta">
           <span class="post-time">
-            发表于
+            發表於
             <time itemprop="dateCreated" datetime="2016-01-05T09:12:28+08:00" content="2016-01-05">
               2016-01-05
             </time>
@@ -259,7 +559,7 @@
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分类于
+              &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -414,7 +714,7 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
 
         <div class="post-meta">
           <span class="post-time">
-            发表于
+            發表於
             <time itemprop="dateCreated" datetime="2016-01-03T22:16:21+08:00" content="2016-01-03">
               2016-01-03
             </time>
@@ -422,7 +722,7 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分类于
+              &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -589,7 +889,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
         <div class="post-meta">
           <span class="post-time">
-            发表于
+            發表於
             <time itemprop="dateCreated" datetime="2015-12-31T20:53:14+08:00" content="2015-12-31">
               2015-12-31
             </time>
@@ -695,7 +995,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
         <div class="post-meta">
           <span class="post-time">
-            发表于
+            發表於
             <time itemprop="dateCreated" datetime="2015-12-27T15:16:25+08:00" content="2015-12-27">
               2015-12-27
             </time>
@@ -703,7 +1003,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分类于
+              &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -799,7 +1099,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
         <div class="post-meta">
           <span class="post-time">
-            发表于
+            發表於
             <time itemprop="dateCreated" datetime="2015-12-19T20:56:21+08:00" content="2015-12-19">
               2015-12-19
             </time>
@@ -807,7 +1107,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分类于
+              &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -1130,7 +1430,7 @@ dummymarker    |<span class="string">___________</span>|<span class="string">  &
 
         <div class="post-meta">
           <span class="post-time">
-            发表于
+            發表於
             <time itemprop="dateCreated" datetime="2015-12-10T19:27:10+08:00" content="2015-12-10">
               2015-12-10
             </time>
@@ -1138,7 +1438,7 @@ dummymarker    |<span class="string">___________</span>|<span class="string">  &
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分类于
+              &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -1303,7 +1603,7 @@ StopIteration
 
         <div class="post-meta">
           <span class="post-time">
-            发表于
+            發表於
             <time itemprop="dateCreated" datetime="2015-12-01T12:47:36+08:00" content="2015-12-01">
               2015-12-01
             </time>
@@ -1311,7 +1611,7 @@ StopIteration
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分类于
+              &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -1562,7 +1862,7 @@ pipe = NamePipe.NamePipe(pid, <span class="keyword">True</span>)
 
         <div class="post-meta">
           <span class="post-time">
-            发表于
+            發表於
             <time itemprop="dateCreated" datetime="2015-11-22T16:07:06+08:00" content="2015-11-22">
               2015-11-22
             </time>
@@ -1570,7 +1870,7 @@ pipe = NamePipe.NamePipe(pid, <span class="keyword">True</span>)
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分类于
+              &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/python的那些事/" itemprop="url" rel="index">
@@ -1754,7 +2054,7 @@ PyTypeObject PyCoro_Type = {
 
         <div class="post-meta">
           <span class="post-time">
-            发表于
+            發表於
             <time itemprop="dateCreated" datetime="2015-11-12T21:28:05+08:00" content="2015-11-12">
               2015-11-12
             </time>
@@ -1762,7 +2062,7 @@ PyTypeObject PyCoro_Type = {
 
           
             <span class="post-category" >
-              &nbsp; | &nbsp; 分类于
+              &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
                   <a href="/categories/网路/" itemprop="url" rel="index">
@@ -1956,112 +2256,6 @@ taskdelay(uint ms)
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/11/12/libtask/" itemprop="url">
-                  libtask源码注释
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            发表于
-            <time itemprop="dateCreated" datetime="2015-11-12T12:31:12+08:00" content="2015-11-12">
-              2015-11-12
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分类于
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/11/12/libtask/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/12/libtask/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <p><a href="https://swtch.com/libtask/" target="_blank" rel="external">Libtask</a>是Go语言的作者之一拉斯·考克斯(Russ Cox)实现的一个轻量级的协程库。代码量很少，很好理解。所以最近在阅读其源码，并同时对源码做注释。<br>我将注释的源码提交在了Github上<a href="https://github.com/Whosemario/libtask-comment" target="_blank" rel="external">https://github.com/Whosemario/libtask-comment</a>。同时，我也会实时更新这篇博客，加入自己对Libtask的理解。</p>
-<ol>
-<li><a href="http://whosemario.github.io/2015/11/12/timer/">taskdelay的内部实现</a></li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2108,22 +2302,22 @@ taskdelay(uint ms)
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">13</span>
-              <span class="site-state-item-name">日志</span>
+              <span class="site-state-item-count">14</span>
+              <span class="site-state-item-name">文章</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             <a href="/categories">
               <span class="site-state-item-count">4</span>
-              <span class="site-state-item-name">分类</span>
+              <span class="site-state-item-name">分類</span>
               </a>
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
               <span class="site-state-item-count">7</span>
-              <span class="site-state-item-name">标签</span>
+              <span class="site-state-item-name">標籤</span>
               </a>
           </div>
 
@@ -2176,11 +2370,11 @@ taskdelay(uint ms)
 </div>
 
 <div class="powered-by">
-  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 強力驅動
 </div>
 
 <div class="theme-info">
-  主题 -
+  主題 -
   <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
     NexT
   </a>
