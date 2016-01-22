@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python," />
+  <meta name="keywords" content="Python,Singleton," />
 
 
 
@@ -53,37 +53,22 @@
 
 
 
-<meta name="description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
-&amp;gt;&amp;gt;&amp;gt; class A(object):
-...     __slots__ = [&quot;v&quot;]
-...
-&amp;gt;&amp;gt;&amp;gt; a = A() 
-&amp;gt;&amp;gt;&amp;gt; a.v = 1
-&amp;gt;&amp;gt;&amp;gt; a.b = 1
-Trace">
+<meta name="description" content="使用Python来实现单例模式是一件很有意思的事情，在这个过程中我们会重新审视Python在创建类(Build Class)和构建实例时都调用了那些magic method。同时我也想说的是Python的单例模块实现多种多样，但有些实现是存在问题的，在某些情况下是不可用或者影响系统的某些功能的。
+
+1.利用Python的metaclass实现单例先说我认为实现起来最地道的Python Single">
 <meta property="og:type" content="article">
-<meta property="og:title" content="python __slots__">
-<meta property="og:url" content="http://whosemario.github.io/2015/11/08/python-slot/index.html">
+<meta property="og:title" content="Python中的单例模式实现">
+<meta property="og:url" content="http://whosemario.github.io/2016/01/22/pattern-singleton/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
-&amp;gt;&amp;gt;&amp;gt; class A(object):
-...     __slots__ = [&quot;v&quot;]
-...
-&amp;gt;&amp;gt;&amp;gt; a = A() 
-&amp;gt;&amp;gt;&amp;gt; a.v = 1
-&amp;gt;&amp;gt;&amp;gt; a.b = 1
-Trace">
-<meta property="og:updated_time" content="2015-11-09T01:09:56.000Z">
+<meta property="og:description" content="使用Python来实现单例模式是一件很有意思的事情，在这个过程中我们会重新审视Python在创建类(Build Class)和构建实例时都调用了那些magic method。同时我也想说的是Python的单例模块实现多种多样，但有些实现是存在问题的，在某些情况下是不可用或者影响系统的某些功能的。
+
+1.利用Python的metaclass实现单例先说我认为实现起来最地道的Python Single">
+<meta property="og:updated_time" content="2016-01-22T13:11:46.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="python __slots__">
-<meta name="twitter:description" content="上一篇翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。
-&amp;gt;&amp;gt;&amp;gt; class A(object):
-...     __slots__ = [&quot;v&quot;]
-...
-&amp;gt;&amp;gt;&amp;gt; a = A() 
-&amp;gt;&amp;gt;&amp;gt; a.v = 1
-&amp;gt;&amp;gt;&amp;gt; a.b = 1
-Trace">
+<meta name="twitter:title" content="Python中的单例模式实现">
+<meta name="twitter:description" content="使用Python来实现单例模式是一件很有意思的事情，在这个过程中我们会重新审视Python在创建类(Build Class)和构建实例时都调用了那些magic method。同时我也想说的是Python的单例模块实现多种多样，但有些实现是存在问题的，在某些情况下是不可用或者影响系统的某些功能的。
+
+1.利用Python的metaclass实现单例先说我认为实现起来最地道的Python Single">
 
 
 
@@ -95,7 +80,7 @@ Trace">
   };
 </script>
 
-  <title> python __slots__ | Whosemario的家 </title>
+  <title> Python中的单例模式实现 | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -245,7 +230,7 @@ Trace">
             
             
               
-                python __slots__
+                Python中的单例模式实现
               
             
           </h1>
@@ -254,8 +239,8 @@ Trace">
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T18:57:49+08:00" content="2015-11-08">
-              2015-11-08
+            <time itemprop="dateCreated" datetime="2016-01-22T21:08:02+08:00" content="2016-01-22">
+              2016-01-22
             </time>
           </span>
 
@@ -264,8 +249,8 @@ Trace">
               &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
+                  <a href="/categories/设计模式/" itemprop="url" rel="index">
+                    <span itemprop="name">设计模式</span>
                   </a>
                 </span>
 
@@ -280,8 +265,8 @@ Trace">
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2015/11/08/python-slot/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/08/python-slot/" itemprop="commentsCount"></span>
+                <a href="/2016/01/22/pattern-singleton/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/22/pattern-singleton/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -300,138 +285,97 @@ Trace">
       
 
       
-        <span itemprop="articleBody"><p><a href="http://www.jianshu.com/p/82ce2151d73b" target="_blank" rel="external">上一篇</a>翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。</p>
-<pre><code>&gt;&gt;&gt; class <span class="function"><span class="title">A</span><span class="params">(object)</span></span>:
-...     __slots__ = [<span class="string">"v"</span>]
-...
-&gt;&gt;&gt; <span class="tag">a</span> = <span class="function"><span class="title">A</span><span class="params">()</span></span> 
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.v</span> = <span class="number">1</span>
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.b</span> = <span class="number">1</span>
-Traceback (most recent call last):
-  File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;
-AttributeError: <span class="string">'A'</span> <span class="tag">object</span> has no attribute <span class="string">'b'</span>
-&gt;&gt;&gt; <span class="function"><span class="title">type</span><span class="params">(A.v)</span></span>
-&lt;type <span class="string">'member_descriptor'</span>&gt;
-</code></pre><p>上面这一段代码，Class A声明了__slots__参数，对实例a的v变量进行赋值没有问题，但对实例a的b变量赋值，则会有个AttributeError的异常发生。再仔细看看A.v，原来他是一个<a href="https://docs.python.org/2/howto/descriptor.html" target="_blank" rel="external">descriptor</a>(有时间可以写一篇Python descriptor相关的文章，Python中很多功能的实现都离不开descriptor)！<br>那么，Python在构建Class A的时候到底都做了什么，我们慢慢地解析下去。</p>
-<h4 id="Class_A的创建">Class A的创建</h4><p>Python中类的构建的相关字节码是BUILD_CLASS:</p>
-<pre><code># in ceval.c
-case BUILD_CLASS:
-      u = TOP()<span class="comment">;</span>
-      v = SECOND()<span class="comment">;</span>
-      w = THIRD()<span class="comment">;</span>
-      STACKADJ(-2)<span class="comment">;</span>
-      x = build_class(u, v, w)<span class="comment">;</span>
-      SET_TOP(x)<span class="comment">;</span>
-      Py_DECREF(u)<span class="comment">;</span>
-      Py_DECREF(v)<span class="comment">;</span>
-      Py_DECREF(w)<span class="comment">;</span>
-</code></pre><p>顺着这段起始代码顺藤摸瓜，最后会到命名为type_new的方法中去：</p>
-<pre><code>  # <span class="keyword">in</span> typeobject.c
-  <span class="keyword">static</span> PyObject *
-  type_new(PyTypeObject *metatype, PyObject *args, PyObject *kwds) {
-        ....
-        <span class="comment">// dict 可以理解为你将要新建的类的locals，里面便含有__slots__字段</span>
-        <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"SO!O!:type"</span>, kwlist,
-                                 &amp;name,
-                                 &amp;PyTuple_Type, &amp;bases,
-                                 &amp;PyDict_Type, &amp;dict))
-            <span class="keyword">return</span> NULL;
-        ....
-        <span class="comment">// 获取__slots__参数</span>
-        slots = PyDict_GetItemString(dict, <span class="string">"__slots__"</span>);
-        nslots = <span class="number">0</span>;
-        add_dict = <span class="number">0</span>;    <span class="comment">// 是否要加入__dict__</span>
-        add_weak = <span class="number">0</span>;  <span class="comment">// 是否要加入__weakref__</span>
+        <span itemprop="articleBody"><blockquote>
+<p>使用Python来实现单例模式是一件很有意思的事情，在这个过程中我们会重新审视Python在创建类(Build Class)和构建实例时都调用了那些<strong>magic method</strong>。<br>同时我也想说的是Python的单例模块实现多种多样，但有些实现是存在问题的，在某些情况下是不可用或者影响系统的某些功能的。</p>
+</blockquote>
+<h3 id="1-利用Python的metaclass实现单例">1.利用Python的metaclass实现单例</h3><p>先说我认为实现起来最地道的Python Singleton的实现方法。metaclass在Python中是一个很奇特的东西。Python在类的构建过程中会寻找metaclass，默认是type，如果我们在类中定义的metaclass，Python在类的构建中就会使用这个metaclass。<br>上面的描述主要体现在下面的代码逻辑中。</p>
+<pre><code><span class="comment"># ceval.c</span>
+<span class="keyword">static</span> PyObject *  
+build_class(PyObject *methods, PyObject *bases, PyObject *name) {
+    PyObject *metaclass = <span class="keyword">NULL</span>, *result, *base;
 
-        <span class="keyword">if</span> (slots == NULL) {
-              <span class="comment">//... ignore</span>
-        } <span class="keyword">else</span> {
-              <span class="comment">// 会对slots做一下处理，包括计算nslots，但不影响我们对slots实现的理解</span>
-        }
-
-        <span class="comment">// 为需要创建的类分配空间</span>
-        <span class="class"><span class="keyword">type</span> </span>= (PyTypeObject *)metatype-&gt;tp_alloc(metatype, nslots);
-        ....
-        <span class="comment">// 转换指针，变为PyHeapTypeObject，PyHeapTypeObject和PyTypeObject的关系可以认为是包含关系，具体的细节可以再写一篇文章了</span>
-        et = (PyHeapTypeObject *)<span class="class"><span class="keyword">type</span>;</span>
-        ....
-        <span class="comment">// 将slots相关的参数设置为members</span>
-        mp = PyHeapType_GET_MEMBERS(et);
-        slotoffset = <span class="keyword">base</span>-&gt;tp_basicsize;
-        <span class="keyword">if</span> (slots != NULL) {
-            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nslots; i++, mp++) {
-                mp-&gt;name = PyString_AS_STRING(
-                              PyTuple_GET_ITEM(slots, i));
-                mp-&gt;<span class="class"><span class="keyword">type</span> </span>= T_OBJECT_EX;
-                mp-&gt;offset = slotoffset;
-                ....
-                slotoffset += sizeof(PyObject *);
-             }
-         }
-         ....
-         <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_members</span> </span>= PyHeapType_GET_MEMBERS(et);
-         ....
-         PyType_Ready(<span class="class"><span class="keyword">type</span>);</span>
-         ....
-}
-</code></pre><p>上面我们忽略了一些不相干的代码，代码的主要逻辑就是将__slots__定义的内容放到type的末尾，并且让type的tp_members变量指向type的末尾，这些内容将会在PyType_Ready函数中用到。<br>这里忽略PyType_Ready的内容，只说明在PyType_Ready中会调用add_members方法，下面看一下add_members的实现：</p>
-<pre><code><span class="preprocessor"># in typeobject.c</span>
-<span class="function"><span class="keyword">static</span> <span class="keyword">int</span>
-<span class="title">add_members</span><span class="params">(PyTypeObject *type, PyMemberDef *memb)</span> </span>{
-    PyObject *dict = type-&gt;tp_dict;
-    <span class="keyword">for</span> (; memb-&gt;name != <span class="literal">NULL</span>; memb++) {
-          PyObject *descr;
-          <span class="keyword">if</span> (PyDict_GetItemString(dict, memb-&gt;name))
-              <span class="keyword">continue</span>;
-          descr = PyDescr_NewMember(type, memb);
-          <span class="keyword">if</span> (descr == <span class="literal">NULL</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          <span class="keyword">if</span> (PyDict_SetItemString(dict, memb-&gt;name, descr) &lt; <span class="number">0</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          Py_DECREF(descr);
+    <span class="comment">// 0.先尝试从用户自定义的类中查询__metaclass__</span>
+    <span class="keyword">if</span> (PyDict_Check(methods))
+          metaclass = PyDict_GetItemString(methods, <span class="string">"__metaclass__"</span>);
+    <span class="keyword">if</span> (metaclass != <span class="keyword">NULL</span>)
+          Py_INCREF(metaclass);
+    <span class="keyword">else</span> <span class="keyword">if</span> (PyTuple_Check(bases) &amp;&amp; PyTuple_GET_SIZE(bases) &gt; <span class="number">0</span>) {
+          <span class="comment">// 1.从基类获取__class__作为metaclass</span>
+          base = PyTuple_GET_ITEM(bases, <span class="number">0</span>);
+          metaclass = PyObject_GetAttrString(base, <span class="string">"__class__"</span>);
+          <span class="keyword">if</span> (metaclass == <span class="keyword">NULL</span>) {
+              PyErr_Clear();
+              <span class="comment">// 2.使用ob_type</span>
+              metaclass = (PyObject *)base-&gt;ob_type;
+              Py_INCREF(metaclass);
+          }
+     }
+     <span class="keyword">else</span> {
+          <span class="comment">// 3.如果这个类连基类都没有，使用全局global的__metaclass__</span>
+          PyObject *g = PyEval_GetGlobals();
+          <span class="keyword">if</span> (g != <span class="keyword">NULL</span> &amp;&amp; PyDict_Check(g))
+              metaclass = PyDict_GetItemString(g, <span class="string">"__metaclass__"</span>);
+          <span class="keyword">if</span> (metaclass == <span class="keyword">NULL</span>)
+              <span class="comment">// 4.使用PyClass_Type</span>
+              metaclass = (PyObject *) &amp;PyClass_Type;
+          Py_INCREF(metaclass);
       }
-      <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><p>上面的代码逻辑还是很好理解的，将memb里面的内容（即slots的内容）创建为member_descriptor，加入到tp_dict里面去。</p>
-<h4 id="Class_A的属性设置">Class A的属性设置</h4><p>实例的属性设置最终会在PyObject_GenericSetAttr方法中处理，PyObject_GenericSetAttr方法又会调用_PyObject_GenericSetAttrWithDict方法，我们来看一下_PyObject_GenericSetAttrWithDict方法到底怎么做的，才可以实现文章开始展示的效果。</p>
-<pre><code>int
-_PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
-                             PyObject *value, PyObject *dict) {
-    PyTypeObject *tp = Py_TYPE(obj);
-    descr = _PyType_Lookup(tp, name);
-    f = <span class="built_in">NULL</span>;
-    <span class="keyword">if</span> (descr != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span>
-        PyType_HasFeature(descr<span class="subst">-&gt;</span>ob_type,Py_TPFLAGS_HAVE_CLASS)) {
-        f = descr<span class="subst">-&gt;</span>ob_type<span class="subst">-&gt;</span>tp_descr_set;
-        <span class="comment">// 对于slots相关的参数将会进入下面的if语句</span>
-        <span class="keyword">if</span> (f != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span> PyDescr_IsData(descr)) {
-            res = f(descr, obj, value);
-            goto done;
-        }
-    }
-    <span class="attribute">...</span><span class="built_in">.
-    </span><span class="keyword">if</span> (dict == <span class="built_in">NULL</span>) {
-        <span class="comment">// 对于不是slots提供的属性，尝试去obj自己的dict中查找，</span>
-        <span class="comment">// 但在构建类时，由于有__slots__属性，所以tp_dictoffset为0，</span>
-        <span class="comment">// 因此dictptr等于NULL</span>
-        dictptr = _PyObject_GetDictPtr(obj);
-        <span class="keyword">if</span> (dictptr != <span class="built_in">NULL</span>) {
-              <span class="attribute">...</span><span class="built_in">. 
-        </span>}
-    }
-    <span class="keyword">if</span> (dict != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (f != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (descr == <span class="built_in">NULL</span>) {
-        <span class="comment">// 此时输出错误信息</span>
-        PyErr_Format(PyExc_AttributeErr<span class="subst">or</span>,
-                 <span class="string">"'%.100s' object has no attribute '%.200s'"</span>,
-                 tp<span class="subst">-&gt;</span>tp_name, PyString_AS_STRING(name));
-        goto done;
-    }
-    <span class="attribute">...</span><span class="built_in">.
-</span>}
-</code></pre><p>对于slots定义的变量，会找到对应的descr，调用对应的set方法，对于slots没有定义的变量，最终会跑到抛出异常的那段逻辑。</p>
-<h4 id="总结">总结</h4><p>__slots__的实现还是比较好懂的，Python在构建类的时候，会检查__slots__变量是否存在，如果存在，为slots变量建立member_descriptor，并放入tp_dict里面，并且这个类的tp<em>dictoffset为0，它的实例将不会有自己的\</em>_dict__。</p>
+  ......
+</code></pre><p>metaclass创建好之后，我们要使用metaclass创建对应的类，并初始化创建处理的类。<br>类的创建主要在type_call是实现，我们在<a href="http://whosemario.github.io/2016/01/05/python-class-instance/">这篇文章中</a>大体提到了type_call里面的部分逻辑，主要涉及<strong>tp_new</strong>和<strong>tp_init</strong>。之后，在初始化类中会调用<strong>PyObject_Call</strong>方法。<strong>PyObject_Call</strong>方法会调用metaclass的tp_call方法，并且返回此类对应的实例，因此为了实现单例模式，我们可以在tp_call这个方法上做手脚。</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Singleton</span><span class="params">(type)</span>:</span>
+      _instance = {}
+      <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(cls, *args, **kwargs)</span>:</span>
+            <span class="keyword">if</span> cls <span class="keyword">not</span> <span class="keyword">in</span> Singleton._instance:
+                Singleton._instance[cls] = type.__call__(cls, *args, **kwargs)
+            <span class="keyword">return</span> Singleton._instance[cls]
+
+ <span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span>
+       __metaclass__ = Singleton
+
+  a1 = A()
+  a2 = A()
+  <span class="keyword">print</span> id(a1) == id(a2)
+</code></pre><p>上面实例a1和实例a2的id是相同。例外<strong>call</strong>即使上面所只得tp_call。</p>
+<h3 id="2-利用__new__实现单例模式">2.利用__new__实现单例模式</h3><p>另一种方法是我们在tp_new的时候去检查此类有没有被创建，创建了就直接返回对应的实例。</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Singleton</span><span class="params">(object)</span>:</span>
+    _instance = <span class="keyword">None</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">__new__</span><span class="params">(cls, *args, **kwargs)</span>:</span>
+          <span class="keyword">if</span> Singleton._instance <span class="keyword">is</span> <span class="keyword">None</span>:
+              Singleton._instance = object.__new__(cls, *args, **kwargs)
+          <span class="keyword">return</span> Singleton._instance
+
+<span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(Singleton)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span>
+          <span class="keyword">print</span> <span class="string">"init A"</span>
+
+ a1 = A()
+ a2 = A()
+ <span class="keyword">print</span> id(a1) == id(a2)
+</code></pre><p>上面这种方法也可以实现单例，同时也存在着风险。</p>
+<ol>
+<li>如果子类重载了__new__方法，那么父类的__new__方法就不起作用了</li>
+<li>如果运行上面的代码会发现打印出两次”init A”， 因为在这种情况下tp_new会被调用两次，第二次由于_instance不等于None，直接返回。相同tp<em>init也会被调用两次，每次都会调用A的\</em>_init__方法。如果不小心在__init__中做了一些初始化的逻辑，那么每次构建一个实例都要进行初始化了（是不是感觉和单例模式的初衷相违背了呢）。</li>
+</ol>
+<h3 id="3-利用修饰器实现单例模式">3.利用修饰器实现单例模式</h3><pre><code>_instance = {}
+<span class="function"><span class="keyword">def</span> <span class="title">Singleton</span><span class="params">(cls)</span>:</span>
+     <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">(*args, **kwargs)</span>:</span>
+          <span class="keyword">if</span> cls <span class="keyword">not</span> <span class="keyword">in</span> _instance:
+              _instance[cls] = cls(*args, **kwargs)
+          <span class="keyword">return</span> _instance[cls]
+     <span class="keyword">return</span> wrapper
+
+<span class="decorator"> @Singleton</span>
+ <span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span>
+       <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span>
+            <span class="keyword">print</span> <span class="string">"init"</span>
+
+  a = A() 
+  b = A() 
+  <span class="keyword">print</span> id(a)
+  <span class="keyword">print</span> id(b)
+  <span class="keyword">print</span> type(A)
+</code></pre><p>运行上面的代码，一切看起来都合情合理，”init”也只打印了一次。但看最后一行的输出，A的类型为function。好的，显然没有错，我们用修饰器修饰了。但A的类型变化了会产生什么负面作用是很难把握的。随着工程的扩大，A是什么类型开发者可能已经不了解了，因此也会导致很多问题出来，并且很难去定位问题。</p>
+<h3 id="4-小结">4.小结</h3><p>上面三种方法其实都可以实现单例模式，就个人经验和喜好来说，第一种最好。</p>
 </span>
       
     </div>
@@ -440,7 +384,9 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/Python/" rel="tag">#Python</a>
+          
+            <a href="/tags/Singleton/" rel="tag">#Singleton</a>
           
         </div>
       
@@ -449,17 +395,13 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/11/08/libuv-timer/" rel="next" title="libuv Timer 模块">
-                <i class="fa fa-chevron-left"></i> libuv Timer 模块
+              <a href="/2016/01/21/pattern-statem/" rel="next" title="状态机在游戏实现中的使用">
+                <i class="fa fa-chevron-left"></i> 状态机在游戏实现中的使用
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2015/11/12/libtask/" rel="prev" title="libtask源码注释">
-                libtask源码注释 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -474,10 +416,10 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2015/11/08/python-slot/"
-     data-title="python __slots__"
+        <div class="ds-share flat" data-thread-key="2016/01/22/pattern-singleton/"
+     data-title="Python中的单例模式实现"
      data-content=""
-     data-url="http://whosemario.github.io/2015/11/08/python-slot/">
+     data-url="http://whosemario.github.io/2016/01/22/pattern-singleton/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -505,8 +447,8 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2015/11/08/python-slot/"
-           data-title="python __slots__" data-url="http://whosemario.github.io/2015/11/08/python-slot/">
+      <div class="ds-thread" data-thread-key="2016/01/22/pattern-singleton/"
+           data-title="Python中的单例模式实现" data-url="http://whosemario.github.io/2016/01/22/pattern-singleton/">
       </div>
     
   </div>
@@ -606,7 +548,7 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Class_A的创建"><span class="nav-number">1.</span> <span class="nav-text">Class A的创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Class_A的属性设置"><span class="nav-number">2.</span> <span class="nav-text">Class A的属性设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-利用Python的metaclass实现单例"><span class="nav-number">1.</span> <span class="nav-text">1.利用Python的metaclass实现单例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-利用__new__实现单例模式"><span class="nav-number">2.</span> <span class="nav-text">2.利用__new__实现单例模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-利用修饰器实现单例模式"><span class="nav-number">3.</span> <span class="nav-text">3.利用修饰器实现单例模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-小结"><span class="nav-number">4.</span> <span class="nav-text">4.小结</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
