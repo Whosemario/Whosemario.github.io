@@ -237,6 +237,179 @@
             
               
                 
+                <a class="post-title-link" href="/2015/12/10/python-unittest-mock/" itemprop="url">
+                  Python单元测试(1) —— Mock模块
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2015-12-10T19:27:10+08:00" content="2015-12-10">
+              2015-12-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/12/10/python-unittest-mock/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/10/python-unittest-mock/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <h2 id="1-关于单元测试的思考">1.关于单元测试的思考</h2><p>怎样对游戏进行单元测试是我在一直思考的问题，我们的游戏服务端是用Python写的，我们开发的测试方式确实很原始，服务端游戏逻辑写完后，都要借助于客户端链接上服务器，然后利用GM指令，或者其他蹩脚的方式才能测试服务端的逻辑是否正确，这个过程存在很多显而易见的弊端：</p>
+<ol>
+<li>测试流程太过繁琐，并且测试点有可能不全面</li>
+<li>没有规范的单元测试，自动化测试也很难实施</li>
+<li>单元测试也是理解代码逻辑的一种方式，如果单元测试都没有，理解代码的渠道就少了一层</li>
+</ol>
+<p>目前的困难：</p>
+<ol>
+<li>Python2.7 有自己的单元测试框架，可以好好的利用这个模块，怎样将此模块与游戏逻辑结合在一起也是要仔细考虑的问题</li>
+<li>依赖于客户端的登录是因为一个模块的逻辑依赖于很多其他模块，使用客户端端登录，其他模块自然也就存在了，怎样摆脱客户端，完全在服务端进行单元测试也是一个难点</li>
+<li>单元测试模块怎样构建，怎样可扩展</li>
+</ol>
+<p>单元测试我也是最近开始研究，这篇博文不仅写给大家，也写给我自己。我也将会将自己对单元测试的理解写成一个系列，今天先来说说对Python Mock模块的理解。</p>
+<h2 id="2-Python_Mock">2.Python Mock</h2><p>Mock模块在Python3.3被加入到Python标准库中，如果Python2.x要使用Mock模块可以使用<strong>pip</strong>进行安装。</p>
+<pre><code>&gt; sudo pip <span class="keyword">install</span> mock
+</code></pre><p>先罗列一下Mock模块的几个关键的内容：</p>
+<ol>
+<li>Mock类本身</li>
+<li>MagicMock</li>
+<li>patch修饰器</li>
+</ol>
+<h2 id="3-Mock">3.Mock</h2><p>介绍Mock模块首先要说一下Mock类，Mock类的构造函数如下：</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="type">Mock</span><span class="container">(<span class="title">spec</span>=<span class="type">None</span>, <span class="title">side_effect</span>=<span class="type">None</span>, <span class="title">return_value</span>=<span class="type">DEFAULT</span>, <span class="title">wraps</span>=<span class="type">None</span>, <span class="title">name</span>=<span class="type">None</span>, <span class="title">spec_set</span>=<span class="type">None</span>, <span class="title">unsafe</span>=<span class="type">False</span>, **<span class="title">kwargs</span>)</span></span>
+</code></pre><p>个人比较关注如下几个参数：</p>
+<h4 id="spec">spec</h4><p>spec的参数可以是一个Python类。</p>
+<pre><code><span class="prompt">&gt;&gt;&gt; </span><span class="class"><span class="keyword">class</span> <span class="title">Foo</span><span class="params">(object)</span>:</span>
+<span class="prompt">... </span>    val_a = <span class="number">1</span>
+<span class="prompt">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">func_a</span><span class="params">(self)</span>:</span>
+<span class="prompt">... </span>            <span class="keyword">print</span> <span class="string">"call in func_a"</span>
+...
+<span class="prompt">&gt;&gt;&gt; </span>m = Mock(spec = Foo)
+<span class="prompt">&gt;&gt;&gt; </span>m.val_a
+&lt;Mock name=<span class="string">'mock.val_a'</span> id=<span class="string">'4501041936'</span>&gt;
+<span class="prompt">&gt;&gt;&gt; </span>m.func_a()
+&lt;Mock name=<span class="string">'mock.func_a()'</span> id=<span class="string">'4501044176'</span>&gt;
+<span class="prompt">&gt;&gt;&gt; </span>m.func_b()
+Traceback (most recent call last):
+  File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;
+  File <span class="string">"mock/mock.py"</span>, line <span class="number">717</span>, <span class="keyword">in</span> __getattr__
+<span class="keyword">raise</span> AttributeError(<span class="string">"Mock object has no attribute %r"</span> % name)
+AttributeError: Mock object has no attribute <span class="string">'func_b'</span>
+</code></pre><p>Foo类有一个参数<strong>val_a</strong>和方法<strong>func_a</strong>，实例<strong>m</strong>调用<strong>val_a</strong>和<strong>func_a</strong>都没有问题，但是调用Foo没有的参数或者方法则会抛出<strong>AttributeError</strong>异常。</p>
+<h4 id="return_value">return_value</h4><p>return_value定义mock被调用时的返回值。</p>
+<pre><code><span class="prompt">&gt;&gt;</span>&gt; m = <span class="constant">Mock</span>(return_value = <span class="number">1</span>)
+<span class="prompt">&gt;&gt;</span>&gt; m
+&lt;<span class="constant">Mock</span> id=<span class="string">'4501997840'</span>&gt;
+<span class="prompt">&gt;&gt;</span>&gt; m()
+<span class="number">1</span>
+</code></pre><h4 id="side_effect">side_effect</h4><p>side_effect和return_value正好相反，side_effect赋值后，mock的调用将会是side_effect的内容。side_effect可以是一个exception，也可以是一个可迭代的实例。</p>
+<pre><code>&gt;&gt;&gt; <span class="tag">li</span> = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
+&gt;&gt;&gt; m = <span class="function"><span class="title">Mock</span><span class="params">(side_effect = li)</span></span>
+&gt;&gt;&gt; <span class="function"><span class="title">m</span><span class="params">()</span></span>
+<span class="number">1</span>
+&gt;&gt;&gt; <span class="function"><span class="title">m</span><span class="params">()</span></span>
+<span class="number">2</span>
+&gt;&gt;&gt; <span class="function"><span class="title">m</span><span class="params">()</span></span>
+<span class="number">3</span>
+&gt;&gt;&gt; <span class="function"><span class="title">m</span><span class="params">()</span></span>
+Traceback (most recent call last):
+      File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;
+      File <span class="string">"mock/mock.py"</span>, line <span class="number">1063</span>, <span class="keyword">in</span> __call__
+        return _mock_self._mock_call(*args, **kwargs)
+      File <span class="string">"mock/mock.py"</span>, line <span class="number">1122</span>, <span class="keyword">in</span> _mock_call
+        result = <span class="function"><span class="title">next</span><span class="params">(effect)</span></span>
+      File <span class="string">"mock/mock.py"</span>, line <span class="number">127</span>, <span class="keyword">in</span> next
+        return _next(obj)
+StopIteration
+</code></pre><h2 id="Reference">Reference</h2><ol>
+<li>使用 Python Mock 类进行单元测试 - <a href="http://www.oschina.net/translate/unit-testing-with-the-python-mock-class" target="_blank" rel="external">http://www.oschina.net/translate/unit-testing-with-the-python-mock-class</a></li>
+<li>Python Mock Doc - <a href="https://docs.python.org/3/library/unittest.mock.html" target="_blank" rel="external">https://docs.python.org/3/library/unittest.mock.html</a></li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2015/12/01/python-remote-debug-py/" itemprop="url">
                   远程调试Python进程的小工具
                 </a>
@@ -1574,7 +1747,7 @@ results.sort()
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">17</span>
+              <span class="site-state-item-count">18</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
@@ -1588,7 +1761,7 @@ results.sort()
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-count">11</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>
