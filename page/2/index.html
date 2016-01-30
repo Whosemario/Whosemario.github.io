@@ -237,6 +237,181 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/03/python-PyType-GenericAlloc/" itemprop="url">
+                  Python源码解析——PyType_GenericAlloc
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-01-03T22:16:21+08:00" content="2016-01-03">
+              2016-01-03
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/03/python-PyType-GenericAlloc/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/03/python-PyType-GenericAlloc/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>为什么要写PyType_GenericAlloc函数，原因是本人想写一篇关于创建Class的源码解析的博文，发现内容比较多，因此就打算分开解析里面比较重要的内容。</p>
+<p>PyType_GenericAlloc用来做什么，从函数命名可以看出<strong>GenericAlloc</strong>说明是用于一般情况的内存空间分配，<strong>PyType</strong>说明是针对PyTypeObject进行内存空间分配的。</p>
+</blockquote>
+<h3 id="1-关于GC">1.关于GC</h3><p>Python有自己的GC逻辑，这里不多讲，主要想说明Python会维护需要GC的各种PyObject，因此Python在PyObject的头部又加入了一个PyGC_Head。</p>
+<pre><code><span class="comment"># 内存分布</span>
+
+        |<span class="string">-------------</span>|
+        |<span class="string">  PyGC_Head  </span>|
+        |<span class="string">-------------</span>|
+        |<span class="string">  PyObject   </span>|
+        |<span class="string">             </span>|
+        |<span class="string">     ...     </span>|
+</code></pre><p>因此有一个函数<strong>_PyObject_GC_Malloc</strong>负责分配上述的内存空间。</p>
+<pre><code>PyObject *
+_PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
+{
+    PyObject *op;
+    PyGC_Head *g;
+    <span class="keyword">if</span> (basicsize &gt; PY_SSIZE_T_MAX - <span class="keyword">sizeof</span>(PyGC_Head))
+        <span class="keyword">return</span> PyErr_NoMemory();
+    g = (PyGC_Head *)PyObject_MALLOC(
+        <span class="keyword">sizeof</span>(PyGC_Head) + basicsize);
+    ...
+    op = FROM_GC(g);
+    <span class="keyword">return</span> op;
+ }
+</code></pre><h3 id="2-PyType_GenericAlloc全景">2.PyType_GenericAlloc全景</h3><pre><code><span class="type">PyObject</span> *
+<span class="type">PyType_GenericAlloc</span>(<span class="type">PyTypeObject</span> *<span class="class"><span class="keyword">type</span>, <span class="title">Py_ssize_t</span> <span class="title">nitems</span>)
+</span>{
+    <span class="type">PyObject</span> *obj;
+    const size_t size = _PyObject_VAR_SIZE(<span class="class"><span class="keyword">type</span>, <span class="title">nitems+1</span>);</span>   [<span class="number">1</span>]
+    <span class="comment">/* note that we need to add one, for the sentinel */</span>
+
+    <span class="keyword">if</span> (<span class="type">PyType_IS_GC</span>(<span class="class"><span class="keyword">type</span>))
+</span>        obj = _PyObject_GC_Malloc(size);    [<span class="number">2</span>]
+    <span class="keyword">else</span>
+        obj = (<span class="type">PyObject</span> *)<span class="type">PyObject_MALLOC</span>(size);
+
+    <span class="keyword">if</span> (obj == <span class="type">NULL</span>)
+        <span class="keyword">return</span> <span class="type">PyErr_NoMemory</span>();
+
+    memset(obj, '\<span class="number">0</span>', size);
+
+    <span class="keyword">if</span> (<span class="class"><span class="keyword">type</span><span class="title">-&gt;tp_flags</span> <span class="title">&amp;</span> <span class="title">Py_TPFLAGS_HEAPTYPE</span>)
+</span>        <span class="type">Py_INCREF</span>(<span class="class"><span class="keyword">type</span>);</span>
+
+    <span class="keyword">if</span> (<span class="class"><span class="keyword">type</span><span class="title">-&gt;tp_itemsize</span> <span class="title">==</span> 0)
+</span>        <span class="type">PyObject_INIT</span>(obj, <span class="class"><span class="keyword">type</span>);</span>
+    <span class="keyword">else</span>
+        (void) <span class="type">PyObject_INIT_VAR</span>((<span class="type">PyVarObject</span> *)obj, <span class="class"><span class="keyword">type</span>, <span class="title">nitems</span>);</span>  [<span class="number">3</span>]
+
+    <span class="keyword">if</span> (<span class="type">PyType_IS_GC</span>(<span class="class"><span class="keyword">type</span>))
+</span>        _PyObject_GC_TRACK(obj);
+    <span class="keyword">return</span> obj;
+}
+</code></pre><p>关注三点，[1]处，计算要创建的PyObject的大小（nitems为什么要加1需要再深入看一下）。</p>
+<pre><code><span class="comment">#define _PyObject_VAR_SIZE(typeobj, nitems)     \</span>
+(size_t)                                    <span class="string">\</span>
+<span class="function"><span class="params">( ( (typeobj)-&gt;tp_basicsize +               <span class="string">\</span>
+    (nitems)*(typeobj)-&gt;tp_itemsize +       <span class="string">\</span>
+    (SIZEOF_VOID_P - <span class="number">1</span>)                     <span class="string">\</span>
+  ) &amp; ~(SIZEOF_VOID_P - <span class="number">1</span>)                  <span class="string">\</span>
+)</span></span>
+</code></pre><p>size的组成是tp_basicsize + nitems * tp_itemsize，后面加上SIZEOF_VOID_P - 1是为了内存对齐。</p>
+<p>[2]处使用<strong>_PyObject_GC_Malloc</strong>进行真正的内存分配。</p>
+<p>[3]处初始化PyObject，确切的说应该是PyVarObject，看一下具体初始化了哪些东西</p>
+<ol>
+<li>ob_size = nitems 初始化数量</li>
+<li>ob_type = type 初始化对应的PyObjectType</li>
+<li>ob_refcnt = 1 初始化引用计数为1</li>
+<li>调用_Py_AddToAllObjects，将obj加入到<strong>refchain</strong>双向链表中</li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2015/12/27/python-xcode/" itemprop="url">
                   Python2.7 Xcode Project
                 </a>
@@ -1996,152 +2171,12 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/11/08/python-inspect-module/" itemprop="url">
-                  Python Inspect Module 小结
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T12:07:06+08:00" content="2015-11-08">
-              2015-11-08
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/11/08/python-inspect-module/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/08/python-inspect-module/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <p>python的<a href="https://docs.python.org/2/library/inspect.html" target="_blank" rel="external">inspect</a>模块正如他们的命名一样，是用于检查运行模块的一些基本信息，有了inspect模块，我们可以做很多有意思的事情，下面主要想探究一下inspect模块</p>
-<h2 id="inspect-getmembers">inspect.getmembers</h2><pre><code><span class="function"><span class="keyword">def</span> <span class="title">getmembers</span><span class="params">(object, predicate=None)</span>:</span>
-<span class="string">"""Return all members of an object as (name, value) pairs sorted by name.
-Optionally, only return members that satisfy a given predicate."""</span>
-results = []
-<span class="comment"># 使用dir(builtin)获取所有的attr-key</span>
-<span class="keyword">for</span> key <span class="keyword">in</span> dir(object):
-    <span class="keyword">try</span>:
-        value = getattr(object, key)
-    <span class="keyword">except</span> AttributeError:
-        <span class="keyword">continue</span>
-    <span class="comment"># 如果有预测函数则进行预测</span>
-    <span class="keyword">if</span> <span class="keyword">not</span> predicate <span class="keyword">or</span> predicate(value):
-        results.append((key, value))
-results.sort()
-<span class="keyword">return</span> results
-</code></pre><p>getmembers方法的实现非常简单，其内部的实现就是用内建函数dir实现的。</p>
-<h2 id="inspect-currentframe">inspect.currentframe</h2><p>currentframe内部实现是通过sys._getframe实现的。在使用currentframe的时候要注意防止循环引用。</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">handle_stackframe_without_leak</span><span class="params">()</span>:</span>
-    frame = inspect.currentframe()
-<span class="keyword">try</span>:
-    <span class="comment"># do something with the frame</span>
-<span class="keyword">finally</span>:
-    <span class="keyword">del</span> frame
-</code></pre><h2 id="inspect的使用">inspect的使用</h2><p>获取调用函数的实例</p>
-<pre><code><span class="comment"># file: util.py</span>
-<span class="function"><span class="keyword">def</span> <span class="title">get_caller</span><span class="params">()</span>:</span>
-    <span class="keyword">import</span> inspect
-    <span class="keyword">try</span>:
-        frame = inspect.currentframe()
-        call_frame = frame.f_back.f_back
-        call_frame_name = call_frame.f_code.co_varnames[<span class="number">0</span>]
-        call_frame_self = call_frame.f_locals.get(call_frame_name, <span class="keyword">None</span>)
-    <span class="keyword">except</span>:
-        call_frame_self = <span class="keyword">None</span>
-    <span class="keyword">finally</span>:
-        <span class="keyword">del</span> frame
-    <span class="keyword">return</span> call_frame_self
-</code></pre>
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2182,7 +2217,7 @@ results.sort()
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">20</span>
+              <span class="site-state-item-count">21</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
