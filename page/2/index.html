@@ -237,6 +237,306 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/10/python-import/" itemprop="url">
+                  Python Import机制（一）
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-01-10T22:57:56+08:00" content="2016-01-10">
+              2016-01-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/10/python-import/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/10/python-import/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>理解Python Import机制可以对Python的Package结构进行更深刻的理解。</p>
+</blockquote>
+<h3 id="1-__import__函数">1.__import__函数</h3><p>__import__函数是import关键字的内部实现。</p>
+<pre><code><span class="function"><span class="keyword">static</span> PyObject *
+<span class="title">builtin___import__</span><span class="params">(PyObject *self, PyObject *args, PyObject *kwds)</span> </span>{
+    <span class="keyword">static</span> <span class="keyword">char</span> *kwlist[] = {<span class="string">"name"</span>, <span class="string">"globals"</span>, <span class="string">"locals"</span>, <span class="string">"fromlist"</span>,
+                         <span class="string">"level"</span>, <span class="number">0</span>};
+    <span class="keyword">char</span> *name;
+    PyObject *globals = <span class="literal">NULL</span>;
+    PyObject *locals = <span class="literal">NULL</span>;
+    PyObject *fromlist = <span class="literal">NULL</span>;
+    <span class="keyword">int</span> level = -<span class="number">1</span>;
+
+    <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"s|OOOi:__import__"</span>,
+                kwlist, &amp;name, &amp;globals, &amp;locals, &amp;fromlist, &amp;level))
+        <span class="keyword">return</span> <span class="literal">NULL</span>;
+
+    <span class="keyword">return</span> PyImport_ImportModuleLevel(name, globals, locals,
+                                  fromlist, level);
+}
+</code></pre><p>builtin___import__函数内部很简单，主要是提取kwlist列出的几个参数，然后就进入了<strong>PyImport_ImportModuleLevel</strong>方法内。<strong>PyImport_ImportModuleLevel</strong>函数只是对即将进行的操作进行<strong>加锁</strong>，然后调用方法<strong>import_module_level</strong>。</p>
+<pre><code><span class="function"><span class="keyword">static</span> PyObject *
+<span class="title">import_module_level</span><span class="params">(<span class="keyword">char</span> *name, PyObject *globals, PyObject *locals,
+                    PyObject *fromlist, <span class="keyword">int</span> level)</span> </span>{
+
+    <span class="comment">// [1] 获取import发生时的package</span>
+    parent = get_parent(globals, buf, &amp;buflen, level);
+
+    <span class="comment">// [2] 解析module的路径结构，依次加载每一个package/module</span>
+    head = load_next(parent, level &lt; <span class="number">0</span> ? Py_None : parent, &amp;name, buf,
+                    &amp;buflen);
+    <span class="keyword">if</span> (head == <span class="literal">NULL</span>)
+        <span class="keyword">goto</span> error_exit;
+
+    tail = head;
+    Py_INCREF(tail);
+    <span class="keyword">while</span> (name) {
+        next = load_next(tail, tail, &amp;name, buf, &amp;buflen);
+        Py_DECREF(tail);
+        <span class="keyword">if</span> (next == <span class="literal">NULL</span>) {
+            Py_DECREF(head);
+            <span class="keyword">goto</span> error_exit;
+        }
+        tail = next;
+    }
+
+    <span class="comment">// import xx.xx.xx 形式</span>
+    <span class="keyword">if</span> (fromlist == <span class="literal">NULL</span>) {
+        Py_DECREF(tail);
+        PyMem_FREE(buf);
+        <span class="keyword">return</span> head;
+    }
+
+    Py_DECREF(head);
+    <span class="comment">// from xx.xx import xx 形式</span>
+    <span class="keyword">if</span> (!ensure_fromlist(tail, fromlist, buf, buflen, <span class="number">0</span>)) {
+        Py_DECREF(tail);
+        <span class="keyword">goto</span> error_exit;
+    }
+
+    PyMem_FREE(buf);
+    <span class="keyword">return</span> tail;
+}
+</code></pre><p><strong>get_parent</strong>方法用于获取当前import动作所在的package。<strong>load_next</strong>可以认为是在导入name中声明的每一个模块，每次调用load_next都会返回本次导入的模块的PyObject，并且修改name的信息，将上次导入的模块的名称删除。</p>
+<h3 id="2-get_parent函数">2.get_parent函数</h3><pre><code><span class="function"><span class="keyword">static</span> PyObject *
+<span class="title">get_parent</span><span class="params">(PyObject *globals, <span class="keyword">char</span> *buf, Py_ssize_t *p_buflen, <span class="keyword">int</span> level)</span>
+</span>{
+
+    ......
+    <span class="comment">// 获取__package__信息，就是当前import的环境下，其所在的package叫什么名字</span>
+    pkgname = PyDict_GetItem(globals, pkgstr);
+
+    <span class="keyword">if</span> ((pkgname != <span class="literal">NULL</span>) &amp;&amp; (pkgname != Py_None)) {
+        ......
+        <span class="comment">// 如果package是存在的，那么我们直接使用它</span>
+        <span class="comment">// 将package的内容直接设置到buf里面</span>
+        <span class="built_in">strcpy</span>(buf, PyString_AS_STRING(pkgname));
+    } <span class="keyword">else</span> {
+        <span class="comment">// __package__并没有设置，我们通过其他方法找出来</span>
+        <span class="comment">// 先获得我们import的环境的__name__变量</span>
+        modname = PyDict_GetItem(globals, namestr);
+        <span class="keyword">if</span> (modname == <span class="literal">NULL</span> || !PyString_Check(modname))
+            <span class="keyword">return</span> Py_None;
+
+        <span class="comment">// 再获得__path__变量，需要知道的一点是在__init__.py</span>
+        <span class="comment">// 内部__path__变量是存在的，但其他module内部__path__</span>
+        <span class="comment">// 变量是为None的</span>
+        modpath = PyDict_GetItem(globals, pathstr);
+        <span class="keyword">if</span> (modpath != <span class="literal">NULL</span>) {
+            ......
+            <span class="comment">// __path__已经被设置了，那么__name__的值就是package的名称</span>
+            <span class="comment">// 将package的内容直接设置到buf里面</span>
+            <span class="built_in">strcpy</span>(buf, PyString_AS_STRING(modname));
+            ......
+        } <span class="keyword">else</span> {
+            <span class="comment">// __package__名称为空，那么import的动作是在某个module内部的</span>
+            <span class="keyword">char</span> *start = PyString_AS_STRING(modname);
+            <span class="comment">// lastdot就是当前module所在的package的名称</span>
+            <span class="keyword">char</span> *lastdot = <span class="built_in">strrchr</span>(start, <span class="string">'.'</span>);
+            <span class="keyword">size_t</span> len;
+            <span class="keyword">int</span> error;
+            <span class="keyword">if</span> (lastdot == <span class="literal">NULL</span> &amp;&amp; level &gt; <span class="number">0</span>) {
+                PyErr_SetString(PyExc_ValueError,
+                    <span class="string">"Attempted relative import in non-package"</span>);
+                <span class="keyword">return</span> <span class="literal">NULL</span>;
+            }
+            <span class="keyword">if</span> (lastdot == <span class="literal">NULL</span>) {
+                <span class="comment">// 我们import的环境是最上层的环境</span>
+                <span class="comment">// 比如说得命令行环境</span>
+                <span class="comment">// 程序最初的运行文件等</span>
+                error = PyDict_SetItem(globals, pkgstr, Py_None);
+                <span class="keyword">if</span> (error) {
+                    PyErr_SetString(PyExc_ValueError,
+                        <span class="string">"Could not set __package__"</span>);
+                    <span class="keyword">return</span> <span class="literal">NULL</span>;
+                }
+                <span class="keyword">return</span> Py_None;
+            }
+            len = lastdot - start;
+            <span class="comment">// 将__package__的信息设置到buf里面去</span>
+            <span class="built_in">strncpy</span>(buf, start, len);
+            ......
+        }
+    }
+    <span class="comment">// level &gt; 0 的情况很多时候都是</span>
+    <span class="comment">// from ... import a.b</span>
+    <span class="comment">// 上面的level=3</span>
+    <span class="keyword">while</span> (--level &gt; <span class="number">0</span>) {
+        <span class="keyword">char</span> *dot = <span class="built_in">strrchr</span>(buf, <span class="string">'.'</span>);
+        <span class="keyword">if</span> (dot == <span class="literal">NULL</span>) {
+            PyErr_SetString(PyExc_ValueError,
+                <span class="string">"Attempted relative import beyond "</span>
+                <span class="string">"toplevel package"</span>);
+            <span class="keyword">return</span> <span class="literal">NULL</span>;
+        }
+        *dot = <span class="string">'\0'</span>;
+    }
+    *p_buflen = <span class="built_in">strlen</span>(buf);
+
+    modules = PyImport_GetModuleDict();
+    <span class="comment">// 从sys.modules中获取对应的package</span>
+    parent = PyDict_GetItemString(modules, buf);
+    <span class="keyword">return</span> parent;
+}    
+</code></pre><h3 id="3-load_next函数">3.load_next函数</h3><pre><code><span class="keyword">static</span> <span class="type">PyObject</span> *
+load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, <span class="type">PyObject</span> *altmod, <span class="type">char</span> **p_name, <span class="type">char</span> *buf,
+          <span class="type">Py_ssize_t</span> *p_buflen)
+{
+    ... ...
+    // p_name指向被截取后的路径名称
+    <span class="keyword">if</span> (dot == <span class="type">NULL</span>) {
+        *p_name = <span class="type">NULL</span>;
+        len = strlen(name);
+    }
+    <span class="keyword">else</span> {
+        *p_name = dot+<span class="number">1</span>;
+        len = dot-name;
+    }
+    ... ...
+    // 修改buf的内容，将截取的模块内容拷贝到buf后
+    p = buf + *p_buflen;
+    <span class="keyword">if</span> (p != buf)
+        *p++ = '.';
+    <span class="keyword">if</span> (p+len-buf &gt;= <span class="type">MAXPATHLEN</span>) {
+        <span class="type">PyErr_SetString</span>(<span class="type">PyExc_ValueError</span>,
+                        <span class="string">"Module name too long"</span>);
+        <span class="keyword">return</span> <span class="type">NULL</span>;
+    }
+    strncpy(p, name, len);
+    p[len] = '\<span class="number">0</span>';
+    *p_buflen = p+len-buf;
+
+    // <span class="keyword">import</span>模块
+    <span class="literal">result</span> = import_submodule(<span class="keyword">mod</span>, p, buf);
+    <span class="keyword">if</span> (<span class="literal">result</span> == <span class="type">Py_None</span> &amp;&amp; altmod != <span class="keyword">mod</span>) {
+        //如果没有<span class="keyword">import</span>成功，那么我们从默认路径开始<span class="keyword">import</span>
+        <span class="type">Py_DECREF</span>(<span class="literal">result</span>);
+        /* <span class="type">Here</span>, altmod must be <span class="type">None</span> <span class="keyword">and</span> <span class="keyword">mod</span> must <span class="keyword">not</span> be <span class="type">None</span> */
+        <span class="literal">result</span> = import_submodule(altmod, p, p);
+        <span class="keyword">if</span> (<span class="literal">result</span> != <span class="type">NULL</span> &amp;&amp; <span class="literal">result</span> != <span class="type">Py_None</span>) {
+            <span class="keyword">if</span> (mark_miss(buf) != <span class="number">0</span>) {
+                <span class="type">Py_DECREF</span>(<span class="literal">result</span>);
+                <span class="keyword">return</span> <span class="type">NULL</span>;
+            }
+            strncpy(buf, name, len);
+            buf[len] = '\<span class="number">0</span>';
+            *p_buflen = len;
+        }
+    }
+    ... ...
+
+    <span class="keyword">return</span> <span class="literal">result</span>;
+}
+</code></pre><h3 id="4-领悟">4.领悟</h3><ol>
+<li>import是不能import进module内部的类的，比如说module A中实现了类A，那么<strong>import A_p.A.A</strong>会有问题，需要改为<strong>from A_p.A import A</strong></li>
+<li>对应<strong>from A_p.A import a</strong>形式，我们可以看成<strong>__import__(name = “A_p.A”, from_list = [“a”])</strong>，函数返回的是module A</li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/01/05/python-class-instance/" itemprop="url">
                   Python源码解析——Class实例创建
                 </a>
@@ -532,6 +832,112 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 <li>ob_type = type 初始化对应的PyObjectType</li>
 <li>ob_refcnt = 1 初始化引用计数为1</li>
 <li>调用_Py_AddToAllObjects，将obj加入到<strong>refchain</strong>双向链表中</li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2015/12/31/summary-2015/" itemprop="url">
+                  2015年终总结
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2015-12-31T20:53:14+08:00" content="2015-12-31">
+              2015-12-31
+            </time>
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/12/31/summary-2015/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/31/summary-2015/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>2015年的最后一天了，是该总结一下</p>
+</blockquote>
+<h3 id="宝贝女儿出生">宝贝女儿出生</h3><p>这一年最重要的事情就是我的宝贝女儿出生了，在2015年12月29号，下午15点30分，宝贝女儿来到了这个世界，以后生活的中心也就开始围绕着她来转咯。</p>
+<p>女儿的出生也意味着我的人生迈入了另一个阶段，我成为了一个父亲，预示着自己要更有责任感，要有耐心，做事要多为老婆和女儿考虑。</p>
+<h3 id="辛苦&amp;纠结">辛苦&amp;纠结</h3><p>这也是辛苦的一年，我们的游戏上线了，在上线的几个月工作也是非常的辛苦，但游戏和我们预期的也一样，最终结果也并不好，这里面也有很多因素，但现在不想去总结什么，但从个人角度来说，经历了一次从游戏开发初期到游戏上线的过程，也是一份难得的经历。</p>
+<p>为何纠结，自己也很难说清楚。主要是觉得，在公司的这两年，自己的成长还是太慢了，究其原因，我个人主要觉得有如下几点：</p>
+<ol>
+<li>不够专注，一开始想客户端服务端两手抓，起初感觉很好，但持续下去你会发现哪一点你都不够深入，<strong>接下来一年深入服务端研究，主要深入网络，Python两个方面。网络涉及的面比较广，先把业务方面的东西搞懂，然后根据业务需求了解网络底层，同时关注Go，Erlang这些分布式语言，他们的好处，他们涉及的领域；Python方面这一整年都在研究，但研究的还是不深入，主要是读代码的工具不行，只是在看书，印象不深刻，接下来借助Xcode进行Debug，再次深入解析Python</strong></li>
+<li>迷惘，游戏这个行业真的是自己喜欢的行业么，我希望去做一些更有意义的工作，而不是现在的螺丝钉。但如果让你带一个团队，你真的有能力去做这件事情么？话题又回到了对自己的<strong>准确认识</strong>上面了。要正确的评估自己目前的实力！<strong>其实目前自己历练还是太少，大局观都没有，比如怎样设计架构，怎样优化系统，都没有明确的概念。这是为什么？归根结底还是自己懒，游戏在开发阶段有一段时间的MangoDB系统调优，自己没有参与；到游戏上线时期，又有系统性能调优自己也没有参加，如果当时自己参与，或许可以从中学到更多。</strong></li>
+<li>关于团队，自己所在的团队就是一个正在成长的团队，你的leader也很年轻，从他身上学习的东西也很少，但并不是没有。在这种情况下，自己就要想法子从其他方面学习，会走很多弯路，甚至没有走过正确的路。</li>
+</ol>
+<h3 id="2016年要做什么">2016年要做什么</h3><ol>
+<li>业务一定要更加熟练，其实无论是留下还是另寻出路，都要对当前的业务熟练，这样对自己和团队都是一种负责的表现</li>
+<li>多多参与服务端的优化，多尝试考虑怎样让服务端的架构更合理，更健壮，更高效。这个过程也是开阔知识面的过程。</li>
+<li>开阔思路，不要一味的去写代码，开阔眼界，多去学习其他方面的知识，不限于编程。</li>
+<li>2016的新的技术栈：Redis，MangoDB，Erlang，Golang</li>
+<li><strong>心疼老婆、孝敬老妈，爱我的女儿</strong></li>
 </ol>
 
             
@@ -1846,346 +2252,6 @@ taskdelay(uint ms)
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/11/12/libtask/" itemprop="url">
-                  libtask源码注释
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-11-12T12:31:12+08:00" content="2015-11-12">
-              2015-11-12
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/11/12/libtask/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/12/libtask/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <p><a href="https://swtch.com/libtask/" target="_blank" rel="external">Libtask</a>是Go语言的作者之一拉斯·考克斯(Russ Cox)实现的一个轻量级的协程库。代码量很少，很好理解。所以最近在阅读其源码，并同时对源码做注释。<br>我将注释的源码提交在了Github上<a href="https://github.com/Whosemario/libtask-comment" target="_blank" rel="external">https://github.com/Whosemario/libtask-comment</a>。同时，我也会实时更新这篇博客，加入自己对Libtask的理解。</p>
-<ol>
-<li><a href="http://whosemario.github.io/2015/11/12/timer/">taskdelay的内部实现</a></li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/11/08/python-slot/" itemprop="url">
-                  python __slots__
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T18:57:49+08:00" content="2015-11-08">
-              2015-11-08
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/11/08/python-slot/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/08/python-slot/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <p><a href="http://www.jianshu.com/p/82ce2151d73b" target="_blank" rel="external">上一篇</a>翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。</p>
-<pre><code>&gt;&gt;&gt; class <span class="function"><span class="title">A</span><span class="params">(object)</span></span>:
-...     __slots__ = [<span class="string">"v"</span>]
-...
-&gt;&gt;&gt; <span class="tag">a</span> = <span class="function"><span class="title">A</span><span class="params">()</span></span> 
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.v</span> = <span class="number">1</span>
-&gt;&gt;&gt; <span class="tag">a</span><span class="class">.b</span> = <span class="number">1</span>
-Traceback (most recent call last):
-  File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;
-AttributeError: <span class="string">'A'</span> <span class="tag">object</span> has no attribute <span class="string">'b'</span>
-&gt;&gt;&gt; <span class="function"><span class="title">type</span><span class="params">(A.v)</span></span>
-&lt;type <span class="string">'member_descriptor'</span>&gt;
-</code></pre><p>上面这一段代码，Class A声明了__slots__参数，对实例a的v变量进行赋值没有问题，但对实例a的b变量赋值，则会有个AttributeError的异常发生。再仔细看看A.v，原来他是一个<a href="https://docs.python.org/2/howto/descriptor.html" target="_blank" rel="external">descriptor</a>(有时间可以写一篇Python descriptor相关的文章，Python中很多功能的实现都离不开descriptor)！<br>那么，Python在构建Class A的时候到底都做了什么，我们慢慢地解析下去。</p>
-<h4 id="Class_A的创建">Class A的创建</h4><p>Python中类的构建的相关字节码是BUILD_CLASS:</p>
-<pre><code># in ceval.c
-case BUILD_CLASS:
-      u = TOP()<span class="comment">;</span>
-      v = SECOND()<span class="comment">;</span>
-      w = THIRD()<span class="comment">;</span>
-      STACKADJ(-2)<span class="comment">;</span>
-      x = build_class(u, v, w)<span class="comment">;</span>
-      SET_TOP(x)<span class="comment">;</span>
-      Py_DECREF(u)<span class="comment">;</span>
-      Py_DECREF(v)<span class="comment">;</span>
-      Py_DECREF(w)<span class="comment">;</span>
-</code></pre><p>顺着这段起始代码顺藤摸瓜，最后会到命名为type_new的方法中去：</p>
-<pre><code>  # <span class="keyword">in</span> typeobject.c
-  <span class="keyword">static</span> PyObject *
-  type_new(PyTypeObject *metatype, PyObject *args, PyObject *kwds) {
-        ....
-        <span class="comment">// dict 可以理解为你将要新建的类的locals，里面便含有__slots__字段</span>
-        <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"SO!O!:type"</span>, kwlist,
-                                 &amp;name,
-                                 &amp;PyTuple_Type, &amp;bases,
-                                 &amp;PyDict_Type, &amp;dict))
-            <span class="keyword">return</span> NULL;
-        ....
-        <span class="comment">// 获取__slots__参数</span>
-        slots = PyDict_GetItemString(dict, <span class="string">"__slots__"</span>);
-        nslots = <span class="number">0</span>;
-        add_dict = <span class="number">0</span>;    <span class="comment">// 是否要加入__dict__</span>
-        add_weak = <span class="number">0</span>;  <span class="comment">// 是否要加入__weakref__</span>
-
-        <span class="keyword">if</span> (slots == NULL) {
-              <span class="comment">//... ignore</span>
-        } <span class="keyword">else</span> {
-              <span class="comment">// 会对slots做一下处理，包括计算nslots，但不影响我们对slots实现的理解</span>
-        }
-
-        <span class="comment">// 为需要创建的类分配空间</span>
-        <span class="class"><span class="keyword">type</span> </span>= (PyTypeObject *)metatype-&gt;tp_alloc(metatype, nslots);
-        ....
-        <span class="comment">// 转换指针，变为PyHeapTypeObject，PyHeapTypeObject和PyTypeObject的关系可以认为是包含关系，具体的细节可以再写一篇文章了</span>
-        et = (PyHeapTypeObject *)<span class="class"><span class="keyword">type</span>;</span>
-        ....
-        <span class="comment">// 将slots相关的参数设置为members</span>
-        mp = PyHeapType_GET_MEMBERS(et);
-        slotoffset = <span class="keyword">base</span>-&gt;tp_basicsize;
-        <span class="keyword">if</span> (slots != NULL) {
-            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nslots; i++, mp++) {
-                mp-&gt;name = PyString_AS_STRING(
-                              PyTuple_GET_ITEM(slots, i));
-                mp-&gt;<span class="class"><span class="keyword">type</span> </span>= T_OBJECT_EX;
-                mp-&gt;offset = slotoffset;
-                ....
-                slotoffset += sizeof(PyObject *);
-             }
-         }
-         ....
-         <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_members</span> </span>= PyHeapType_GET_MEMBERS(et);
-         ....
-         PyType_Ready(<span class="class"><span class="keyword">type</span>);</span>
-         ....
-}
-</code></pre><p>上面我们忽略了一些不相干的代码，代码的主要逻辑就是将__slots__定义的内容放到type的末尾，并且让type的tp_members变量指向type的末尾，这些内容将会在PyType_Ready函数中用到。<br>这里忽略PyType_Ready的内容，只说明在PyType_Ready中会调用add_members方法，下面看一下add_members的实现：</p>
-<pre><code><span class="preprocessor"># in typeobject.c</span>
-<span class="function"><span class="keyword">static</span> <span class="keyword">int</span>
-<span class="title">add_members</span><span class="params">(PyTypeObject *type, PyMemberDef *memb)</span> </span>{
-    PyObject *dict = type-&gt;tp_dict;
-    <span class="keyword">for</span> (; memb-&gt;name != <span class="literal">NULL</span>; memb++) {
-          PyObject *descr;
-          <span class="keyword">if</span> (PyDict_GetItemString(dict, memb-&gt;name))
-              <span class="keyword">continue</span>;
-          descr = PyDescr_NewMember(type, memb);
-          <span class="keyword">if</span> (descr == <span class="literal">NULL</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          <span class="keyword">if</span> (PyDict_SetItemString(dict, memb-&gt;name, descr) &lt; <span class="number">0</span>)
-              <span class="keyword">return</span> -<span class="number">1</span>;
-          Py_DECREF(descr);
-      }
-      <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><p>上面的代码逻辑还是很好理解的，将memb里面的内容（即slots的内容）创建为member_descriptor，加入到tp_dict里面去。</p>
-<h4 id="Class_A的属性设置">Class A的属性设置</h4><p>实例的属性设置最终会在PyObject_GenericSetAttr方法中处理，PyObject_GenericSetAttr方法又会调用_PyObject_GenericSetAttrWithDict方法，我们来看一下_PyObject_GenericSetAttrWithDict方法到底怎么做的，才可以实现文章开始展示的效果。</p>
-<pre><code>int
-_PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
-                             PyObject *value, PyObject *dict) {
-    PyTypeObject *tp = Py_TYPE(obj);
-    descr = _PyType_Lookup(tp, name);
-    f = <span class="built_in">NULL</span>;
-    <span class="keyword">if</span> (descr != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span>
-        PyType_HasFeature(descr<span class="subst">-&gt;</span>ob_type,Py_TPFLAGS_HAVE_CLASS)) {
-        f = descr<span class="subst">-&gt;</span>ob_type<span class="subst">-&gt;</span>tp_descr_set;
-        <span class="comment">// 对于slots相关的参数将会进入下面的if语句</span>
-        <span class="keyword">if</span> (f != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span> PyDescr_IsData(descr)) {
-            res = f(descr, obj, value);
-            goto done;
-        }
-    }
-    <span class="attribute">...</span><span class="built_in">.
-    </span><span class="keyword">if</span> (dict == <span class="built_in">NULL</span>) {
-        <span class="comment">// 对于不是slots提供的属性，尝试去obj自己的dict中查找，</span>
-        <span class="comment">// 但在构建类时，由于有__slots__属性，所以tp_dictoffset为0，</span>
-        <span class="comment">// 因此dictptr等于NULL</span>
-        dictptr = _PyObject_GetDictPtr(obj);
-        <span class="keyword">if</span> (dictptr != <span class="built_in">NULL</span>) {
-              <span class="attribute">...</span><span class="built_in">. 
-        </span>}
-    }
-    <span class="keyword">if</span> (dict != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (f != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
-    <span class="keyword">if</span> (descr == <span class="built_in">NULL</span>) {
-        <span class="comment">// 此时输出错误信息</span>
-        PyErr_Format(PyExc_AttributeErr<span class="subst">or</span>,
-                 <span class="string">"'%.100s' object has no attribute '%.200s'"</span>,
-                 tp<span class="subst">-&gt;</span>tp_name, PyString_AS_STRING(name));
-        goto done;
-    }
-    <span class="attribute">...</span><span class="built_in">.
-</span>}
-</code></pre><p>对于slots定义的变量，会找到对应的descr，调用对应的set方法，对于slots没有定义的变量，最终会跑到抛出异常的那段逻辑。</p>
-<h4 id="总结">总结</h4><p>__slots__的实现还是比较好懂的，Python在构建类的时候，会检查__slots__变量是否存在，如果存在，为slots变量建立member_descriptor，并放入tp_dict里面，并且这个类的tp<em>dictoffset为0，它的实例将不会有自己的\</em>_dict__。</p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2232,7 +2298,7 @@ _PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">22</span>
+              <span class="site-state-item-count">24</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>

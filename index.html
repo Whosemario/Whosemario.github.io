@@ -241,6 +241,229 @@
             
               
                 
+                <a class="post-title-link" href="/2016/02/17/hash-table/" itemprop="url">
+                  关于Python Dict
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-02-17T09:40:35+08:00" content="2016-02-17">
+              2016-02-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/02/17/hash-table/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/17/hash-table/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>这篇文章主要是写一些自己对Python原生Dict的理解和感悟</p>
+</blockquote>
+<h3 id="1-对比">1.对比</h3><p>游戏里面很多策划表是以Python Dict的形式存在的，并且这些Python Dict是常驻内存的，在Python的GC机制里面也是存在于最老的generation里面的。那么Python Dict到底有多耗内存呢？我利用pymalloctrace做过一个简单的对比。      </p>
+<h5 id="Case_One：">Case One：</h5><p>构建一个如下数据      </p>
+<pre><code>d = {
+    <span class="number">1</span> : {<span class="number">1</span>:<span class="number">1</span>, <span class="number">2</span>:<span class="number">4</span>, <span class="number">3</span>:<span class="number">9</span>, ... <span class="number">19</span>:<span class="number">361</span>}
+    <span class="number">2</span> : <span class="decorator">{...}</span>
+    ...
+    <span class="number">9999</span>: <span class="decorator">{...}</span>
+}
+</code></pre><p>利用pytracemalloc看一下它的内存占用量到底有多少，测试代码如下：</p>
+<pre><code> 1 # -*- coding:utf-8 -*-
+ 2
+ 3 import os
+ 4 import sys
+ 5 import tracemalloc
+ 6
+ 7 tracemalloc.start()
+ 8
+ 9 <span class="keyword">d</span> = {}
+10 <span class="keyword">for</span> i <span class="keyword">in</span> xrange(1, 10000):
+11     sub_d = {}
+12     <span class="keyword">for</span> j <span class="keyword">in</span> xrange(1, 20):
+13         sub_d[j] = j*<span class="literal">j</span>
+14     <span class="keyword">d</span>[i] = sub_d
+15
+16 snapshot = tracemalloc.take_snapshot()
+17 statis = snapshot.statistics(<span class="string">"lineno"</span>)
+18 <span class="keyword">total</span> = 0
+19 <span class="keyword">for</span> stat <span class="keyword">in</span> statis:
+20     <span class="keyword">total</span> += stat.size
+21
+22 <span class="keyword">for</span> stat <span class="keyword">in</span> statis[:10]:
+23     <span class="keyword">print</span> stat
+24
+25 <span class="keyword">print</span> <span class="keyword">total</span> / 1024.0 / 1024.0, <span class="string">"M"</span>
+</code></pre><p>最后输出的结果：</p>
+<pre><code>test_dict.py:<span class="number">13</span>: size=<span class="number">8208</span> KiB, count=<span class="number">10731</span>, average=<span class="number">783</span> B
+test_dict.py:<span class="number">11</span>: size=<span class="number">2734</span> KiB, count=<span class="number">9999</span>, average=<span class="number">280</span> B
+test_dict.py:<span class="number">14</span>: size=<span class="number">768</span> KiB, count=<span class="number">1</span>, average=<span class="number">768</span> KiB
+test_dict.py:<span class="number">10</span>: size=<span class="number">229</span> KiB, count=<span class="number">237</span>, average=<span class="number">992</span> B
+test_dict.py:<span class="number">16</span>: size=<span class="number">456</span> B, count=<span class="number">1</span>, average=<span class="number">456</span> B
+<span class="number">11.66065979</span> M
+</code></pre><p>11M，占用最多的地方就是在Dict被赋值的地方。</p>
+<h5 id="Case_Two">Case Two</h5><p>接下来换一种方式：数据使用tuple进行存储，索引用dict，输入格式如下：</p>
+<pre><code>value_index = {<span class="number">1</span> : <span class="number">0</span>, <span class="number">2</span> : <span class="number">1</span>, ... <span class="number">19</span>: <span class="number">18</span>}
+top_index = {<span class="number">1</span> : <span class="number">0</span>, <span class="number">2</span> : <span class="number">1</span>, ... <span class="number">9999</span> : <span class="number">9998</span>}
+d = (
+    (<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>, ..., <span class="number">361</span>),
+    (<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>, ..., <span class="number">361</span>), 
+    ...
+)
+</code></pre><p>测试代码如下：</p>
+<pre><code>   <span class="number">1</span> <span class="comment"># -*- coding:utf-8 -*-</span>
+ <span class="number">2</span>
+ <span class="number">3</span> <span class="keyword">import</span> os
+ <span class="number">4</span> <span class="keyword">import</span> sys
+ <span class="number">5</span> <span class="keyword">import</span> tracemalloc
+ <span class="number">6</span>
+ <span class="number">7</span> <span class="function"><span class="keyword">def</span> <span class="title">sub_gen</span><span class="params">()</span>:</span>
+ <span class="number">8</span>     <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">20</span>):
+ <span class="number">9</span>         <span class="keyword">yield</span> i*i
+<span class="number">10</span>
+<span class="number">11</span> <span class="function"><span class="keyword">def</span> <span class="title">gen</span><span class="params">()</span>:</span>
+<span class="number">12</span>     <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">10000</span>):
+<span class="number">13</span>         <span class="keyword">yield</span> tuple(sub_gen())
+<span class="number">14</span>
+<span class="number">15</span> tracemalloc.start()
+<span class="number">16</span>
+<span class="number">17</span> value_index = {}
+<span class="number">18</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">20</span>):
+<span class="number">19</span>     value_index[i] = i - <span class="number">1</span>
+<span class="number">20</span>
+<span class="number">21</span> top_index = {}
+<span class="number">22</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">10000</span>):
+<span class="number">23</span>     top_index[i] = i - <span class="number">1</span>
+<span class="number">24</span>
+<span class="number">25</span> d = tuple(gen())
+<span class="number">26</span>
+<span class="number">27</span> snapshot = tracemalloc.take_snapshot()
+<span class="number">28</span> statis = snapshot.statistics(<span class="string">"lineno"</span>)
+<span class="number">29</span> total = <span class="number">0</span>
+<span class="number">30</span> <span class="keyword">for</span> stat <span class="keyword">in</span> statis:
+<span class="number">31</span>     total += stat.size
+<span class="number">32</span>
+<span class="number">33</span> <span class="keyword">for</span> stat <span class="keyword">in</span> statis[:<span class="number">10</span>]:
+<span class="number">34</span>     <span class="keyword">print</span> stat
+<span class="number">35</span>
+<span class="number">36</span> <span class="keyword">print</span> total / <span class="number">1024.0</span> / <span class="number">1024.0</span>, <span class="string">"M"</span>
+</code></pre><p>运行结果如下：</p>
+<pre><code>test_tuple.py:<span class="number">13</span>: size=<span class="number">2031</span> KiB, count=<span class="number">10000</span>, average=<span class="number">208</span> B
+test_tuple.py:<span class="number">23</span>: size=<span class="number">998</span> KiB, count=<span class="number">239</span>, average=<span class="number">4278</span> B
+test_tuple.py:<span class="number">9</span>: size=<span class="number">478</span> KiB, count=<span class="number">494</span>, average=<span class="number">992</span> B
+test_tuple.py:<span class="number">22</span>: size=<span class="number">229</span> KiB, count=<span class="number">237</span>, average=<span class="number">992</span> B
+test_tuple.py:<span class="number">12</span>: size=<span class="number">229</span> KiB, count=<span class="number">237</span>, average=<span class="number">992</span> B
+test_tuple.py:<span class="number">25</span>: size=<span class="number">78.0</span> KiB, count=<span class="number">2</span>, average=<span class="number">39.0</span> KiB
+test_tuple.py:<span class="number">19</span>: size=<span class="number">768</span> B, count=<span class="number">1</span>, average=<span class="number">768</span> B
+test_tuple.py:<span class="number">27</span>: size=<span class="number">456</span> B, count=<span class="number">1</span>, average=<span class="number">456</span> B
+test_tuple.py:<span class="number">21</span>: size=<span class="number">280</span> B, count=<span class="number">1</span>, average=<span class="number">280</span> B
+<span class="number">3.95300292969</span> M
+</code></pre><p>结果才3M，为什么会差距这么大，原因就是在tuple和dict的内部实现的不同。</p>
+<h3 id="2-Dict内部实现说明">2.Dict内部实现说明</h3><p>Python Dict是一个Hash表，其解决冲突的方式是<strong>开放寻址法</strong>。在Dict中存储数据是一个线性数组，key值通过hash函数转换为一个整数，对应于数组中的索引，如果此索引下的数据没有被占用，怎将数据存储；否则，当存在冲突的时候，开放寻址法利用冲突函数找到下一个索引，重复上面的步骤。<br>基于某些理论，当数组中可用空间小于1/3时，此线性数据将会进行扩展，下面是Python Dict中在插入数据之后会进行检查，如果空间不满足要求则进行扩展。</p>
+<pre><code><span class="preprocessor"># in dictobject.c</span>
+<span class="function"><span class="keyword">static</span> <span class="keyword">int</span>
+<span class="title">dict_set_item_by_hash_or_entry</span><span class="params">(<span class="keyword">register</span> PyObject *op, PyObject *key,
+                           <span class="keyword">long</span> hash, PyDictEntry *ep, PyObject *value)</span>
+</span>{
+    ....
+    <span class="keyword">if</span> (!(mp-&gt;ma_used &gt; n_used &amp;&amp; mp-&gt;ma_fill*<span class="number">3</span> &gt;= (mp-&gt;ma_mask+<span class="number">1</span>)*<span class="number">2</span>))
+        <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">return</span> dictresize(mp, (mp-&gt;ma_used &gt; <span class="number">50000</span> ? <span class="number">2</span> : <span class="number">4</span>) * mp-&gt;ma_used);
+}
+</code></pre><p>我们看到最后一段，dict的扩容将会以使用数量的2倍或者4倍进行扩容，保守上说整个线性数组中有1/3的空间是没有用的。</p>
+<h3 id="3-Tuple内部实现说明">3.Tuple内部实现说明</h3><p>tuple的内部实现则很简单。</p>
+<pre><code><span class="keyword">typedef</span> <span class="keyword">struct</span> {
+    PyObject_VAR_HEAD
+    PyObject *ob_item[<span class="number">1</span>];
+} PyTupleObject;
+</code></pre><p>ob_item存储tuple数据，可以理解为一个线性的数组，其大小在初始化的时候已经确定且无法改变。</p>
+<h3 id="4-小结">4.小结</h3><p>Python dict和tuple内存占用为何差这么多，原因不仅是上面提到的线性数组利用率的问题，还有线性数组存储的数据：tuple只是存储PyObject，但是dict要存储对应的hash值，key和value，这也是导致内存占用差距变大的原因。</p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/02/07/protobuf/" itemprop="url">
                   Google Protobuf 初体验
                 </a>
@@ -1966,306 +2189,6 @@ load_module(<span class="keyword">char</span> *name, FILE *fp, <span class="keyw
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/01/10/python-import/" itemprop="url">
-                  Python Import机制（一）
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-01-10T22:57:56+08:00" content="2016-01-10">
-              2016-01-10
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/01/10/python-import/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/10/python-import/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>理解Python Import机制可以对Python的Package结构进行更深刻的理解。</p>
-</blockquote>
-<h3 id="1-__import__函数">1.__import__函数</h3><p>__import__函数是import关键字的内部实现。</p>
-<pre><code><span class="function"><span class="keyword">static</span> PyObject *
-<span class="title">builtin___import__</span><span class="params">(PyObject *self, PyObject *args, PyObject *kwds)</span> </span>{
-    <span class="keyword">static</span> <span class="keyword">char</span> *kwlist[] = {<span class="string">"name"</span>, <span class="string">"globals"</span>, <span class="string">"locals"</span>, <span class="string">"fromlist"</span>,
-                         <span class="string">"level"</span>, <span class="number">0</span>};
-    <span class="keyword">char</span> *name;
-    PyObject *globals = <span class="literal">NULL</span>;
-    PyObject *locals = <span class="literal">NULL</span>;
-    PyObject *fromlist = <span class="literal">NULL</span>;
-    <span class="keyword">int</span> level = -<span class="number">1</span>;
-
-    <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"s|OOOi:__import__"</span>,
-                kwlist, &amp;name, &amp;globals, &amp;locals, &amp;fromlist, &amp;level))
-        <span class="keyword">return</span> <span class="literal">NULL</span>;
-
-    <span class="keyword">return</span> PyImport_ImportModuleLevel(name, globals, locals,
-                                  fromlist, level);
-}
-</code></pre><p>builtin___import__函数内部很简单，主要是提取kwlist列出的几个参数，然后就进入了<strong>PyImport_ImportModuleLevel</strong>方法内。<strong>PyImport_ImportModuleLevel</strong>函数只是对即将进行的操作进行<strong>加锁</strong>，然后调用方法<strong>import_module_level</strong>。</p>
-<pre><code><span class="function"><span class="keyword">static</span> PyObject *
-<span class="title">import_module_level</span><span class="params">(<span class="keyword">char</span> *name, PyObject *globals, PyObject *locals,
-                    PyObject *fromlist, <span class="keyword">int</span> level)</span> </span>{
-
-    <span class="comment">// [1] 获取import发生时的package</span>
-    parent = get_parent(globals, buf, &amp;buflen, level);
-
-    <span class="comment">// [2] 解析module的路径结构，依次加载每一个package/module</span>
-    head = load_next(parent, level &lt; <span class="number">0</span> ? Py_None : parent, &amp;name, buf,
-                    &amp;buflen);
-    <span class="keyword">if</span> (head == <span class="literal">NULL</span>)
-        <span class="keyword">goto</span> error_exit;
-
-    tail = head;
-    Py_INCREF(tail);
-    <span class="keyword">while</span> (name) {
-        next = load_next(tail, tail, &amp;name, buf, &amp;buflen);
-        Py_DECREF(tail);
-        <span class="keyword">if</span> (next == <span class="literal">NULL</span>) {
-            Py_DECREF(head);
-            <span class="keyword">goto</span> error_exit;
-        }
-        tail = next;
-    }
-
-    <span class="comment">// import xx.xx.xx 形式</span>
-    <span class="keyword">if</span> (fromlist == <span class="literal">NULL</span>) {
-        Py_DECREF(tail);
-        PyMem_FREE(buf);
-        <span class="keyword">return</span> head;
-    }
-
-    Py_DECREF(head);
-    <span class="comment">// from xx.xx import xx 形式</span>
-    <span class="keyword">if</span> (!ensure_fromlist(tail, fromlist, buf, buflen, <span class="number">0</span>)) {
-        Py_DECREF(tail);
-        <span class="keyword">goto</span> error_exit;
-    }
-
-    PyMem_FREE(buf);
-    <span class="keyword">return</span> tail;
-}
-</code></pre><p><strong>get_parent</strong>方法用于获取当前import动作所在的package。<strong>load_next</strong>可以认为是在导入name中声明的每一个模块，每次调用load_next都会返回本次导入的模块的PyObject，并且修改name的信息，将上次导入的模块的名称删除。</p>
-<h3 id="2-get_parent函数">2.get_parent函数</h3><pre><code><span class="function"><span class="keyword">static</span> PyObject *
-<span class="title">get_parent</span><span class="params">(PyObject *globals, <span class="keyword">char</span> *buf, Py_ssize_t *p_buflen, <span class="keyword">int</span> level)</span>
-</span>{
-
-    ......
-    <span class="comment">// 获取__package__信息，就是当前import的环境下，其所在的package叫什么名字</span>
-    pkgname = PyDict_GetItem(globals, pkgstr);
-
-    <span class="keyword">if</span> ((pkgname != <span class="literal">NULL</span>) &amp;&amp; (pkgname != Py_None)) {
-        ......
-        <span class="comment">// 如果package是存在的，那么我们直接使用它</span>
-        <span class="comment">// 将package的内容直接设置到buf里面</span>
-        <span class="built_in">strcpy</span>(buf, PyString_AS_STRING(pkgname));
-    } <span class="keyword">else</span> {
-        <span class="comment">// __package__并没有设置，我们通过其他方法找出来</span>
-        <span class="comment">// 先获得我们import的环境的__name__变量</span>
-        modname = PyDict_GetItem(globals, namestr);
-        <span class="keyword">if</span> (modname == <span class="literal">NULL</span> || !PyString_Check(modname))
-            <span class="keyword">return</span> Py_None;
-
-        <span class="comment">// 再获得__path__变量，需要知道的一点是在__init__.py</span>
-        <span class="comment">// 内部__path__变量是存在的，但其他module内部__path__</span>
-        <span class="comment">// 变量是为None的</span>
-        modpath = PyDict_GetItem(globals, pathstr);
-        <span class="keyword">if</span> (modpath != <span class="literal">NULL</span>) {
-            ......
-            <span class="comment">// __path__已经被设置了，那么__name__的值就是package的名称</span>
-            <span class="comment">// 将package的内容直接设置到buf里面</span>
-            <span class="built_in">strcpy</span>(buf, PyString_AS_STRING(modname));
-            ......
-        } <span class="keyword">else</span> {
-            <span class="comment">// __package__名称为空，那么import的动作是在某个module内部的</span>
-            <span class="keyword">char</span> *start = PyString_AS_STRING(modname);
-            <span class="comment">// lastdot就是当前module所在的package的名称</span>
-            <span class="keyword">char</span> *lastdot = <span class="built_in">strrchr</span>(start, <span class="string">'.'</span>);
-            <span class="keyword">size_t</span> len;
-            <span class="keyword">int</span> error;
-            <span class="keyword">if</span> (lastdot == <span class="literal">NULL</span> &amp;&amp; level &gt; <span class="number">0</span>) {
-                PyErr_SetString(PyExc_ValueError,
-                    <span class="string">"Attempted relative import in non-package"</span>);
-                <span class="keyword">return</span> <span class="literal">NULL</span>;
-            }
-            <span class="keyword">if</span> (lastdot == <span class="literal">NULL</span>) {
-                <span class="comment">// 我们import的环境是最上层的环境</span>
-                <span class="comment">// 比如说得命令行环境</span>
-                <span class="comment">// 程序最初的运行文件等</span>
-                error = PyDict_SetItem(globals, pkgstr, Py_None);
-                <span class="keyword">if</span> (error) {
-                    PyErr_SetString(PyExc_ValueError,
-                        <span class="string">"Could not set __package__"</span>);
-                    <span class="keyword">return</span> <span class="literal">NULL</span>;
-                }
-                <span class="keyword">return</span> Py_None;
-            }
-            len = lastdot - start;
-            <span class="comment">// 将__package__的信息设置到buf里面去</span>
-            <span class="built_in">strncpy</span>(buf, start, len);
-            ......
-        }
-    }
-    <span class="comment">// level &gt; 0 的情况很多时候都是</span>
-    <span class="comment">// from ... import a.b</span>
-    <span class="comment">// 上面的level=3</span>
-    <span class="keyword">while</span> (--level &gt; <span class="number">0</span>) {
-        <span class="keyword">char</span> *dot = <span class="built_in">strrchr</span>(buf, <span class="string">'.'</span>);
-        <span class="keyword">if</span> (dot == <span class="literal">NULL</span>) {
-            PyErr_SetString(PyExc_ValueError,
-                <span class="string">"Attempted relative import beyond "</span>
-                <span class="string">"toplevel package"</span>);
-            <span class="keyword">return</span> <span class="literal">NULL</span>;
-        }
-        *dot = <span class="string">'\0'</span>;
-    }
-    *p_buflen = <span class="built_in">strlen</span>(buf);
-
-    modules = PyImport_GetModuleDict();
-    <span class="comment">// 从sys.modules中获取对应的package</span>
-    parent = PyDict_GetItemString(modules, buf);
-    <span class="keyword">return</span> parent;
-}    
-</code></pre><h3 id="3-load_next函数">3.load_next函数</h3><pre><code><span class="keyword">static</span> <span class="type">PyObject</span> *
-load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, <span class="type">PyObject</span> *altmod, <span class="type">char</span> **p_name, <span class="type">char</span> *buf,
-          <span class="type">Py_ssize_t</span> *p_buflen)
-{
-    ... ...
-    // p_name指向被截取后的路径名称
-    <span class="keyword">if</span> (dot == <span class="type">NULL</span>) {
-        *p_name = <span class="type">NULL</span>;
-        len = strlen(name);
-    }
-    <span class="keyword">else</span> {
-        *p_name = dot+<span class="number">1</span>;
-        len = dot-name;
-    }
-    ... ...
-    // 修改buf的内容，将截取的模块内容拷贝到buf后
-    p = buf + *p_buflen;
-    <span class="keyword">if</span> (p != buf)
-        *p++ = '.';
-    <span class="keyword">if</span> (p+len-buf &gt;= <span class="type">MAXPATHLEN</span>) {
-        <span class="type">PyErr_SetString</span>(<span class="type">PyExc_ValueError</span>,
-                        <span class="string">"Module name too long"</span>);
-        <span class="keyword">return</span> <span class="type">NULL</span>;
-    }
-    strncpy(p, name, len);
-    p[len] = '\<span class="number">0</span>';
-    *p_buflen = p+len-buf;
-
-    // <span class="keyword">import</span>模块
-    <span class="literal">result</span> = import_submodule(<span class="keyword">mod</span>, p, buf);
-    <span class="keyword">if</span> (<span class="literal">result</span> == <span class="type">Py_None</span> &amp;&amp; altmod != <span class="keyword">mod</span>) {
-        //如果没有<span class="keyword">import</span>成功，那么我们从默认路径开始<span class="keyword">import</span>
-        <span class="type">Py_DECREF</span>(<span class="literal">result</span>);
-        /* <span class="type">Here</span>, altmod must be <span class="type">None</span> <span class="keyword">and</span> <span class="keyword">mod</span> must <span class="keyword">not</span> be <span class="type">None</span> */
-        <span class="literal">result</span> = import_submodule(altmod, p, p);
-        <span class="keyword">if</span> (<span class="literal">result</span> != <span class="type">NULL</span> &amp;&amp; <span class="literal">result</span> != <span class="type">Py_None</span>) {
-            <span class="keyword">if</span> (mark_miss(buf) != <span class="number">0</span>) {
-                <span class="type">Py_DECREF</span>(<span class="literal">result</span>);
-                <span class="keyword">return</span> <span class="type">NULL</span>;
-            }
-            strncpy(buf, name, len);
-            buf[len] = '\<span class="number">0</span>';
-            *p_buflen = len;
-        }
-    }
-    ... ...
-
-    <span class="keyword">return</span> <span class="literal">result</span>;
-}
-</code></pre><h3 id="4-领悟">4.领悟</h3><ol>
-<li>import是不能import进module内部的类的，比如说module A中实现了类A，那么<strong>import A_p.A.A</strong>会有问题，需要改为<strong>from A_p.A import A</strong></li>
-<li>对应<strong>from A_p.A import a</strong>形式，我们可以看成<strong>__import__(name = “A_p.A”, from_list = [“a”])</strong>，函数返回的是module A</li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2312,7 +2235,7 @@ load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, 
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">22</span>
+              <span class="site-state-item-count">24</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
