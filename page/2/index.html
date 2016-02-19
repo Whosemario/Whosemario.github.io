@@ -237,6 +237,281 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/15/python-import-2/" itemprop="url">
+                  Python Import机制（二）
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-01-15T14:31:41+08:00" content="2016-01-15">
+              2016-01-15
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/15/python-import-2/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/15/python-import-2/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>这一篇接着<a href="http://whosemario.github.io/2016/01/10/python-import/">上一个篇</a>继续讨论Python Import的源码。</p>
+</blockquote>
+<h3 id="1-关于import_submodule">1.关于import_submodule</h3><p><strong>import_submodule</strong>函数做的事情就是将指定的module(或者package)加载进来。</p>
+<pre><code>static PyObject *
+import_submodule(PyObject *<span class="literal">mod</span>, char *subname, char *fullname)
+{
+    // [<span class="number">1</span>] 输入参数的简单解释
+    // <span class="literal">mod</span> : 两种情况，一种是package，一种是None
+    // subname : 将要<span class="preprocessor"><span class="keyword">import</span>的module名称</span>
+    // fullname : <span class="preprocessor"><span class="keyword">import</span>的全路径</span>
+
+    <span class="keyword">if</span> ((m = PyDict_GetItemString(modules, fullname)) != <span class="literal">NULL</span>) {
+        // [<span class="number">2</span>] 查看在不在sys.modules里面
+        Py_INCREF(m);
+    }
+    <span class="keyword">else</span> {
+        <span class="keyword">if</span> (<span class="literal">mod</span> == Py_None)
+            // path为<span class="literal">NULL</span>意味着<span class="preprocessor"><span class="keyword">import</span>的搜索路径从sys.path的默认路径开始</span>
+            path = <span class="literal">NULL</span>;
+        <span class="keyword">else</span> {
+            // 这里的<span class="literal">mod</span>一定是package
+            path = PyObject_GetAttrString(<span class="literal">mod</span>, <span class="string">"__path__"</span>);
+        }
+        // [<span class="number">3</span>] 找出对应的<span class="keyword">module</span>，同时会返回文件描述符(fp)，fdp会描述相关信息
+        fdp = find_module(fullname, subname, path, buf, MAXPATHLEN+<span class="number">1</span>,
+                      &amp;fp, &amp;loader);
+        // [<span class="number">4</span>] <span class="preprocessor"><span class="keyword">import</span> 对应的module</span>
+        m = load_module(fullname, fp, buf, fdp-&gt;type, loader);
+
+    }
+    <span class="keyword">return</span> m;
+}
+</code></pre><h3 id="2-find_module函数">2.find_module函数</h3><pre><code><span class="function"><span class="keyword">static</span> <span class="keyword">struct</span> filedescr *
+<span class="title">find_module</span><span class="params">(<span class="keyword">char</span> *fullname, <span class="keyword">char</span> *subname, PyObject *path, <span class="keyword">char</span> *buf,
+            size_t buflen, FILE **p_fp, PyObject **p_loader)</span>
+</span>{
+
+    <span class="comment">/* sys.meta_path import hook */</span>
+    <span class="keyword">if</span> (p_loader != <span class="literal">NULL</span>) {
+        PyObject *meta_path;
+
+        meta_path = PySys_GetObject(<span class="string">"meta_path"</span>);  <span class="comment">// sys.meta_path</span>
+        <span class="comment">/* meta_path里面是用户hook的一些类，默认是空
+           这些类实现了find_module方法，并返回对应的
+           loader
+         */</span>
+        npath = PyList_Size(meta_path);
+        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; npath; i++) {
+            PyObject *loader;
+            PyObject *hook = PyList_GetItem(meta_path, i);
+            loader = PyObject_CallMethod(hook, <span class="string">"find_module"</span>,
+                                         <span class="string">"sO"</span>, fullname,
+                                         path != <span class="literal">NULL</span> ?
+                                         path : Py_None);
+            <span class="keyword">if</span> (loader == <span class="literal">NULL</span>) {
+                Py_DECREF(meta_path);
+                <span class="keyword">goto</span> error_exit;  <span class="comment">/* true error */</span>
+            }
+            <span class="keyword">if</span> (loader != Py_None) {
+                <span class="comment">/* a loader was found */</span>
+                *p_loader = loader;
+                Py_DECREF(meta_path);
+                PyMem_FREE(name);
+                <span class="keyword">return</span> &amp;importhookdescr;
+            }
+            Py_DECREF(loader);
+        }
+        Py_DECREF(meta_path);
+    }
+
+    <span class="keyword">if</span> (path == <span class="literal">NULL</span>) {
+        <span class="comment">// path为NULL，从默认路径开始查找</span>
+        <span class="keyword">if</span> (is_builtin(name)) {
+            <span class="comment">// 检查是不是内建模块</span>
+            <span class="built_in">strcpy</span>(buf, name);
+            PyMem_FREE(name);
+            <span class="keyword">return</span> &amp;fd_builtin;
+        }
+        <span class="keyword">if</span> ((find_frozen(name)) != <span class="literal">NULL</span>) {
+            <span class="built_in">strcpy</span>(buf, name);
+            PyMem_FREE(name);
+            <span class="keyword">return</span> &amp;fd_frozen;
+        }
+
+        <span class="comment">// path = sys.path</span>
+        path = PySys_GetObject(<span class="string">"path"</span>);
+    }
+
+    npath = PyList_Size(path);
+    namelen = <span class="built_in">strlen</span>(name);
+    <span class="comment">// 遍历所有的path</span>
+    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; npath; i++) {
+        PyObject *copy = <span class="literal">NULL</span>;
+        PyObject *v = PyList_GetItem(path, i);
+        <span class="built_in">strcpy</span>(buf, PyString_AS_STRING(v));
+          ....
+        <span class="built_in">strcpy</span>(buf+len, name);
+        len += namelen;
+        <span class="comment">// 做完上面这一步后，此时buf存储是import的全路径</span>
+
+        <span class="comment">/* Check for package import (buf holds a directory name,
+           and there's an __init__ module in that directory */</span>
+        <span class="keyword">if</span> (isdir(buf) &amp;&amp;         <span class="comment">/* it's an existing directory */</span> <span class="comment">// 是不是存在的目录</span>
+            case_ok(buf, len, namelen, name)) { <span class="comment">/* case matches */</span>
+            <span class="keyword">if</span> (find_init_module(buf)) { <span class="comment">/* and has __init__.py */</span>
+                Py_XDECREF(copy);
+                PyMem_FREE(name);
+                <span class="keyword">return</span> &amp;fd_package;
+            }
+            <span class="keyword">else</span> {
+                <span class="keyword">char</span> warnstr[MAXPATHLEN+<span class="number">80</span>];
+                <span class="built_in">sprintf</span>(warnstr, <span class="string">"Not importing directory "</span>
+                    <span class="string">"'%.*s': missing __init__.py"</span>,
+                    MAXPATHLEN, buf);
+                <span class="keyword">if</span> (PyErr_Warn(PyExc_ImportWarning,
+                               warnstr)) {
+                    Py_XDECREF(copy);
+                    <span class="keyword">goto</span> error_exit;
+                }
+            }
+        }
+        <span class="keyword">for</span> (fdp = _PyImport_Filetab; fdp-&gt;suffix != <span class="literal">NULL</span>; fdp++) {
+            ...
+            fp = fopen(buf, filemode);
+            <span class="keyword">if</span> (fp != <span class="literal">NULL</span>) {
+                <span class="keyword">if</span> (case_ok(buf, len, namelen, name)) {
+                    <span class="comment">//printf("in find_module case_ok buf is %s\n", buf);</span>
+                    <span class="keyword">break</span>;
+                }
+                <span class="keyword">else</span> {                   <span class="comment">/* continue search */</span>
+                    fclose(fp);
+                    fp = <span class="literal">NULL</span>;
+                }
+            }
+        }
+    *p_fp = fp;
+    PyMem_FREE(name);
+    <span class="keyword">return</span> fdp;
+}
+</code></pre><p><strong>find_module</strong>的基本流程可以描述如下：</p>
+<ol>
+<li>尝试在sys.meta_path里面找到hook class，并尝试获得loader。如果成功，函数返回</li>
+<li>如果path是空：<br>先看要import得module是不是builtin module，是，返回<br>再看module是不是frozen module，是，返回<br>然后将path = sys.path，从默认路径开始查找</li>
+<li>开始遍历path了<br>创建full为import的全路径<br>分两种情况<br>1) full是一个目录 package      <pre><code><span class="number">2</span>) full是一个<span class="class"><span class="keyword">module</span></span>
+</code></pre></li>
+</ol>
+<h3 id="3-load_module函数">3.load_module函数</h3><p><strong>load_module</strong>函数并不复杂，其根据不同的类型选择不同的加载module的方式。</p>
+<pre><code><span class="keyword">static</span> PyObject *
+load_module(<span class="keyword">char</span> *name, FILE *fp, <span class="keyword">char</span> *pathname, <span class="keyword">int</span> type, PyObject *loader)
+{
+    <span class="keyword">switch</span> (type) {
+    <span class="comment">// .py文件</span>
+    <span class="keyword">case</span> PY_SOURCE:
+        m = load_source_module(name, pathname, fp);
+        <span class="keyword">break</span>;
+    <span class="comment">// .pyc文件</span>
+    <span class="keyword">case</span> PY_COMPILED:
+        m = load_compiled_module(name, pathname, fp);
+        <span class="keyword">break</span>;
+    <span class="comment">// .so or .dll or .pyd 文件</span>
+    <span class="keyword">case</span> C_EXTENSION:
+        m = _PyImport_LoadDynamicModule(name, pathname, fp);
+        <span class="keyword">break</span>;
+    <span class="comment">// package</span>
+    <span class="keyword">case</span> PKG_DIRECTORY:
+        m = load_package(name, pathname);
+        <span class="keyword">break</span>;
+        ....
+    }
+
+    <span class="keyword">return</span> m;
+} 
+</code></pre>
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/01/10/python-import/" itemprop="url">
                   Python Import机制（一）
                 </a>
@@ -2019,239 +2294,6 @@ PyTypeObject PyCoro_Type = {
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/11/12/timer/" itemprop="url">
-                  怎样实现一个Timer
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-11-12T21:28:05+08:00" content="2015-11-12">
-              2015-11-12
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/11/12/timer/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/12/timer/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <p>怎样实现一个Timer(计时器)。</p>
-<h3 id="1-_libuv_Timer">1. libuv Timer</h3><p>在<a href="http://whosemario.github.io/2015/11/08/libuv-timer/">之前</a>的文章里面介绍过libuv的Timer使用，在libuv中Timer超时的判断是在主循环中实现的。</p>
-<pre><code><span class="preprocessor"># in core.c</span>
-
-<span class="function"><span class="keyword">int</span> <span class="title">uv_run</span><span class="params">(uv_loop_t* loop, uv_run_mode mode)</span> </span>{
-    ... ...
-
-      <span class="keyword">while</span> (r != <span class="number">0</span> &amp;&amp; loop-&gt;stop_flag == <span class="number">0</span>) {
-        uv__update_time(loop);    【<span class="number">1</span>】
-        uv__run_timers(loop);    【<span class="number">2</span>】
-        ... ...
-
-        timeout = <span class="number">0</span>;
-        <span class="keyword">if</span> ((mode == UV_RUN_ONCE &amp;&amp; !ran_pending) || mode == UV_RUN_DEFAULT)
-              timeout = uv_backend_timeout(loop);   【<span class="number">3</span>】
-
-        uv__io_poll(loop, timeout);   
-        ... ...
-
-  }
-</code></pre><p> 这里我只列出和Timer相关的一些逻辑。【1】处在每次循环的开始处，会重新获得当前时间，并将其赋值给loop-&gt;time。【2】处处理到期的Timer。【3】处会计算即将到期的Timer离现在时间还有多少，此时间将会作为poll的超时时间。</p>
-<h3 id="2-_Libtask">2. Libtask</h3><p>Libtask里面没有完全意义上的Timer，这里分析的是<strong>taskdelay</strong>方法，通过taskdelay方法可以实现一个别样的Timer。</p>
-<pre><code><span class="function"><span class="keyword">void</span>
-<span class="title">timertask</span><span class="params">(<span class="keyword">void</span>* v)</span> </span>{
-    taskdelay((<span class="keyword">int</span>)v);  <span class="comment">// 延迟v毫秒</span>
-    ... ...  <span class="comment">// do what you will do</span>
-}
-</code></pre><p>taskdelay不是真正意义上的Timer，但它的实现却和Timer的实现思路很相似，因此向拿出来分析一下。先看一下taskdelay的内部逻辑。</p>
-<pre><code>uint
-taskdelay(uint ms)
-{
-    uvlong <span class="keyword">when</span>, now;
-    <span class="constant">Task </span>*t;
-
-    if(!startedfdtask){
-        startedfdtask = <span class="number">1</span>;
-        <span class="regexp">//</span> fdtask只创建一次
-        taskcreate(fdtask, <span class="number">0</span>, <span class="number">32768</span>);    【<span class="number">1</span>】
-    }
-
-    now = nsec();
-    <span class="keyword">when</span> = now+(uvlong)ms*<span class="number">1000000</span>;
-    <span class="regexp">//</span> 找到第一个终止时间大于<span class="keyword">when</span>的task
-    <span class="keyword">for</span>(t=sleeping.head; t!=<span class="keyword">nil</span> &amp;&amp; t-&gt;alarmtime &lt; <span class="keyword">when</span>; t=t-&gt;<span class="keyword">next</span>)
-        ;
-
-    <span class="regexp">//</span> 将当前task插入队列        【<span class="number">2</span>】
-    if(t){
-        taskrunning-&gt;prev = t-&gt;prev;
-        taskrunning-&gt;<span class="keyword">next</span> = t;
-    }else{
-        taskrunning-&gt;prev = sleeping.tail;
-        taskrunning-&gt;<span class="keyword">next</span> = <span class="keyword">nil</span>;
-    }
-
-    t = taskrunning;
-    t-&gt;alarmtime = <span class="keyword">when</span>;
-    if(t-&gt;prev)
-        t-&gt;prev-&gt;<span class="keyword">next</span> = t;
-    else
-        sleeping.head = t;
-    if(t-&gt;<span class="keyword">next</span>)
-        t-&gt;<span class="keyword">next</span>-&gt;prev = t;
-    else
-        sleeping.tail = t;
-
-    <span class="regexp">//</span> 这是做什么？
-    if(!t-&gt;system &amp;&amp; sleepingcounted++ == <span class="number">0</span>)
-        taskcount++;
-    taskswitch();    【<span class="number">3</span>】
-
-    <span class="keyword">return</span> (nsec() - now)/<span class="number">1000000</span>;
-}
-</code></pre><p><strong>fdtask</strong>后面会介绍，其实是调度的主循环的task，如果fdtask没有创建，首先进行创建。之后我们会根据when将其插入sleeping队列中，sleeping使用列表来维护，最小堆当然是更好的选择。之后，在【3】处我们进行<strong>taskswitch</strong>，切换到fdtask。</p>
-<pre><code><span class="function"><span class="keyword">void</span>
-<span class="title">fdtask</span><span class="params">(<span class="keyword">void</span> *v)</span>
-</span>{
-    ... ...    
-    <span class="keyword">for</span>(;;){
-        <span class="comment">/* let everyone else run */</span>
-        <span class="comment">// 让其他的Task先运行一下下</span>
-        <span class="keyword">while</span>(taskyield() &gt; <span class="number">0</span>)        【<span class="number">1</span>】
-            ;
-        ... ...
-        <span class="comment">// 计算poll的超时时间</span>
-        <span class="keyword">if</span>((t=sleeping.head) == nil)
-            ms = -<span class="number">1</span>;  <span class="comment">// 如果sleeping队列为空，poll没有超时时间</span>
-        <span class="keyword">else</span>{
-            <span class="comment">/* sleep at most 5s */</span>
-            now = nsec();
-            <span class="keyword">if</span>(now &gt;= t-&gt;alarmtime)
-                ms = <span class="number">0</span>;        <span class="comment">// 如果已经有超时timer，poll立马返回</span>
-            <span class="keyword">else</span> <span class="keyword">if</span>(now+<span class="number">5</span>*<span class="number">1000</span>*<span class="number">1000</span>*<span class="number">1000L</span>L &gt;= t-&gt;alarmtime)
-                ms = (t-&gt;alarmtime - now)/<span class="number">1000000</span>;
-            <span class="keyword">else</span>
-                ms = <span class="number">5000</span>;
-        }
-        <span class="comment">// ms 很重要，超时后有些时间到期的任务就可以触发起来了</span>
-        <span class="keyword">if</span>(poll(pollfd, npollfd, ms) &lt; <span class="number">0</span>){
-            ... ...
-        }
-
-        ... ...
-
-        now = nsec();
-        <span class="comment">// 满足sleep的任务可以触发了</span>
-        <span class="keyword">while</span>((t=sleeping.head) &amp;&amp; now &gt;= t-&gt;alarmtime){
-            deltask(&amp;sleeping, t);
-            <span class="keyword">if</span>(!t-&gt;system &amp;&amp; --sleepingcounted == <span class="number">0</span>)
-                taskcount--;
-            taskready(t);
-        }
-    }
-}
-</code></pre><p>一开始使用<strong>taskyield</strong>让其他在就绪列表的任务都提前运行一下。之后计算poll的超时时间。在最后将超时的timer对应的Task加入就绪列表。是不是和前面处理的Timer逻辑十分相似！</p>
-<h3 id="3-mudou">3.mudou</h3><p>陈硕写的<a href="http://book.douban.com/subject/20471211/" target="_blank" rel="external">《Linux多线程服务端编程》</a>一书中也提到了一种Timer的实现方法，感觉也是很巧妙的。<br>他使用timerfd_create(2)/timerfd_settime(2)/timerfd<em>gettime(2),如下是陈硕对使用timerfd</em>*的解释：</p>
-<blockquote>
-<p>timerfd_create(2)把时间变成了一个文件描述符，该“文件”在定时器超时的那一刻变得可读，这样就能很方便地融入select(2)/poll(2)框架中，用统一的方式来处理IO事件和超时事件，这也正式Reactor模式的长处。</p>
-</blockquote>
-<pre><code><span class="function"><span class="keyword">int</span> <span class="title">createTimerfd</span><span class="params">()</span>
-</span>{
-      <span class="keyword">int</span> timerfd = ::timerfd_create(CLOCK_MONOTONIC,
-                             TFD_NONBLOCK | TFD_CLOEXEC);
-      <span class="keyword">if</span> (timerfd &lt; <span class="number">0</span>)
-      {
-        LOG_SYSFATAL &lt;&lt; <span class="string">"Failed in timerfd_create"</span>;
-      }
-      <span class="keyword">return</span> timerfd;
-}
-</code></pre><p>通过<strong>timerfd_create</strong>创建一个文件描述符，将其加入到poll中,通过<strong>timerfd_settime</strong>方法来修改时间，但需要注意的是这个接口只适用于Linux系统下，并不通用。</p>
-<h3 id="4-总结">4.总结</h3><p>可以看出Timer的实现并不是很复杂，框架会利用poll(epoll/kqueue)来实现一个主tick，计算最先超时的Timer的时间作为poll的超时时间，当poll超时的时候会处理Timer队列的每一个计时器的内容。</p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2298,7 +2340,7 @@ taskdelay(uint ms)
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">24</span>
+              <span class="site-state-item-count">25</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>

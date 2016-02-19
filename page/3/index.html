@@ -237,6 +237,239 @@
             
               
                 
+                <a class="post-title-link" href="/2015/11/12/timer/" itemprop="url">
+                  怎样实现一个Timer
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2015-11-12T21:28:05+08:00" content="2015-11-12">
+              2015-11-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/11/12/timer/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/12/timer/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <p>怎样实现一个Timer(计时器)。</p>
+<h3 id="1-_libuv_Timer">1. libuv Timer</h3><p>在<a href="http://whosemario.github.io/2015/11/08/libuv-timer/">之前</a>的文章里面介绍过libuv的Timer使用，在libuv中Timer超时的判断是在主循环中实现的。</p>
+<pre><code><span class="preprocessor"># in core.c</span>
+
+<span class="function"><span class="keyword">int</span> <span class="title">uv_run</span><span class="params">(uv_loop_t* loop, uv_run_mode mode)</span> </span>{
+    ... ...
+
+      <span class="keyword">while</span> (r != <span class="number">0</span> &amp;&amp; loop-&gt;stop_flag == <span class="number">0</span>) {
+        uv__update_time(loop);    【<span class="number">1</span>】
+        uv__run_timers(loop);    【<span class="number">2</span>】
+        ... ...
+
+        timeout = <span class="number">0</span>;
+        <span class="keyword">if</span> ((mode == UV_RUN_ONCE &amp;&amp; !ran_pending) || mode == UV_RUN_DEFAULT)
+              timeout = uv_backend_timeout(loop);   【<span class="number">3</span>】
+
+        uv__io_poll(loop, timeout);   
+        ... ...
+
+  }
+</code></pre><p> 这里我只列出和Timer相关的一些逻辑。【1】处在每次循环的开始处，会重新获得当前时间，并将其赋值给loop-&gt;time。【2】处处理到期的Timer。【3】处会计算即将到期的Timer离现在时间还有多少，此时间将会作为poll的超时时间。</p>
+<h3 id="2-_Libtask">2. Libtask</h3><p>Libtask里面没有完全意义上的Timer，这里分析的是<strong>taskdelay</strong>方法，通过taskdelay方法可以实现一个别样的Timer。</p>
+<pre><code><span class="function"><span class="keyword">void</span>
+<span class="title">timertask</span><span class="params">(<span class="keyword">void</span>* v)</span> </span>{
+    taskdelay((<span class="keyword">int</span>)v);  <span class="comment">// 延迟v毫秒</span>
+    ... ...  <span class="comment">// do what you will do</span>
+}
+</code></pre><p>taskdelay不是真正意义上的Timer，但它的实现却和Timer的实现思路很相似，因此向拿出来分析一下。先看一下taskdelay的内部逻辑。</p>
+<pre><code>uint
+taskdelay(uint ms)
+{
+    uvlong <span class="keyword">when</span>, now;
+    <span class="constant">Task </span>*t;
+
+    if(!startedfdtask){
+        startedfdtask = <span class="number">1</span>;
+        <span class="regexp">//</span> fdtask只创建一次
+        taskcreate(fdtask, <span class="number">0</span>, <span class="number">32768</span>);    【<span class="number">1</span>】
+    }
+
+    now = nsec();
+    <span class="keyword">when</span> = now+(uvlong)ms*<span class="number">1000000</span>;
+    <span class="regexp">//</span> 找到第一个终止时间大于<span class="keyword">when</span>的task
+    <span class="keyword">for</span>(t=sleeping.head; t!=<span class="keyword">nil</span> &amp;&amp; t-&gt;alarmtime &lt; <span class="keyword">when</span>; t=t-&gt;<span class="keyword">next</span>)
+        ;
+
+    <span class="regexp">//</span> 将当前task插入队列        【<span class="number">2</span>】
+    if(t){
+        taskrunning-&gt;prev = t-&gt;prev;
+        taskrunning-&gt;<span class="keyword">next</span> = t;
+    }else{
+        taskrunning-&gt;prev = sleeping.tail;
+        taskrunning-&gt;<span class="keyword">next</span> = <span class="keyword">nil</span>;
+    }
+
+    t = taskrunning;
+    t-&gt;alarmtime = <span class="keyword">when</span>;
+    if(t-&gt;prev)
+        t-&gt;prev-&gt;<span class="keyword">next</span> = t;
+    else
+        sleeping.head = t;
+    if(t-&gt;<span class="keyword">next</span>)
+        t-&gt;<span class="keyword">next</span>-&gt;prev = t;
+    else
+        sleeping.tail = t;
+
+    <span class="regexp">//</span> 这是做什么？
+    if(!t-&gt;system &amp;&amp; sleepingcounted++ == <span class="number">0</span>)
+        taskcount++;
+    taskswitch();    【<span class="number">3</span>】
+
+    <span class="keyword">return</span> (nsec() - now)/<span class="number">1000000</span>;
+}
+</code></pre><p><strong>fdtask</strong>后面会介绍，其实是调度的主循环的task，如果fdtask没有创建，首先进行创建。之后我们会根据when将其插入sleeping队列中，sleeping使用列表来维护，最小堆当然是更好的选择。之后，在【3】处我们进行<strong>taskswitch</strong>，切换到fdtask。</p>
+<pre><code><span class="function"><span class="keyword">void</span>
+<span class="title">fdtask</span><span class="params">(<span class="keyword">void</span> *v)</span>
+</span>{
+    ... ...    
+    <span class="keyword">for</span>(;;){
+        <span class="comment">/* let everyone else run */</span>
+        <span class="comment">// 让其他的Task先运行一下下</span>
+        <span class="keyword">while</span>(taskyield() &gt; <span class="number">0</span>)        【<span class="number">1</span>】
+            ;
+        ... ...
+        <span class="comment">// 计算poll的超时时间</span>
+        <span class="keyword">if</span>((t=sleeping.head) == nil)
+            ms = -<span class="number">1</span>;  <span class="comment">// 如果sleeping队列为空，poll没有超时时间</span>
+        <span class="keyword">else</span>{
+            <span class="comment">/* sleep at most 5s */</span>
+            now = nsec();
+            <span class="keyword">if</span>(now &gt;= t-&gt;alarmtime)
+                ms = <span class="number">0</span>;        <span class="comment">// 如果已经有超时timer，poll立马返回</span>
+            <span class="keyword">else</span> <span class="keyword">if</span>(now+<span class="number">5</span>*<span class="number">1000</span>*<span class="number">1000</span>*<span class="number">1000L</span>L &gt;= t-&gt;alarmtime)
+                ms = (t-&gt;alarmtime - now)/<span class="number">1000000</span>;
+            <span class="keyword">else</span>
+                ms = <span class="number">5000</span>;
+        }
+        <span class="comment">// ms 很重要，超时后有些时间到期的任务就可以触发起来了</span>
+        <span class="keyword">if</span>(poll(pollfd, npollfd, ms) &lt; <span class="number">0</span>){
+            ... ...
+        }
+
+        ... ...
+
+        now = nsec();
+        <span class="comment">// 满足sleep的任务可以触发了</span>
+        <span class="keyword">while</span>((t=sleeping.head) &amp;&amp; now &gt;= t-&gt;alarmtime){
+            deltask(&amp;sleeping, t);
+            <span class="keyword">if</span>(!t-&gt;system &amp;&amp; --sleepingcounted == <span class="number">0</span>)
+                taskcount--;
+            taskready(t);
+        }
+    }
+}
+</code></pre><p>一开始使用<strong>taskyield</strong>让其他在就绪列表的任务都提前运行一下。之后计算poll的超时时间。在最后将超时的timer对应的Task加入就绪列表。是不是和前面处理的Timer逻辑十分相似！</p>
+<h3 id="3-mudou">3.mudou</h3><p>陈硕写的<a href="http://book.douban.com/subject/20471211/" target="_blank" rel="external">《Linux多线程服务端编程》</a>一书中也提到了一种Timer的实现方法，感觉也是很巧妙的。<br>他使用timerfd_create(2)/timerfd_settime(2)/timerfd<em>gettime(2),如下是陈硕对使用timerfd</em>*的解释：</p>
+<blockquote>
+<p>timerfd_create(2)把时间变成了一个文件描述符，该“文件”在定时器超时的那一刻变得可读，这样就能很方便地融入select(2)/poll(2)框架中，用统一的方式来处理IO事件和超时事件，这也正式Reactor模式的长处。</p>
+</blockquote>
+<pre><code><span class="function"><span class="keyword">int</span> <span class="title">createTimerfd</span><span class="params">()</span>
+</span>{
+      <span class="keyword">int</span> timerfd = ::timerfd_create(CLOCK_MONOTONIC,
+                             TFD_NONBLOCK | TFD_CLOEXEC);
+      <span class="keyword">if</span> (timerfd &lt; <span class="number">0</span>)
+      {
+        LOG_SYSFATAL &lt;&lt; <span class="string">"Failed in timerfd_create"</span>;
+      }
+      <span class="keyword">return</span> timerfd;
+}
+</code></pre><p>通过<strong>timerfd_create</strong>创建一个文件描述符，将其加入到poll中,通过<strong>timerfd_settime</strong>方法来修改时间，但需要注意的是这个接口只适用于Linux系统下，并不通用。</p>
+<h3 id="4-总结">4.总结</h3><p>可以看出Timer的实现并不是很复杂，框架会利用poll(epoll/kqueue)来实现一个主tick，计算最先超时的Timer的时间作为poll的超时时间，当poll超时的时候会处理Timer队列的每一个计时器的内容。</p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2015/11/12/libtask/" itemprop="url">
                   libtask源码注释
                 </a>
@@ -890,7 +1123,7 @@ results.sort()
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">24</span>
+              <span class="site-state-item-count">25</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
