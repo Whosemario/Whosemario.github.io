@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Python," />
+  <meta name="keywords" content="libuv," />
 
 
 
@@ -53,43 +53,34 @@
 
 
 
-<meta name="description" content="本文只分析Python类实例的创建，不涉及类本身的构建（类本身的构建将会在接下来的文章中介绍）。
+<meta name="description" content="本文讲一下kqueue的基本使用以及在libuv中uv__io_poll函数的kqueue部分的实现
 
-# example
-class A(object):
-    pass
-obj_a = A()
-上面这一段代码对应的opcode如下：
- 0 LOAD_CONST               1 (&apos;A&apos;)
- 3 LOAD_GLOBAL              0 (object)
- 6 BUIL">
+1.kqueue简介int kqueue(void)
+生成一个内核事件队列，并返回队列的描述符。
+struct keventstruct kevent { 
+    uintptr_t ident;        /* 事件 ID */ 
+    short     filter;">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python源码解析——Class实例创建">
-<meta property="og:url" content="http://whosemario.github.io/2016/01/05/python-class-instance/index.html">
+<meta property="og:title" content="一起玩玩libuv(五)—— kqueue以及uv__io_poll">
+<meta property="og:url" content="http://whosemario.github.io/2016/02/24/libuv-read-code-1/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="本文只分析Python类实例的创建，不涉及类本身的构建（类本身的构建将会在接下来的文章中介绍）。
+<meta property="og:description" content="本文讲一下kqueue的基本使用以及在libuv中uv__io_poll函数的kqueue部分的实现
 
-# example
-class A(object):
-    pass
-obj_a = A()
-上面这一段代码对应的opcode如下：
- 0 LOAD_CONST               1 (&apos;A&apos;)
- 3 LOAD_GLOBAL              0 (object)
- 6 BUIL">
-<meta property="og:updated_time" content="2016-01-05T02:06:23.000Z">
+1.kqueue简介int kqueue(void)
+生成一个内核事件队列，并返回队列的描述符。
+struct keventstruct kevent { 
+    uintptr_t ident;        /* 事件 ID */ 
+    short     filter;">
+<meta property="og:updated_time" content="2016-02-24T14:12:47.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python源码解析——Class实例创建">
-<meta name="twitter:description" content="本文只分析Python类实例的创建，不涉及类本身的构建（类本身的构建将会在接下来的文章中介绍）。
+<meta name="twitter:title" content="一起玩玩libuv(五)—— kqueue以及uv__io_poll">
+<meta name="twitter:description" content="本文讲一下kqueue的基本使用以及在libuv中uv__io_poll函数的kqueue部分的实现
 
-# example
-class A(object):
-    pass
-obj_a = A()
-上面这一段代码对应的opcode如下：
- 0 LOAD_CONST               1 (&apos;A&apos;)
- 3 LOAD_GLOBAL              0 (object)
- 6 BUIL">
+1.kqueue简介int kqueue(void)
+生成一个内核事件队列，并返回队列的描述符。
+struct keventstruct kevent { 
+    uintptr_t ident;        /* 事件 ID */ 
+    short     filter;">
 
 
 
@@ -101,7 +92,7 @@ obj_a = A()
   };
 </script>
 
-  <title> Python源码解析——Class实例创建 | Whosemario的家 </title>
+  <title> 一起玩玩libuv(五)—— kqueue以及uv__io_poll | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -251,7 +242,7 @@ obj_a = A()
             
             
               
-                Python源码解析——Class实例创建
+                一起玩玩libuv(五)—— kqueue以及uv__io_poll
               
             
           </h1>
@@ -260,8 +251,8 @@ obj_a = A()
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2016-01-05T09:12:28+08:00" content="2016-01-05">
-              2016-01-05
+            <time itemprop="dateCreated" datetime="2016-02-24T09:31:58+08:00" content="2016-02-24">
+              2016-02-24
             </time>
           </span>
 
@@ -270,8 +261,8 @@ obj_a = A()
               &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
+                  <a href="/categories/libuv/" itemprop="url" rel="index">
+                    <span itemprop="name">libuv</span>
                   </a>
                 </span>
 
@@ -286,8 +277,8 @@ obj_a = A()
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2016/01/05/python-class-instance/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/05/python-class-instance/" itemprop="commentsCount"></span>
+                <a href="/2016/02/24/libuv-read-code-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/24/libuv-read-code-1/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -307,66 +298,150 @@ obj_a = A()
 
       
         <span itemprop="articleBody"><blockquote>
-<p>本文只分析Python类实例的创建，不涉及类本身的构建（类本身的构建将会在接下来的文章中介绍）。</p>
+<p>本文讲一下kqueue的基本使用以及在libuv中uv__io_poll函数的kqueue部分的实现</p>
 </blockquote>
-<pre><code><span class="comment"># example</span>
-<span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span>
-    <span class="keyword">pass</span>
-obj_a = A()
-</code></pre><p>上面这一段代码对应的opcode如下：</p>
-<pre><code> <span class="number">0</span> LOAD_CONST               <span class="number">1</span> (<span class="string">'A'</span>)
- <span class="number">3</span> LOAD_GLOBAL              <span class="number">0</span> (object)
- <span class="number">6</span> BUILD_TUPLE              <span class="number">1</span>
- <span class="number">9</span> LOAD_CONST               <span class="number">2</span> (&lt;code object A at <span class="number">0x104f367b0</span>, file <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">2</span>&gt;)
-<span class="number">12</span> MAKE_FUNCTION            <span class="number">0</span>
-<span class="number">15</span> CALL_FUNCTION            <span class="number">0</span>
-<span class="number">18</span> BUILD_CLASS
-<span class="number">19</span> STORE_FAST               <span class="number">0</span> (A)
-
-<span class="number">22</span> LOAD_FAST                <span class="number">0</span> (A)
-<span class="number">25</span> CALL_FUNCTION            <span class="number">0</span>
-<span class="number">28</span> STORE_FAST               <span class="number">1</span> (obj_a)
-</code></pre><p>说明几个关键的opcode，<strong>BUILD_CLASS</strong>用于创建一个名为<strong>A</strong>的Class，在<strong>LOAD_FAST</strong>的时候Python虚拟机加载<strong>A</strong>，然后执行<strong>CALL_FUNCTION</strong>。</p>
-<h4 id="1-从CALL_FUNCTION机器码看起">1.从CALL_FUNCTION机器码看起</h4><p>下面是从CALL_FUNCTION开始的函数调用流程:</p>
-<pre><code>CALL_FUNCTION<span class="subst">-&gt;</span>call_function<span class="subst">-&gt;</span>do_call<span class="subst">-&gt;</span>PyObject_Call<span class="attribute">...</span>
-</code></pre><p><strong>PyObject_Call</strong>从函数命名很容易理解，这个函数是对PyObject进行调用。</p>
-<pre><code><span class="type">PyObject</span> *
-<span class="type">PyObject_Call</span>(<span class="type">PyObject</span> *func, <span class="type">PyObject</span> *arg, <span class="type">PyObject</span> *kw) {
-    <span class="keyword">if</span> ((call = func-&gt;ob_type-&gt;tp_call) != <span class="type">NULL</span>) {
-        ...
-        <span class="literal">result</span> = (*call)(func, arg, kw);
-        ...
-    }
+<h3 id="1-kqueue简介">1.kqueue简介</h3><pre><code>int <span class="function"><span class="title">kqueue</span><span class="params">(void)</span></span>
+</code></pre><p>生成一个内核事件队列，并返回队列的描述符。</p>
+<h4 id="struct_kevent">struct kevent</h4><pre><code>struct kevent { 
+    uintptr_t ident;        /<span class="keyword">*</span> 事件 ID <span class="keyword">*</span>/ 
+    short     filter;       /<span class="keyword">*</span> 事件过滤器 <span class="keyword">*</span>/ 
+    u_short   flags;        /<span class="keyword">*</span> 行为标识 <span class="keyword">*</span>/ 
+    u_int     fflags;       /<span class="keyword">*</span> 过滤器标识值 <span class="keyword">*</span>/ 
+    intptr_t  data;         /<span class="keyword">*</span> 过滤器数据 <span class="keyword">*</span>/ 
+    void      <span class="keyword">*</span>udata;       /<span class="keyword">*</span> 应用透传数据 <span class="keyword">*</span>/ 
+ }; 
+</code></pre><h5 id="ident">ident</h5><p>一般设置为文件描述符</p>
+<h5 id="filter">filter</h5><p>内核检查ident上注册的filter的状态，状态发生变化就通知应用程序，Tcp相关的filter如下： </p>
+<ul>
+<li>EVFILT_READ：Socket描述符处于监听状态，当有链接进来的时候，data表示就绪队列的链接的数量；对于其他的描述符，当数据可接受的时候返回，并且data是数据可读的数量    </li>
+<li>EVFILT_WRITE：当写入缓冲区可写的时候返回，data表示写入缓冲区的大小。  </li>
+</ul>
+<h5 id="flags">flags</h5><ul>
+<li>EV_ADD：在kqueue中增加一个event</li>
+<li>EV_DELETE：在kqueue中删除一个event</li>
+</ul>
+<h5 id="fflags">fflags</h5><p>filter相关的flag</p>
+<h5 id="data">data</h5><p>filter相关的数据</p>
+<h5 id="udata">udata</h5><p>用户自定义的数据</p>
+<h4 id="EV_SET_宏定义">EV_SET 宏定义</h4><pre><code><span class="type">EV_SET</span>(&amp;kev, ident, filter, flags, fflags, <span class="typedef"><span class="keyword">data</span>, udata);</span>
+</code></pre><p>EV_SET用于初始化struct kevent</p>
+<h4 id="kevent方法">kevent方法</h4><pre><code><span class="function"><span class="keyword">int</span>
+<span class="title">kevent</span><span class="params">(<span class="keyword">int</span> kq, <span class="keyword">const</span> <span class="keyword">struct</span> kevent *changelist, <span class="keyword">int</span> nchanges, <span class="keyword">struct</span> kevent *eventlist, <span class="keyword">int</span> nevents, <span class="keyword">const</span> <span class="keyword">struct</span> timespec *timeout)</span></span>;
+</code></pre><p>kevent函数用于注册和删除事件，并返回就绪事件或者错误事件。  </p>
+<ul>
+<li>kq：kqueue方法返回的描述符   </li>
+<li>changelist：注册或者删除的事件列表</li>
+<li>nchanges：changelist数量</li>
+<li>eventlist：满足条件的事件通知数组</li>
+<li>nevents：eventlist数量</li>
+<li>timeout：超时时间，timeout是nullptr，kevent无限期等待，否则超时返回</li>
+</ul>
+<h3 id="2-libuv怎样使用kqueue">2.libuv怎样使用kqueue</h3><h4 id="loop初始化">loop初始化</h4><pre><code># <span class="keyword">in</span> <span class="keyword">loop</span>.c
+<span class="keyword">int</span> uv_loop_init(uv_loop_t* <span class="keyword">loop</span>) {
     ...
-</code></pre><p>func在这里对应的就是<strong>类A</strong>，当然我们在创建obj_a的时候是没有参数的，因此arg和kw便没有任何东西。在if语句中获取func-&gt;ob_type-&gt;tp_call，func就是A，那么ob_type在这里是PyType_Type。</p>
-<pre><code><span class="comment"># in typeobject.c</span>
-PyTypeObject PyType_Type = {
-    ....
-    (ternaryfunc)type_call,                     /<span class="keyword">*</span> tp_call <span class="keyword">*</span>/
-    ....
-</code></pre><p>就是上面这个实例，其对应的tp_call是<strong>type_call</strong>这个函数。</p>
-<pre><code><span class="keyword">static</span> PyObject *
-type_call(PyTypeObject *<span class="class"><span class="keyword">type</span>, <span class="title">PyObject</span> *<span class="title">args</span>, <span class="title">PyObject</span> *<span class="title">kwds</span>) {</span>
-    ....
-    obj = <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_new</span></span>(<span class="class"><span class="keyword">type</span>, <span class="title">args</span>, <span class="title">kwds</span>);</span>
-    ....
-</code></pre><p>type-&gt;tp_new中的type还是<strong>类A</strong>，tp_new则是其基类object的tp<em>new（原因很简单，我们在A的定义中并没有重载\</em>_new__函数），object的真面目就是PyBaseObject_Type。</p>
-<pre><code><span class="comment"># in typeobject.c</span>
-PyTypeObject PyBaseObject_Type = { 
-    ....
-    object_new,                                 /<span class="keyword">*</span> tp_new <span class="keyword">*</span>/
-    ....
-</code></pre><h4 id="2-object_new都做了什么">2.object_new都做了什么</h4><pre><code><span class="keyword">static</span> PyObject *
-object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, <span class="title">PyObject</span> *<span class="title">args</span>, <span class="title">PyObject</span> *<span class="title">kwds</span>) {</span>
-    ....
-    <span class="keyword">return</span> <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_alloc</span></span>(<span class="class"><span class="keyword">type</span>, 0);</span>
+    err = uv__platform_loop_init(<span class="keyword">loop</span>);
+    ...
 }
-</code></pre><p>object_new做的事情很简单，就是调用类A的tp_alloc，这里的tp_alloc的实现是PyType_GenericAlloc函数，我们在<a href="http://whosemario.github.io/2016/01/03/python-PyType-GenericAlloc/">前文</a>也提到过。</p>
-<h4 id="3-总结">3.总结</h4><p>到这里obj_a的创建流程基本走完，无非后面会调用tp<em>new（如果我们定义了\</em>_init__就会调用我们的这个方法），但obj_a在内存中的形式已经确定，就是一个简单的PyObject。</p>
-<pre><code><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">object</span> </span>{
-    PyObject_HEAD
-} PyObject;
-</code></pre><p>其ob_type对应的就是<strong>类A</strong>。    </p>
+
+# <span class="keyword">in</span> darwin.c 
+<span class="keyword">int</span> uv__platform_loop_init(uv_loop_t* <span class="keyword">loop</span>) {
+      <span class="keyword">loop</span>-&gt;cf_state = NULL;
+
+      <span class="keyword">if</span> (uv__kqueue_init(<span class="keyword">loop</span>))
+        <span class="keyword">return</span> -errno;
+
+      <span class="keyword">return</span> <span class="number">0</span>;
+}
+
+# <span class="keyword">in</span> kqueue.c
+<span class="keyword">int</span> uv__kqueue_init(uv_loop_t* <span class="keyword">loop</span>) {
+      <span class="keyword">loop</span>-&gt;backend_fd = kqueue();
+      ...
+  }
+</code></pre><p>本文在MacOSX上进行调试程序，所以平台相关的代码是基于darwin的。看到在loop进行初始化的时候，会对<strong>backend_fd</strong>参数赋值为kqueue()。</p>
+<h4 id="struct_kevent_初始化">struct kevent 初始化</h4><pre><code><span class="preprocessor"># in kqueue.c</span>
+
+<span class="keyword">while</span> (!QUEUE_EMPTY(&amp;loop-&gt;watcher_queue)) {
+    <span class="comment">// 【1】从watcher_queue中取出uv__io_t</span>
+    q = QUEUE_HEAD(&amp;loop-&gt;watcher_queue);
+    ...
+    w = QUEUE_DATA(q, <span class="keyword">uv__io_t</span>, watcher_queue);
+    ...
+    <span class="keyword">if</span> ((w-&gt;events &amp; UV__POLLIN) == <span class="number">0</span> &amp;&amp; (w-&gt;pevents &amp; UV__POLLIN) != <span class="number">0</span>) {
+      filter = EVFILT_READ;
+      fflags = <span class="number">0</span>;
+      op = EV_ADD;
+      <span class="comment">// 【2】初始化kevent，filter=EVFILT_READ，flags=EV_ADD</span>
+      EV_SET(events + nevents, w-&gt;fd, filter, op, fflags, <span class="number">0</span>, <span class="number">0</span>);
+
+      <span class="keyword">if</span> (++nevents == ARRAY_SIZE(events)) {
+        <span class="comment">// 【3】通过kevent函数注册时间</span>
+        <span class="keyword">if</span> (kevent(loop-&gt;backend_fd, events, nevents, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>))
+          <span class="built_in">abort</span>();
+        nevents = <span class="number">0</span>;
+      }
+    }
+
+    <span class="keyword">if</span> ((w-&gt;events &amp; UV__POLLOUT) == <span class="number">0</span> &amp;&amp; (w-&gt;pevents &amp; UV__POLLOUT) != <span class="number">0</span>) {
+      <span class="comment">// 【4】初始化kevent，filter=EVFILT_WRITE</span>
+      EV_SET(events + nevents, w-&gt;fd, EVFILT_WRITE, EV_ADD, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+
+      <span class="keyword">if</span> (++nevents == ARRAY_SIZE(events)) {
+        <span class="keyword">if</span> (kevent(loop-&gt;backend_fd, events, nevents, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>))
+          <span class="built_in">abort</span>();
+        nevents = <span class="number">0</span>;
+      }
+    }
+
+    w-&gt;events = w-&gt;pevents;
+}
+</code></pre><p>libuv中的对struct kevent还是蛮清晰的，对于POLLIN类型，加入EVFILT_READ类型的kevent(见【2】)，对于POLLOUT类型，加入EVFILT_WRITE类型的kevent(见【4】)。</p>
+<h4 id="数据监听">数据监听</h4><pre><code># <span class="keyword">in</span> kqueue.c
+
+nfds = kevent(<span class="keyword">loop</span>-&gt;backend_fd,
+              events,
+              nevents,
+              events,
+              ARRAY_SIZE(events),
+              timeout == -<span class="number">1</span> ? NULL : &amp;spec);
+...
+<span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nfds; i++) {
+  ...
+  w = <span class="keyword">loop</span>-&gt;watchers[fd];
+  ...
+  <span class="comment">//【1】 处理读数据</span>
+  <span class="keyword">if</span> (ev-&gt;filter == EVFILT_READ) {
+    <span class="keyword">if</span> (w-&gt;pevents &amp; UV__POLLIN) {
+      revents |= UV__POLLIN;
+      w-&gt;rcount = ev-&gt;data;
+    } <span class="keyword">else</span> {
+      ...
+    }
+  }
+  <span class="comment">//【2】 处理写状态</span>
+  <span class="keyword">if</span> (ev-&gt;filter == EVFILT_WRITE) {
+    <span class="keyword">if</span> (w-&gt;pevents &amp; UV__POLLOUT) {
+      revents |= UV__POLLOUT;
+      w-&gt;wcount = ev-&gt;data;
+    } <span class="keyword">else</span> {
+      ...
+    }
+  }
+  <span class="comment">//【3】处理错误</span>
+  <span class="keyword">if</span> (ev-&gt;flags &amp; EV_ERROR)
+    revents |= UV__POLLERR;
+
+  <span class="keyword">if</span> (revents == <span class="number">0</span>)
+    <span class="keyword">continue</span>;
+
+  <span class="comment">//【4】回调函数</span>
+  w-&gt;cb(<span class="keyword">loop</span>, w, revents);
+  ...
+}
+</code></pre><p>这里处理满足条件的事件，分别包括读数据、写数据、错误状态。最后回调callback。</p>
+<h3 id="3-参考资料">3.参考资料</h3><ol>
+<li>使用 kqueue 在 FreeBSD 上开发高性能应用服务器 - <a href="http://www.ibm.com/developerworks/cn/aix/library/1105_huangrg_kqueue/index.html" target="_blank" rel="external">http://www.ibm.com/developerworks/cn/aix/library/1105_huangrg_kqueue/index.html</a></li>
+</ol>
 </span>
       
     </div>
@@ -375,7 +450,7 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
       
         <div class="post-tags">
           
-            <a href="/tags/Python/" rel="tag">#Python</a>
+            <a href="/tags/libuv/" rel="tag">#libuv</a>
           
         </div>
       
@@ -384,17 +459,13 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/01/03/python-PyType-GenericAlloc/" rel="next" title="Python源码解析——PyType_GenericAlloc">
-                <i class="fa fa-chevron-left"></i> Python源码解析——PyType_GenericAlloc
+              <a href="/2016/02/22/python-reload/" rel="next" title="关于Python服务器Hotfix的个人理解">
+                <i class="fa fa-chevron-left"></i> 关于Python服务器Hotfix的个人理解
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2016/01/10/python-import/" rel="prev" title="Python Import机制（一）">
-                Python Import机制（一） <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -409,10 +480,10 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2016/01/05/python-class-instance/"
-     data-title="Python源码解析——Class实例创建"
+        <div class="ds-share flat" data-thread-key="2016/02/24/libuv-read-code-1/"
+     data-title="一起玩玩libuv(五)—— kqueue以及uv__io_poll"
      data-content=""
-     data-url="http://whosemario.github.io/2016/01/05/python-class-instance/">
+     data-url="http://whosemario.github.io/2016/02/24/libuv-read-code-1/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -440,8 +511,8 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2016/01/05/python-class-instance/"
-           data-title="Python源码解析——Class实例创建" data-url="http://whosemario.github.io/2016/01/05/python-class-instance/">
+      <div class="ds-thread" data-thread-key="2016/02/24/libuv-read-code-1/"
+           data-title="一起玩玩libuv(五)—— kqueue以及uv__io_poll" data-url="http://whosemario.github.io/2016/02/24/libuv-read-code-1/">
       </div>
     
   </div>
@@ -541,7 +612,7 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-从CALL_FUNCTION机器码看起"><span class="nav-number">1.</span> <span class="nav-text">1.从CALL_FUNCTION机器码看起</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-object_new都做了什么"><span class="nav-number">2.</span> <span class="nav-text">2.object_new都做了什么</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-总结"><span class="nav-number">3.</span> <span class="nav-text">3.总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-kqueue简介"><span class="nav-number">1.</span> <span class="nav-text">1.kqueue简介</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#struct_kevent"><span class="nav-number">1.1.</span> <span class="nav-text">struct kevent</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#ident"><span class="nav-number">1.1.1.</span> <span class="nav-text">ident</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#filter"><span class="nav-number">1.1.2.</span> <span class="nav-text">filter</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#flags"><span class="nav-number">1.1.3.</span> <span class="nav-text">flags</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#fflags"><span class="nav-number">1.1.4.</span> <span class="nav-text">fflags</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#data"><span class="nav-number">1.1.5.</span> <span class="nav-text">data</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#udata"><span class="nav-number">1.1.6.</span> <span class="nav-text">udata</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#EV_SET_宏定义"><span class="nav-number">1.2.</span> <span class="nav-text">EV_SET 宏定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#kevent方法"><span class="nav-number">1.3.</span> <span class="nav-text">kevent方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-libuv怎样使用kqueue"><span class="nav-number">2.</span> <span class="nav-text">2.libuv怎样使用kqueue</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#loop初始化"><span class="nav-number">2.1.</span> <span class="nav-text">loop初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#struct_kevent_初始化"><span class="nav-number">2.2.</span> <span class="nav-text">struct kevent 初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据监听"><span class="nav-number">2.3.</span> <span class="nav-text">数据监听</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-参考资料"><span class="nav-number">3.</span> <span class="nav-text">3.参考资料</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
