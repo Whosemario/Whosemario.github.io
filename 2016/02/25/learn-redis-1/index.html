@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python," />
+  <meta name="keywords" content="redis," />
 
 
 
@@ -53,25 +53,31 @@
 
 
 
-<meta name="description" content="这篇文章主要是写一些自己对Python原生Dict的理解和感悟
+<meta name="description" content="Redis的安装还是很简单的，但作为学习Redis的第一篇文章，还是简单介绍一下Redis的安装
 
-1.对比游戏里面很多策划表是以Python Dict的形式存在的，并且这些Python Dict是常驻内存的，在Python的GC机制里面也是存在于最老的generation里面的。那么Python Dict到底有多耗内存呢？我利用pymalloctrace做过一个简单的对比。      
-Case One：构建一个如下数据">
+1.下载Redis下载地址：http://download.redis.io/releases/redis-2.8.24.tar.gz
+2.安装Redis简单安装% make
+make就可以简单安装了。
+内存分配器想选择一个非默认的内存分配器，可以定义MALLOC环境变量使用libc malloc：">
 <meta property="og:type" content="article">
-<meta property="og:title" content="关于Python Dict">
-<meta property="og:url" content="http://whosemario.github.io/2016/02/17/hash-table/index.html">
+<meta property="og:title" content="大家一起学Redis (一) —— Redis安装">
+<meta property="og:url" content="http://whosemario.github.io/2016/02/25/learn-redis-1/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="这篇文章主要是写一些自己对Python原生Dict的理解和感悟
+<meta property="og:description" content="Redis的安装还是很简单的，但作为学习Redis的第一篇文章，还是简单介绍一下Redis的安装
 
-1.对比游戏里面很多策划表是以Python Dict的形式存在的，并且这些Python Dict是常驻内存的，在Python的GC机制里面也是存在于最老的generation里面的。那么Python Dict到底有多耗内存呢？我利用pymalloctrace做过一个简单的对比。      
-Case One：构建一个如下数据">
-<meta property="og:updated_time" content="2016-02-17T11:43:25.000Z">
+1.下载Redis下载地址：http://download.redis.io/releases/redis-2.8.24.tar.gz
+2.安装Redis简单安装% make
+make就可以简单安装了。
+内存分配器想选择一个非默认的内存分配器，可以定义MALLOC环境变量使用libc malloc：">
+<meta property="og:updated_time" content="2016-02-25T11:21:16.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="关于Python Dict">
-<meta name="twitter:description" content="这篇文章主要是写一些自己对Python原生Dict的理解和感悟
+<meta name="twitter:title" content="大家一起学Redis (一) —— Redis安装">
+<meta name="twitter:description" content="Redis的安装还是很简单的，但作为学习Redis的第一篇文章，还是简单介绍一下Redis的安装
 
-1.对比游戏里面很多策划表是以Python Dict的形式存在的，并且这些Python Dict是常驻内存的，在Python的GC机制里面也是存在于最老的generation里面的。那么Python Dict到底有多耗内存呢？我利用pymalloctrace做过一个简单的对比。      
-Case One：构建一个如下数据">
+1.下载Redis下载地址：http://download.redis.io/releases/redis-2.8.24.tar.gz
+2.安装Redis简单安装% make
+make就可以简单安装了。
+内存分配器想选择一个非默认的内存分配器，可以定义MALLOC环境变量使用libc malloc：">
 
 
 
@@ -83,7 +89,7 @@ Case One：构建一个如下数据">
   };
 </script>
 
-  <title> 关于Python Dict | Whosemario的家 </title>
+  <title> 大家一起学Redis (一) —— Redis安装 | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -233,7 +239,7 @@ Case One：构建一个如下数据">
             
             
               
-                关于Python Dict
+                大家一起学Redis (一) —— Redis安装
               
             
           </h1>
@@ -242,8 +248,8 @@ Case One：构建一个如下数据">
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2016-02-17T09:40:35+08:00" content="2016-02-17">
-              2016-02-17
+            <time itemprop="dateCreated" datetime="2016-02-25T17:12:54+08:00" content="2016-02-25">
+              2016-02-25
             </time>
           </span>
 
@@ -252,8 +258,8 @@ Case One：构建一个如下数据">
               &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
+                  <a href="/categories/redis/" itemprop="url" rel="index">
+                    <span itemprop="name">redis</span>
                   </a>
                 </span>
 
@@ -268,8 +274,8 @@ Case One：构建一个如下数据">
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2016/02/17/hash-table/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/17/hash-table/" itemprop="commentsCount"></span>
+                <a href="/2016/02/25/learn-redis-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/25/learn-redis-1/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -289,126 +295,41 @@ Case One：构建一个如下数据">
 
       
         <span itemprop="articleBody"><blockquote>
-<p>这篇文章主要是写一些自己对Python原生Dict的理解和感悟</p>
+<p>Redis的安装还是很简单的，但作为学习Redis的第一篇文章，还是简单介绍一下Redis的安装</p>
 </blockquote>
-<h3 id="1-对比">1.对比</h3><p>游戏里面很多策划表是以Python Dict的形式存在的，并且这些Python Dict是常驻内存的，在Python的GC机制里面也是存在于最老的generation里面的。那么Python Dict到底有多耗内存呢？我利用pymalloctrace做过一个简单的对比。      </p>
-<h5 id="Case_One：">Case One：</h5><p>构建一个如下数据      </p>
-<pre><code>d = {
-    <span class="number">1</span> : {<span class="number">1</span>:<span class="number">1</span>, <span class="number">2</span>:<span class="number">4</span>, <span class="number">3</span>:<span class="number">9</span>, ... <span class="number">19</span>:<span class="number">361</span>}
-    <span class="number">2</span> : <span class="decorator">{...}</span>
-    ...
-    <span class="number">9999</span>: <span class="decorator">{...}</span>
-}
-</code></pre><p>利用pytracemalloc看一下它的内存占用量到底有多少，测试代码如下：</p>
-<pre><code> 1 # -*- coding:utf-8 -*-
- 2
- 3 import os
- 4 import sys
- 5 import tracemalloc
- 6
- 7 tracemalloc.start()
- 8
- 9 <span class="keyword">d</span> = {}
-10 <span class="keyword">for</span> i <span class="keyword">in</span> xrange(1, 10000):
-11     sub_d = {}
-12     <span class="keyword">for</span> j <span class="keyword">in</span> xrange(1, 20):
-13         sub_d[j] = j*<span class="literal">j</span>
-14     <span class="keyword">d</span>[i] = sub_d
-15
-16 snapshot = tracemalloc.take_snapshot()
-17 statis = snapshot.statistics(<span class="string">"lineno"</span>)
-18 <span class="keyword">total</span> = 0
-19 <span class="keyword">for</span> stat <span class="keyword">in</span> statis:
-20     <span class="keyword">total</span> += stat.size
-21
-22 <span class="keyword">for</span> stat <span class="keyword">in</span> statis[:10]:
-23     <span class="keyword">print</span> stat
-24
-25 <span class="keyword">print</span> <span class="keyword">total</span> / 1024.0 / 1024.0, <span class="string">"M"</span>
-</code></pre><p>最后输出的结果：</p>
-<pre><code>test_dict.py:<span class="number">13</span>: size=<span class="number">8208</span> KiB, count=<span class="number">10731</span>, average=<span class="number">783</span> B
-test_dict.py:<span class="number">11</span>: size=<span class="number">2734</span> KiB, count=<span class="number">9999</span>, average=<span class="number">280</span> B
-test_dict.py:<span class="number">14</span>: size=<span class="number">768</span> KiB, count=<span class="number">1</span>, average=<span class="number">768</span> KiB
-test_dict.py:<span class="number">10</span>: size=<span class="number">229</span> KiB, count=<span class="number">237</span>, average=<span class="number">992</span> B
-test_dict.py:<span class="number">16</span>: size=<span class="number">456</span> B, count=<span class="number">1</span>, average=<span class="number">456</span> B
-<span class="number">11.66065979</span> M
-</code></pre><p>11M，占用最多的地方就是在Dict被赋值的地方。</p>
-<h5 id="Case_Two">Case Two</h5><p>接下来换一种方式：数据使用tuple进行存储，索引用dict，输入格式如下：</p>
-<pre><code>value_index = {<span class="number">1</span> : <span class="number">0</span>, <span class="number">2</span> : <span class="number">1</span>, ... <span class="number">19</span>: <span class="number">18</span>}
-top_index = {<span class="number">1</span> : <span class="number">0</span>, <span class="number">2</span> : <span class="number">1</span>, ... <span class="number">9999</span> : <span class="number">9998</span>}
-d = (
-    (<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>, ..., <span class="number">361</span>),
-    (<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>, ..., <span class="number">361</span>), 
-    ...
-)
-</code></pre><p>测试代码如下：</p>
-<pre><code>   <span class="number">1</span> <span class="comment"># -*- coding:utf-8 -*-</span>
- <span class="number">2</span>
- <span class="number">3</span> <span class="keyword">import</span> os
- <span class="number">4</span> <span class="keyword">import</span> sys
- <span class="number">5</span> <span class="keyword">import</span> tracemalloc
- <span class="number">6</span>
- <span class="number">7</span> <span class="function"><span class="keyword">def</span> <span class="title">sub_gen</span><span class="params">()</span>:</span>
- <span class="number">8</span>     <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">20</span>):
- <span class="number">9</span>         <span class="keyword">yield</span> i*i
-<span class="number">10</span>
-<span class="number">11</span> <span class="function"><span class="keyword">def</span> <span class="title">gen</span><span class="params">()</span>:</span>
-<span class="number">12</span>     <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">10000</span>):
-<span class="number">13</span>         <span class="keyword">yield</span> tuple(sub_gen())
-<span class="number">14</span>
-<span class="number">15</span> tracemalloc.start()
-<span class="number">16</span>
-<span class="number">17</span> value_index = {}
-<span class="number">18</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">20</span>):
-<span class="number">19</span>     value_index[i] = i - <span class="number">1</span>
-<span class="number">20</span>
-<span class="number">21</span> top_index = {}
-<span class="number">22</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">10000</span>):
-<span class="number">23</span>     top_index[i] = i - <span class="number">1</span>
-<span class="number">24</span>
-<span class="number">25</span> d = tuple(gen())
-<span class="number">26</span>
-<span class="number">27</span> snapshot = tracemalloc.take_snapshot()
-<span class="number">28</span> statis = snapshot.statistics(<span class="string">"lineno"</span>)
-<span class="number">29</span> total = <span class="number">0</span>
-<span class="number">30</span> <span class="keyword">for</span> stat <span class="keyword">in</span> statis:
-<span class="number">31</span>     total += stat.size
-<span class="number">32</span>
-<span class="number">33</span> <span class="keyword">for</span> stat <span class="keyword">in</span> statis[:<span class="number">10</span>]:
-<span class="number">34</span>     <span class="keyword">print</span> stat
-<span class="number">35</span>
-<span class="number">36</span> <span class="keyword">print</span> total / <span class="number">1024.0</span> / <span class="number">1024.0</span>, <span class="string">"M"</span>
-</code></pre><p>运行结果如下：</p>
-<pre><code>test_tuple.py:<span class="number">13</span>: size=<span class="number">2031</span> KiB, count=<span class="number">10000</span>, average=<span class="number">208</span> B
-test_tuple.py:<span class="number">23</span>: size=<span class="number">998</span> KiB, count=<span class="number">239</span>, average=<span class="number">4278</span> B
-test_tuple.py:<span class="number">9</span>: size=<span class="number">478</span> KiB, count=<span class="number">494</span>, average=<span class="number">992</span> B
-test_tuple.py:<span class="number">22</span>: size=<span class="number">229</span> KiB, count=<span class="number">237</span>, average=<span class="number">992</span> B
-test_tuple.py:<span class="number">12</span>: size=<span class="number">229</span> KiB, count=<span class="number">237</span>, average=<span class="number">992</span> B
-test_tuple.py:<span class="number">25</span>: size=<span class="number">78.0</span> KiB, count=<span class="number">2</span>, average=<span class="number">39.0</span> KiB
-test_tuple.py:<span class="number">19</span>: size=<span class="number">768</span> B, count=<span class="number">1</span>, average=<span class="number">768</span> B
-test_tuple.py:<span class="number">27</span>: size=<span class="number">456</span> B, count=<span class="number">1</span>, average=<span class="number">456</span> B
-test_tuple.py:<span class="number">21</span>: size=<span class="number">280</span> B, count=<span class="number">1</span>, average=<span class="number">280</span> B
-<span class="number">3.95300292969</span> M
-</code></pre><p>结果才3M，为什么会差距这么大，原因就是在tuple和dict的内部实现的不同。</p>
-<h3 id="2-Dict内部实现说明">2.Dict内部实现说明</h3><p>Python Dict是一个Hash表，其解决冲突的方式是<strong>开放寻址法</strong>。在Dict中存储数据是一个线性数组，key值通过hash函数转换为一个整数，对应于数组中的索引，如果此索引下的数据没有被占用，怎将数据存储；否则，当存在冲突的时候，开放寻址法利用冲突函数找到下一个索引，重复上面的步骤。<br>基于某些理论，当数组中可用空间小于1/3时，此线性数据将会进行扩展，下面是Python Dict中在插入数据之后会进行检查，如果空间不满足要求则进行扩展。</p>
-<pre><code><span class="preprocessor"># in dictobject.c</span>
-<span class="function"><span class="keyword">static</span> <span class="keyword">int</span>
-<span class="title">dict_set_item_by_hash_or_entry</span><span class="params">(<span class="keyword">register</span> PyObject *op, PyObject *key,
-                           <span class="keyword">long</span> hash, PyDictEntry *ep, PyObject *value)</span>
-</span>{
-    ....
-    <span class="keyword">if</span> (!(mp-&gt;ma_used &gt; n_used &amp;&amp; mp-&gt;ma_fill*<span class="number">3</span> &gt;= (mp-&gt;ma_mask+<span class="number">1</span>)*<span class="number">2</span>))
-        <span class="keyword">return</span> <span class="number">0</span>;
-    <span class="keyword">return</span> dictresize(mp, (mp-&gt;ma_used &gt; <span class="number">50000</span> ? <span class="number">2</span> : <span class="number">4</span>) * mp-&gt;ma_used);
-}
-</code></pre><p>我们看到最后一段，dict的扩容将会以使用数量的2倍或者4倍进行扩容，保守上说整个线性数组中有1/3的空间是没有用的。</p>
-<h3 id="3-Tuple内部实现说明">3.Tuple内部实现说明</h3><p>tuple的内部实现则很简单。</p>
-<pre><code><span class="keyword">typedef</span> <span class="keyword">struct</span> {
-    PyObject_VAR_HEAD
-    PyObject *ob_item[<span class="number">1</span>];
-} PyTupleObject;
-</code></pre><p>ob_item存储tuple数据，可以理解为一个线性的数组，其大小在初始化的时候已经确定且无法改变。</p>
-<h3 id="4-小结">4.小结</h3><p>Python dict和tuple内存占用为何差这么多，原因不仅是上面提到的线性数组利用率的问题，还有线性数组存储的数据：tuple只是存储PyObject，但是dict要存储对应的hash值，key和value，这也是导致内存占用差距变大的原因。</p>
+<h3 id="1-下载Redis">1.下载Redis</h3><p>下载地址：<a href="http://download.redis.io/releases/redis-2.8.24.tar.gz" target="_blank" rel="external">http://download.redis.io/releases/redis-2.8.24.tar.gz</a></p>
+<h3 id="2-安装Redis">2.安装Redis</h3><h4 id="简单安装">简单安装</h4><pre><code><span class="comment">% make</span>
+</code></pre><p>make就可以简单安装了。</p>
+<h4 id="内存分配器">内存分配器</h4><p>想选择一个非默认的内存分配器，可以定义MALLOC环境变量<br>使用libc malloc：</p>
+<pre><code><span class="comment">% make MALLOC=libc</span>
+</code></pre><p>使用jemalloc：</p>
+<pre><code><span class="comment">% make MALLOC=jemalloc</span>
+</code></pre><h4 id="更多的输出信息">更多的输出信息</h4><p>如果希望看到更多的输出信息，使用下面方式安装</p>
+<pre><code>% make V=<span class="number">1</span>
+</code></pre><h3 id="3-使用Redis">3.使用Redis</h3><p>开启服务端</p>
+<pre><code><span class="comment">% cd src/</span>
+<span class="comment">% ./redis-server</span>
+</code></pre><p>我们可以通过一个配置文件启动redis服务器</p>
+<pre><code>% <span class="keyword">cd</span> src/
+% ./redis-server /path/<span class="keyword">to</span>/redis.<span class="keyword">conf</span>
+</code></pre><p>也可以直接输入参数</p>
+<pre><code>% ./redis-server --port <span class="number">9999</span> --slaveof <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">6379</span>
+% ./redis-server /etc/redis/<span class="number">6379.</span>conf --loglevel debug
+</code></pre><p>开启客户端</p>
+<pre><code>% cd src
+% ./redis-cli
+redis&gt; ping
+PONG
+redis&gt; <span class="keyword">set</span> foo bar
+OK
+redis&gt; <span class="keyword">get</span> foo
+<span class="string">"bar"</span>
+redis&gt; incr mycounter
+(<span class="type">integer</span>) <span class="number">1</span>
+redis&gt; incr mycounter
+(<span class="type">integer</span>) <span class="number">2</span>
+redis&gt;
+</code></pre><p>Redis命令说明：<br>    <a href="http://redis.io/commands" target="_blank" rel="external">http://redis.io/commands</a></p>
 </span>
       
     </div>
@@ -417,7 +338,7 @@ test_tuple.py:<span class="number">21</span>: size=<span class="number">280</spa
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/redis/" rel="tag">#redis</a>
           
         </div>
       
@@ -426,17 +347,13 @@ test_tuple.py:<span class="number">21</span>: size=<span class="number">280</spa
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/02/15/libuv-tutorial-4/" rel="next" title="一起玩玩libuv(四) —— TcpServer">
-                <i class="fa fa-chevron-left"></i> 一起玩玩libuv(四) —— TcpServer
+              <a href="/2016/02/24/libuv-read-code-1/" rel="next" title="一起玩玩libuv(五)—— kqueue以及uv__io_poll">
+                <i class="fa fa-chevron-left"></i> 一起玩玩libuv(五)—— kqueue以及uv__io_poll
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2016/02/22/python-reload/" rel="prev" title="关于Python服务器Hotfix的个人理解">
-                关于Python服务器Hotfix的个人理解 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -451,10 +368,10 @@ test_tuple.py:<span class="number">21</span>: size=<span class="number">280</spa
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2016/02/17/hash-table/"
-     data-title="关于Python Dict"
+        <div class="ds-share flat" data-thread-key="2016/02/25/learn-redis-1/"
+     data-title="大家一起学Redis (一) —— Redis安装"
      data-content=""
-     data-url="http://whosemario.github.io/2016/02/17/hash-table/">
+     data-url="http://whosemario.github.io/2016/02/25/learn-redis-1/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -482,8 +399,8 @@ test_tuple.py:<span class="number">21</span>: size=<span class="number">280</spa
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2016/02/17/hash-table/"
-           data-title="关于Python Dict" data-url="http://whosemario.github.io/2016/02/17/hash-table/">
+      <div class="ds-thread" data-thread-key="2016/02/25/learn-redis-1/"
+           data-title="大家一起学Redis (一) —— Redis安装" data-url="http://whosemario.github.io/2016/02/25/learn-redis-1/">
       </div>
     
   </div>
@@ -583,7 +500,7 @@ test_tuple.py:<span class="number">21</span>: size=<span class="number">280</spa
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-对比"><span class="nav-number">1.</span> <span class="nav-text">1.对比</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Case_One："><span class="nav-number">1.0.1.</span> <span class="nav-text">Case One：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Case_Two"><span class="nav-number">1.0.2.</span> <span class="nav-text">Case Two</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Dict内部实现说明"><span class="nav-number">2.</span> <span class="nav-text">2.Dict内部实现说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Tuple内部实现说明"><span class="nav-number">3.</span> <span class="nav-text">3.Tuple内部实现说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-小结"><span class="nav-number">4.</span> <span class="nav-text">4.小结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-下载Redis"><span class="nav-number">1.</span> <span class="nav-text">1.下载Redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-安装Redis"><span class="nav-number">2.</span> <span class="nav-text">2.安装Redis</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#简单安装"><span class="nav-number">2.1.</span> <span class="nav-text">简单安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内存分配器"><span class="nav-number">2.2.</span> <span class="nav-text">内存分配器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更多的输出信息"><span class="nav-number">2.3.</span> <span class="nav-text">更多的输出信息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-使用Redis"><span class="nav-number">3.</span> <span class="nav-text">3.使用Redis</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
