@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="async io,libuv," />
+  <meta name="keywords" content="python," />
 
 
 
@@ -53,31 +53,25 @@
 
 
 
-<meta name="description" content="Timer handles are used to schedule callbacks to be called in the future.
+<meta name="description" content="周末在家花了半天时间写了一个简单的双向循环链表，为什么要这样做，一是想比较一下Python原生的list和双向链表的性能差距是怎样的；二是看libuv的QUEUE源码，感觉libuv实现双向循环链表的方式还是很优雅的，打算借用一下。
 
-libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。
-数据结构
-Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：
-struct uv_timer_">
+代码地址：https://github.com/Whosemario/ThinkIdeaEx/tree/master/python_list_ex
+安装&amp;gt; p">
 <meta property="og:type" content="article">
-<meta property="og:title" content="libuv Timer 模块">
-<meta property="og:url" content="http://whosemario.github.io/2015/11/08/libuv-timer/index.html">
+<meta property="og:title" content="Python实现一个C版本的双向循环队列listex">
+<meta property="og:url" content="http://whosemario.github.io/2016/02/29/python-double-link-queue/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="Timer handles are used to schedule callbacks to be called in the future.
+<meta property="og:description" content="周末在家花了半天时间写了一个简单的双向循环链表，为什么要这样做，一是想比较一下Python原生的list和双向链表的性能差距是怎样的；二是看libuv的QUEUE源码，感觉libuv实现双向循环链表的方式还是很优雅的，打算借用一下。
 
-libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。
-数据结构
-Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：
-struct uv_timer_">
-<meta property="og:updated_time" content="2015-11-09T01:08:59.000Z">
+代码地址：https://github.com/Whosemario/ThinkIdeaEx/tree/master/python_list_ex
+安装&amp;gt; p">
+<meta property="og:updated_time" content="2016-02-29T09:40:03.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="libuv Timer 模块">
-<meta name="twitter:description" content="Timer handles are used to schedule callbacks to be called in the future.
+<meta name="twitter:title" content="Python实现一个C版本的双向循环队列listex">
+<meta name="twitter:description" content="周末在家花了半天时间写了一个简单的双向循环链表，为什么要这样做，一是想比较一下Python原生的list和双向链表的性能差距是怎样的；二是看libuv的QUEUE源码，感觉libuv实现双向循环链表的方式还是很优雅的，打算借用一下。
 
-libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。
-数据结构
-Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：
-struct uv_timer_">
+代码地址：https://github.com/Whosemario/ThinkIdeaEx/tree/master/python_list_ex
+安装&amp;gt; p">
 
 
 
@@ -89,7 +83,7 @@ struct uv_timer_">
   };
 </script>
 
-  <title> libuv Timer 模块 | Whosemario的家 </title>
+  <title> Python实现一个C版本的双向循环队列listex | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -239,7 +233,7 @@ struct uv_timer_">
             
             
               
-                libuv Timer 模块
+                Python实现一个C版本的双向循环队列listex
               
             
           </h1>
@@ -248,19 +242,34 @@ struct uv_timer_">
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2015-11-08T18:54:56+08:00" content="2015-11-08">
-              2015-11-08
+            <time itemprop="dateCreated" datetime="2016-02-29T14:06:51+08:00" content="2016-02-29">
+              2016-02-29
             </time>
           </span>
 
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
           
 
           
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2015/11/08/libuv-timer/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/08/libuv-timer/" itemprop="commentsCount"></span>
+                <a href="/2016/02/29/python-double-link-queue/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/29/python-double-link-queue/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -280,66 +289,74 @@ struct uv_timer_">
 
       
         <span itemprop="articleBody"><blockquote>
-<p>Timer handles are used to schedule callbacks to be called in the future.</p>
+<p>周末在家花了半天时间写了一个简单的双向循环链表，为什么要这样做，一是想比较一下Python原生的list和双向链表的性能差距是怎样的；二是看libuv的QUEUE源码，感觉libuv实现双向循环链表的方式还是很优雅的，打算借用一下。</p>
 </blockquote>
-<p>libuv的Timer模块的实现还是相对简单的，对libuv的解析就从Timer模块开始。</p>
-<h3 id="数据结构">数据结构</h3><hr>
-<p>Timer模块的Handle Type(这里可以理解为Timer实例的数据结构)是uv_timer_s，其内容如下：</p>
-<pre><code><span class="keyword">struct</span> uv_timer_s {
-    UV_HANDLE_FIELDS
-    UV_TIMER_PRIVATE_FIELDS
-};
+<p>代码地址：<a href="https://github.com/Whosemario/ThinkIdeaEx/tree/master/python_list_ex" target="_blank" rel="external">https://github.com/Whosemario/ThinkIdeaEx/tree/master/python_list_ex</a></p>
+<h3 id="安装">安装</h3><pre><code>&gt; python setup<span class="class">.py</span> build_ext --inplace
+</code></pre><p>本地会生成一个listex.so的动态链接库。</p>
+<h3 id="性能对比">性能对比</h3><h4 id="1-append方法">1.append方法</h4><p>双向循环链表测试代码：</p>
+<pre><code>import <span class="tag">time</span>
+import listex
 
-<span class="preprocessor">#<span class="keyword">define</span> UV_TIMER_PRIVATE_FIELDS                           </span>
-  uv_timer_cb timer_cb;    <span class="preprocessor">#timer到期时的回调函数                                         </span>
-  <span class="keyword">void</span>* heap_node[<span class="number">3</span>];      <span class="preprocessor">#用于维护timer的最小堆    </span>
-  <span class="keyword">uint64_t</span> timeout;        <span class="preprocessor">#timer的超时时间，其实是到多长时间后timer被触发       </span>
-  <span class="keyword">uint64_t</span> repeat;         <span class="preprocessor">#timer是否重复                                                 </span>
-  <span class="keyword">uint64_t</span> start_id;
-</code></pre><h3 id="接口">接口</h3><hr>
-<h4 id="1-_uv_timer_init">1. uv_timer_init</h4><p>uv_timer_init接口的实现很简单。</p>
-<pre><code><span class="preprocessor"># file: timer.c</span>
-<span class="function"><span class="keyword">int</span> <span class="title">uv_timer_init</span><span class="params">(uv_loop_t* loop, uv_timer_t* handle)</span> </span>{
-    uv__handle_init(loop, (<span class="keyword">uv_handle_t</span>*)handle, UV_TIMER);   [<span class="number">1</span>]
-    handle-&gt;timer_cb = <span class="literal">NULL</span>;
-    handle-&gt;repeat = <span class="number">0</span>;
-    <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><p>代码[1]对uv_handle_t进行了初始化。来看一下uv__handle_init宏定义。</p>
-<pre><code><span class="comment">#define uv__handle_init(loop_, h, type_)                                    </span>
-    <span class="keyword">do</span> {                                                                        
-        <span class="function"><span class="params">(h)</span>-&gt;</span><span class="keyword">loop</span> = (loop_);                                                   
-        <span class="function"><span class="params">(h)</span>-&gt;</span>type = (type_);                                                  
-        <span class="function"><span class="params">(h)</span>-&gt;</span>flags = UV__HANDLE_REF;  
-        QUEUE_INSERT_TAIL<span class="function"><span class="params">(&amp;(loop_)-&gt;handle_queue, &amp;(h)-&gt;handle_queue)</span>; [1]
-        <span class="title">uv__handle_platform_init</span><span class="params">(h)</span>;                                             
-    }                                                                           
-    <span class="title">while</span> <span class="params">(<span class="number">0</span>)</span></span>
-</code></pre><p>其中最关键的部分是将h(uv_handle_t)加入loop-&gt;handle_queue的队列中去。</p>
-<h4 id="2-_uv_timer_start">2. uv_timer_start</h4><p>uv_timer_start接口的主要任务就是将uv_timer_t这个handler加入loop维护的一个最小堆中(timer_heap)</p>
-<pre><code>int uv_timer_start(uv_timer_t* <span class="keyword">handle</span>,
-               uv_timer_cb cb,
-               uint64_t timeout,
-               uint64_t repeat) {
-    uint64_t clamped_timeout;
+<span class="tag">li</span> = listex.<span class="function"><span class="title">listex</span><span class="params">()</span></span>
 
-    <span class="keyword">if</span> (cb == <span class="built_in">NULL</span>)
-        <span class="keyword">return</span> <span class="attribute">-EINVAL</span>;
+start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">10000000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
+end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
 
-    <span class="keyword">if</span> (uv__is_active(<span class="keyword">handle</span>))
-        uv_timer_stop(<span class="keyword">handle</span>);
+print <span class="string">"total time:"</span>, end_ts - start_ts
+</code></pre><p>输出结果如下：</p>
+<pre><code>total <span class="tag">time</span>: <span class="number">2.71579694748</span>
+</code></pre><p>原生Python List测试代码：</p>
+<pre><code>import <span class="tag">time</span>
+import listex
 
-     <span class="attribute">...</span><span class="attribute">...</span>
-     heap_insert((struct heap*) <span class="subst">&amp;</span><span class="keyword">handle</span><span class="subst">-&gt;</span><span class="keyword">loop</span><span class="subst">-&gt;</span>timer_heap,
-          (struct heap_node*) <span class="subst">&amp;</span><span class="keyword">handle</span><span class="subst">-&gt;</span>heap_node,
-          timer_less_than);
-     uv__handle_start(<span class="keyword">handle</span>);
+<span class="tag">li</span> = listex.<span class="function"><span class="title">listex</span><span class="params">()</span></span>
 
-      <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><h4 id="3-uv_timer_stop">3.uv_timer_stop</h4><p>uv_timer_stop做的事情更简单了，他将Timer中timer_heap中删除掉并关闭handler。</p>
-<h3 id="小结">小结</h3><hr>
-<p>libuv里面Timer是非常简单的模块了，</p>
+start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">10000000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
+end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+
+print <span class="string">"total time:"</span>, end_ts - start_ts
+</code></pre><p>输出结果如下：</p>
+<pre><code>total <span class="tag">time</span>: <span class="number">1.8892519474</span>
+</code></pre><p>上面的结果可以看出来Python List的append的效率更高，这个是在意料之中的，Python List向后插入本来性能就不差，原因是Python List在容量不足时候会扩容，容量足够的时候append的内部实现就是<strong>数组赋值</strong>，性能肯定不差；而我的listex，在每次插入一个PyObject的时候，都要malloc一个队列节点（ListexNode）, 这个性能就会差很多了。</p>
+<h4 id="2-pop方法">2.pop方法</h4><p>原生Python List从下标为0的地方pop出值：</p>
+<pre><code>import <span class="tag">time</span>
+import listex
+
+<span class="tag">li</span> = []
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
+
+start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">pop</span><span class="params">(<span class="number">0</span>)</span></span>
+end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+
+print <span class="string">"total time:"</span>, end_ts - start_ts
+</code></pre><p>输出结果如下：</p>
+<pre><code>total <span class="tag">time</span>: <span class="number">2.07851791382</span>
+</code></pre><p>使用listex，获取第一个listex node，并从队列中剔除：</p>
+<pre><code>import <span class="tag">time</span>
+import listex
+
+<span class="tag">li</span> = listex.<span class="function"><span class="title">listex</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
+
+start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">get_head</span><span class="params">()</span></span>.<span class="function"><span class="title">remove</span><span class="params">()</span></span>
+end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+
+print <span class="string">"total time:"</span>, end_ts - start_ts
+</code></pre><p>输出几个如下：</p>
+<pre><code>total <span class="tag">time</span>: <span class="number">0.0255160331726</span>
+</code></pre><p>这种情况双向链表的优势就很明显了，Python List每次都要从头部pop出一个值，因此每次都要进行数据的整体移动，性能就很耗了。</p>
+<h3 id="关于此工程">关于此工程</h3><p>现在这个双向链表的代码还是不完整，后面将会持续更新。</p>
 </span>
       
     </div>
@@ -348,9 +365,7 @@ struct uv_timer_">
       
         <div class="post-tags">
           
-            <a href="/tags/async-io/" rel="tag">#async io</a>
-          
-            <a href="/tags/libuv/" rel="tag">#libuv</a>
+            <a href="/tags/python/" rel="tag">#python</a>
           
         </div>
       
@@ -359,17 +374,13 @@ struct uv_timer_">
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/11/08/python-inspect-module/" rel="next" title="Python Inspect Module 小结">
-                <i class="fa fa-chevron-left"></i> Python Inspect Module 小结
+              <a href="/2016/02/25/learn-redis-1/" rel="next" title="大家一起学Redis (一) —— Redis安装">
+                <i class="fa fa-chevron-left"></i> 大家一起学Redis (一) —— Redis安装
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2015/11/08/python-slot/" rel="prev" title="python __slots__">
-                python __slots__ <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -384,10 +395,10 @@ struct uv_timer_">
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2015/11/08/libuv-timer/"
-     data-title="libuv Timer 模块"
+        <div class="ds-share flat" data-thread-key="2016/02/29/python-double-link-queue/"
+     data-title="Python实现一个C版本的双向循环队列listex"
      data-content=""
-     data-url="http://whosemario.github.io/2015/11/08/libuv-timer/">
+     data-url="http://whosemario.github.io/2016/02/29/python-double-link-queue/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -415,8 +426,8 @@ struct uv_timer_">
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2015/11/08/libuv-timer/"
-           data-title="libuv Timer 模块" data-url="http://whosemario.github.io/2015/11/08/libuv-timer/">
+      <div class="ds-thread" data-thread-key="2016/02/29/python-double-link-queue/"
+           data-title="Python实现一个C版本的双向循环队列listex" data-url="http://whosemario.github.io/2016/02/29/python-double-link-queue/">
       </div>
     
   </div>
@@ -516,7 +527,7 @@ struct uv_timer_">
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据结构"><span class="nav-number">1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口"><span class="nav-number">2.</span> <span class="nav-text">接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-_uv_timer_init"><span class="nav-number">2.1.</span> <span class="nav-text">1. uv_timer_init</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-_uv_timer_start"><span class="nav-number">2.2.</span> <span class="nav-text">2. uv_timer_start</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-uv_timer_stop"><span class="nav-number">2.3.</span> <span class="nav-text">3.uv_timer_stop</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装"><span class="nav-number">1.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能对比"><span class="nav-number">2.</span> <span class="nav-text">性能对比</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-append方法"><span class="nav-number">2.1.</span> <span class="nav-text">1.append方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-pop方法"><span class="nav-number">2.2.</span> <span class="nav-text">2.pop方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于此工程"><span class="nav-number">3.</span> <span class="nav-text">关于此工程</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">

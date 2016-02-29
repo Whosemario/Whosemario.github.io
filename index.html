@@ -241,6 +241,177 @@
             
               
                 
+                <a class="post-title-link" href="/2016/02/29/python-double-link-queue/" itemprop="url">
+                  Python实现一个C版本的双向循环队列listex
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-02-29T14:06:51+08:00" content="2016-02-29">
+              2016-02-29
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/02/29/python-double-link-queue/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/29/python-double-link-queue/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>周末在家花了半天时间写了一个简单的双向循环链表，为什么要这样做，一是想比较一下Python原生的list和双向链表的性能差距是怎样的；二是看libuv的QUEUE源码，感觉libuv实现双向循环链表的方式还是很优雅的，打算借用一下。</p>
+</blockquote>
+<p>代码地址：<a href="https://github.com/Whosemario/ThinkIdeaEx/tree/master/python_list_ex" target="_blank" rel="external">https://github.com/Whosemario/ThinkIdeaEx/tree/master/python_list_ex</a></p>
+<h3 id="安装">安装</h3><pre><code>&gt; python setup<span class="class">.py</span> build_ext --inplace
+</code></pre><p>本地会生成一个listex.so的动态链接库。</p>
+<h3 id="性能对比">性能对比</h3><h4 id="1-append方法">1.append方法</h4><p>双向循环链表测试代码：</p>
+<pre><code>import <span class="tag">time</span>
+import listex
+
+<span class="tag">li</span> = listex.<span class="function"><span class="title">listex</span><span class="params">()</span></span>
+
+start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">10000000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
+end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+
+print <span class="string">"total time:"</span>, end_ts - start_ts
+</code></pre><p>输出结果如下：</p>
+<pre><code>total <span class="tag">time</span>: <span class="number">2.71579694748</span>
+</code></pre><p>原生Python List测试代码：</p>
+<pre><code>import <span class="tag">time</span>
+import listex
+
+<span class="tag">li</span> = listex.<span class="function"><span class="title">listex</span><span class="params">()</span></span>
+
+start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">10000000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
+end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+
+print <span class="string">"total time:"</span>, end_ts - start_ts
+</code></pre><p>输出结果如下：</p>
+<pre><code>total <span class="tag">time</span>: <span class="number">1.8892519474</span>
+</code></pre><p>上面的结果可以看出来Python List的append的效率更高，这个是在意料之中的，Python List向后插入本来性能就不差，原因是Python List在容量不足时候会扩容，容量足够的时候append的内部实现就是<strong>数组赋值</strong>，性能肯定不差；而我的listex，在每次插入一个PyObject的时候，都要malloc一个队列节点（ListexNode）, 这个性能就会差很多了。</p>
+<h4 id="2-pop方法">2.pop方法</h4><p>原生Python List从下标为0的地方pop出值：</p>
+<pre><code>import <span class="tag">time</span>
+import listex
+
+<span class="tag">li</span> = []
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
+
+start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">pop</span><span class="params">(<span class="number">0</span>)</span></span>
+end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+
+print <span class="string">"total time:"</span>, end_ts - start_ts
+</code></pre><p>输出结果如下：</p>
+<pre><code>total <span class="tag">time</span>: <span class="number">2.07851791382</span>
+</code></pre><p>使用listex，获取第一个listex node，并从队列中剔除：</p>
+<pre><code>import <span class="tag">time</span>
+import listex
+
+<span class="tag">li</span> = listex.<span class="function"><span class="title">listex</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
+
+start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
+    <span class="tag">li</span>.<span class="function"><span class="title">get_head</span><span class="params">()</span></span>.<span class="function"><span class="title">remove</span><span class="params">()</span></span>
+end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
+
+print <span class="string">"total time:"</span>, end_ts - start_ts
+</code></pre><p>输出几个如下：</p>
+<pre><code>total <span class="tag">time</span>: <span class="number">0.0255160331726</span>
+</code></pre><p>这种情况双向链表的优势就很明显了，Python List每次都要从头部pop出一个值，因此每次都要进行数据的整体移动，性能就很耗了。</p>
+<h3 id="关于此工程">关于此工程</h3><p>现在这个双向链表的代码还是不完整，后面将会持续更新。</p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/02/25/learn-redis-1/" itemprop="url">
                   大家一起学Redis (一) —— Redis安装
                 </a>
@@ -1815,207 +1986,6 @@ uv_fs_t read_fs_r;
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/01/24/pytracemalloc-install/" itemprop="url">
-                  pytracemalloc安装与使用
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-01-24T18:14:55+08:00" content="2016-01-24">
-              2016-01-24
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/性能优化/" itemprop="url" rel="index">
-                    <span itemprop="name">性能优化</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/01/24/pytracemalloc-install/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/24/pytracemalloc-install/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>pytracemalloc用于跟踪Python内存的分配情况，在我们的项目中用于在后期优化性能使用。</p>
-</blockquote>
-<h3 id="1-安装">1.安装</h3><p>pytracemalloc的安装需要修改Python的源码，我们创建一个名为pytracemalloc的目录，进入目录，运行如下命令：</p>
-<pre><code>&gt; wget http:<span class="comment">//www.python.org/ftp/python/2.7.8/Python-2.7.8.tgz</span>
-&gt; wget https:<span class="comment">//pypi.python.org/packages/source/p/pytracemalloc/pytracemalloc-1.2.tar.gz</span>
-&gt; tar -xf Python-<span class="number">2.7</span>.<span class="number">8</span><span class="class">.tgz</span>
-&gt; tar -xf pytracemalloc-<span class="number">1.2</span><span class="class">.tar</span><span class="class">.gz</span>
-&gt; cd Python-<span class="number">2.7</span>.<span class="number">8</span>
-&gt; patch -p1 &lt; ../pytracemalloc-<span class="number">1.2</span>/patches/<span class="number">2.7</span>/pep445<span class="class">.patch</span>
-&gt; ./configure --prefix=../build/
-&gt; make &amp;&amp; make install
-&gt; cd ../pytracemalloc-<span class="number">1.2</span>
-&gt; ../bin/python setup<span class="class">.py</span> install
-</code></pre><h3 id="2-简单的实例">2.简单的实例</h3><h4 id="显示最占用内存的10行代码">显示最占用内存的10行代码</h4><pre><code><span class="number">1</span> <span class="comment"># -*- coding:utf-8 -*-</span>
-  <span class="number">2</span>
-  <span class="number">3</span> <span class="keyword">import</span> os
-  <span class="number">4</span> <span class="keyword">import</span> sys
-  <span class="number">5</span> <span class="keyword">import</span> tracemalloc
-  <span class="number">6</span>
-  <span class="number">7</span> tracemalloc.start()
-  <span class="number">8</span>
-  <span class="number">9</span> li = []
-<span class="number">10</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">100000</span>):
-<span class="number">11</span>     li.append(i)
-<span class="number">12</span>
-<span class="number">13</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span>
-<span class="number">14</span>     <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span>
-<span class="number">15</span>         self.m = {}
-<span class="number">16</span>         <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">10</span>):
-<span class="number">17</span>             self.m[i] = i * i
-<span class="number">18</span>
-<span class="number">19</span> obj_li = []
-<span class="number">20</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">100000</span>):
-<span class="number">21</span>     obj_li.append(A())
-<span class="number">22</span>
-<span class="number">23</span> snapshot = tracemalloc.take_snapshot()
-<span class="number">24</span> top_stats = snapshot.statistics(<span class="string">"lineno"</span>)
-<span class="number">25</span>
-<span class="number">26</span> <span class="keyword">for</span> line <span class="keyword">in</span> top_stats[:<span class="number">10</span>]:
-<span class="number">27</span>     <span class="keyword">print</span> line
-</code></pre><p>运行结果如下：</p>
-<pre><code>test.py:<span class="number">17</span>: size=<span class="number">73.0</span> MiB, count=<span class="number">100000</span>, average=<span class="number">768</span> B
-test.py:<span class="number">15</span>: size=<span class="number">53.0</span> MiB, count=<span class="number">199999</span>, average=<span class="number">280</span> B
-test.py:<span class="number">21</span>: size=<span class="number">7055</span> KiB, count=<span class="number">100004</span>, average=<span class="number">72</span> B
-test.py:<span class="number">10</span>: size=<span class="number">2356</span> KiB, count=<span class="number">2432</span>, average=<span class="number">992</span> B
-test.py:<span class="number">11</span>: size=<span class="number">805</span> KiB, count=<span class="number">1</span>, average=<span class="number">805</span> KiB
-test.py:<span class="number">13</span>: size=<span class="number">1952</span> B, count=<span class="number">7</span>, average=<span class="number">278</span> B
-test.py:<span class="number">23</span>: size=<span class="number">456</span> B, count=<span class="number">1</span>, average=<span class="number">456</span> B
-test.py:<span class="number">14</span>: size=<span class="number">120</span> B, count=<span class="number">1</span>, average=<span class="number">120</span> B
-test.py:<span class="number">16</span>: size=<span class="number">72</span> B, count=<span class="number">1</span>, average=<span class="number">72</span> B
-</code></pre><h4 id="比较两个snapshot的不同">比较两个snapshot的不同</h4><pre><code><span class="number">1</span> <span class="comment"># -*- coding:utf-8 -*-</span>
-  <span class="number">2</span>
-  <span class="number">3</span> <span class="keyword">import</span> os
-  <span class="number">4</span> <span class="keyword">import</span> sys
-  <span class="number">5</span> <span class="keyword">import</span> tracemalloc
-  <span class="number">6</span>
-  <span class="number">7</span> tracemalloc.start()
-  <span class="number">8</span>
-  <span class="number">9</span> li = []
-<span class="number">10</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">100000</span>):
-<span class="number">11</span>     li.append(i)
-<span class="number">12</span>
-<span class="number">13</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span>
-<span class="number">14</span>     <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span>
-<span class="number">15</span>         self.m = {}
-<span class="number">16</span>         <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">10</span>):
-<span class="number">17</span>             self.m[i] = i * i
-<span class="number">18</span>
-<span class="number">19</span> obj_li = []
-<span class="number">20</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">100000</span>):
-<span class="number">21</span>     obj_li.append(A())
-<span class="number">22</span>
-<span class="number">23</span> snapshot1 = tracemalloc.take_snapshot()
-<span class="number">24</span>
-<span class="number">25</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">1000</span>):
-<span class="number">26</span>     obj_li.append(A())
-<span class="number">27</span>
-<span class="number">28</span> snapshot2 = tracemalloc.take_snapshot()
-<span class="number">29</span>
-<span class="number">30</span> top_stats = snapshot2.compare_to(snapshot1, <span class="string">"lineno"</span>)
-<span class="number">31</span>
-<span class="number">32</span> <span class="keyword">for</span> line <span class="keyword">in</span> top_stats[:<span class="number">10</span>]:
-<span class="number">33</span>     <span class="keyword">print</span> line
-</code></pre><p>下面是输出结果：</p>
-<pre><code>test.py:<span class="number">17</span>: size=<span class="number">73.0</span> MiB (+<span class="number">750</span> KiB), count=<span class="number">101000</span> (+<span class="number">1000</span>), average=<span class="number">768</span> B
-test.py:<span class="number">15</span>: size=<span class="number">53.0</span> MiB (+<span class="number">546</span> KiB), count=<span class="number">201999</span> (+<span class="number">2000</span>), average=<span class="number">280</span> B
-test.py:<span class="number">26</span>: size=<span class="number">62.0</span> KiB (+<span class="number">62.0</span> KiB), count=<span class="number">1000</span> (+<span class="number">1000</span>), average=<span class="number">64</span> B
-/Users/whosemario/MyApplications/pytracemalloc/build/lib/python2<span class="number">.7</span>/site-packages/tracemalloc.py:<span class="number">380</span>: size=<span class="number">1008</span> B (+<span class="number">1008</span> B), count=<span class="number">6</span> (+<span class="number">6</span>), average=<span class="number">168</span> B
-/Users/whosemario/MyApplications/pytracemalloc/build/lib/python2<span class="number">.7</span>/site-packages/tracemalloc.py:<span class="number">518</span>: size=<span class="number">672</span> B (+<span class="number">672</span> B), count=<span class="number">4</span> (+<span class="number">4</span>), average=<span class="number">168</span> B
-/Users/whosemario/MyApplications/pytracemalloc/build/lib/python2<span class="number">.7</span>/site-packages/tracemalloc.py:<span class="number">308</span>: size=<span class="number">280</span> B (+<span class="number">280</span> B), count=<span class="number">1</span> (+<span class="number">1</span>), average=<span class="number">280</span> B
-/Users/whosemario/MyApplications/pytracemalloc/build/lib/python2<span class="number">.7</span>/site-packages/tracemalloc.py:<span class="number">306</span>: size=<span class="number">64</span> B (+<span class="number">64</span> B), count=<span class="number">1</span> (+<span class="number">1</span>), average=<span class="number">64</span> B
-test.py:<span class="number">21</span>: size=<span class="number">7055</span> KiB (+<span class="number">0</span> B), count=<span class="number">100004</span> (+<span class="number">0</span>), average=<span class="number">72</span> B
-test.py:<span class="number">10</span>: size=<span class="number">2356</span> KiB (+<span class="number">0</span> B), count=<span class="number">2432</span> (+<span class="number">0</span>), average=<span class="number">992</span> B
-test.py:<span class="number">11</span>: size=<span class="number">805</span> KiB (+<span class="number">0</span> B), count=<span class="number">1</span> (+<span class="number">0</span>), average=<span class="number">805</span> KiB
-</code></pre><p>果然python的dict是很耗内存的，这让我想到了原来的项目的优化。</p>
-<h3 id="3-Reference">3.Reference</h3><ol>
-<li>pytracemalloc官网 - <a href="http://pytracemalloc.readthedocs.org/index.html#" target="_blank" rel="external">http://pytracemalloc.readthedocs.org/index.html#</a></li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2062,14 +2032,14 @@ test.py:<span class="number">11</span>: size=<span class="number">805</span> KiB
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-count">29</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             <a href="/categories">
-              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-count">8</span>
               <span class="site-state-item-name">分類</span>
               </a>
           </div>
