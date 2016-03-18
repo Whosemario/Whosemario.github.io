@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python," />
+  <meta name="keywords" content="并发编程," />
 
 
 
@@ -53,19 +53,31 @@
 
 
 
-<meta name="description" content="平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：
-https://github.com/Whosemario/python2x-xcodeproj">
+<meta name="description" content="好长一段时间没有写文章了，这次总结一下陈硕大大写的《Linux多线程服务端编程》一书第二章的读书笔记。
+
+1.互斥器（mutex）使用互斥器的基本原则：
+
+用RAII手法封装mutex的创建、销毁、加锁、解锁这四个操作。Java里面的synchronized语句和C#的using语句也有类似的效果，即保证所得生效期间等于一个作用于，不会因异常而忘记解锁。
+只用非递归的mutex（即不可重入的mut">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python2.7 Xcode Project">
-<meta property="og:url" content="http://whosemario.github.io/2015/12/27/python-xcode/index.html">
+<meta property="og:title" content="C++ 并发编程 —— 《Linux多线程服务端编程》笔记">
+<meta property="og:url" content="http://whosemario.github.io/2016/03/18/concurrency-program/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：
-https://github.com/Whosemario/python2x-xcodeproj">
-<meta property="og:updated_time" content="2015-12-27T07:22:12.000Z">
+<meta property="og:description" content="好长一段时间没有写文章了，这次总结一下陈硕大大写的《Linux多线程服务端编程》一书第二章的读书笔记。
+
+1.互斥器（mutex）使用互斥器的基本原则：
+
+用RAII手法封装mutex的创建、销毁、加锁、解锁这四个操作。Java里面的synchronized语句和C#的using语句也有类似的效果，即保证所得生效期间等于一个作用于，不会因异常而忘记解锁。
+只用非递归的mutex（即不可重入的mut">
+<meta property="og:updated_time" content="2016-03-18T14:57:14.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python2.7 Xcode Project">
-<meta name="twitter:description" content="平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：
-https://github.com/Whosemario/python2x-xcodeproj">
+<meta name="twitter:title" content="C++ 并发编程 —— 《Linux多线程服务端编程》笔记">
+<meta name="twitter:description" content="好长一段时间没有写文章了，这次总结一下陈硕大大写的《Linux多线程服务端编程》一书第二章的读书笔记。
+
+1.互斥器（mutex）使用互斥器的基本原则：
+
+用RAII手法封装mutex的创建、销毁、加锁、解锁这四个操作。Java里面的synchronized语句和C#的using语句也有类似的效果，即保证所得生效期间等于一个作用于，不会因异常而忘记解锁。
+只用非递归的mutex（即不可重入的mut">
 
 
 
@@ -77,7 +89,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
   };
 </script>
 
-  <title> Python2.7 Xcode Project | Whosemario的家 </title>
+  <title> C++ 并发编程 —— 《Linux多线程服务端编程》笔记 | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -227,7 +239,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
             
             
               
-                Python2.7 Xcode Project
+                C++ 并发编程 —— 《Linux多线程服务端编程》笔记
               
             
           </h1>
@@ -236,8 +248,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2015-12-27T15:16:25+08:00" content="2015-12-27">
-              2015-12-27
+            <time itemprop="dateCreated" datetime="2016-03-18T15:05:30+08:00" content="2016-03-18">
+              2016-03-18
             </time>
           </span>
 
@@ -246,8 +258,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
               &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
+                  <a href="/categories/并发编程/" itemprop="url" rel="index">
+                    <span itemprop="name">并发编程</span>
                   </a>
                 </span>
 
@@ -262,8 +274,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2015/12/27/python-xcode/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/27/python-xcode/" itemprop="commentsCount"></span>
+                <a href="/2016/03/18/concurrency-program/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/18/concurrency-program/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -282,8 +294,119 @@ https://github.com/Whosemario/python2x-xcodeproj">
       
 
       
-        <span itemprop="articleBody"><p>平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：</p>
-<p><a href="https://github.com/Whosemario/python2x-xcodeproj" target="_blank" rel="external">https://github.com/Whosemario/python2x-xcodeproj</a></p>
+        <span itemprop="articleBody"><blockquote>
+<p>好长一段时间没有写文章了，这次总结一下陈硕大大写的《Linux多线程服务端编程》一书第二章的读书笔记。</p>
+</blockquote>
+<h3 id="1-互斥器（mutex）">1.互斥器（mutex）</h3><p>使用互斥器的基本原则：</p>
+<ul>
+<li>用RAII手法封装mutex的创建、销毁、加锁、解锁这四个操作。Java里面的synchronized语句和C#的using语句也有类似的效果，即保证所得生效期间等于一个作用于，不会因异常而忘记解锁。</li>
+<li>只用非递归的mutex（即不可重入的mutext）</li>
+<li>不手工调用lock()和unlock()函数，一切交给栈上的Guard对象的构造和析构函数负责。</li>
+<li>在每次构造Guard对象的时候，思考一路上（调用栈上）已经持有的锁，防止因为锁顺序不同而导致死锁。</li>
+<li>进程间通信使用socket，不要使用mutex。</li>
+<li>加锁、解锁在同一个线程（RAII会保证）。</li>
+<li>别忘记解锁（RAII会保证）。</li>
+<li>不要重复解锁（RAII会保证）。</li>
+<li>必要的时候可以考虑用PTHREAD_MUTEX_ERRORCHECK来排错。</li>
+</ul>
+<p>基本的互斥器的代码如下：</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="type">MutexLock</span> {
+public:
+    <span class="type">MutexLock</span><span class="container">()</span> {
+        pthread_mutex_init<span class="container">(&amp;<span class="title">_mutex</span>, <span class="type">NULL</span>)</span>;
+    }
+
+    ~<span class="type">MutexLock</span><span class="container">()</span> {
+        pthread_mutex_destroy<span class="container">(&amp;<span class="title">_mutex</span>)</span>;
+    }
+
+    <span class="type">MutexLock</span>&amp; operator=<span class="container">(<span class="type">MutexLock</span>&amp; <span class="title">other</span>)</span> = delete;
+    <span class="type">MutexLock</span><span class="container">(<span class="type">MutexLock</span>&amp; <span class="title">other</span>)</span> = delete;
+
+    void lock<span class="container">()</span> {
+        pthread_mutex_lock<span class="container">(&amp;<span class="title">_mutex</span>)</span>;
+    }
+
+    void unlock<span class="container">()</span> {
+        pthread_mutex_unlock<span class="container">(&amp;<span class="title">_mutex</span>)</span>;
+    }
+
+    pthread_mutex_t* getRawMutex<span class="container">()</span> {
+        return &amp;_mutex;
+    }
+
+private:
+    pthread_mutex_t _mutex;
+};
+
+<span class="keyword">class</span> <span class="type">MutexGuard</span> {
+public:
+    <span class="type">MutexGuard</span><span class="container">(<span class="type">MutexLock</span>&amp; <span class="title">mutex</span>)</span>
+    :_lock<span class="container">(<span class="title">mutex</span>)</span> {
+        _lock.lock<span class="container">()</span>;
+    }
+
+    ~<span class="type">MutexGuard</span><span class="container">()</span> {
+        _lock.unlock<span class="container">()</span>;
+    }
+private:
+    <span class="type">MutexLock</span>&amp; _lock;
+};</span>
+</code></pre><h3 id="2-条件变量（condition_variable）">2.条件变量（condition variable）</h3><p>如果需要等待某个条件成立，我们应该使用条件变量。条件变量顾名思义是一个或多个线程等待某个布尔表达式为真，即等待别的线程“唤醒”它。条件变量的学名叫管程（monitor）。Java Object内置的wait()、notify()、notifyAll()是条件变量。<br>对于wait端应该注意：    </p>
+<ul>
+<li>必须与mutex一起使用，该布尔表达式的读写接收此mutex的保护</li>
+<li>在mutex已经上锁的时候才能调用wait()</li>
+<li>把判断布尔条件和wait()放到while循环中     </li>
+</ul>
+<p>如下是一个简单的Condition实现</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="type">Condition</span> {
+public:
+    <span class="type">Condition</span><span class="container">(<span class="type">MutexLock</span>&amp; <span class="title">mutex</span>)</span>
+    :_mutex<span class="container">(<span class="title">mutex</span>)</span> {
+        pthread_cond_init<span class="container">(&amp;<span class="title">_cond</span>, <span class="type">NULL</span>)</span>;
+    }
+
+    ~<span class="type">Condition</span><span class="container">()</span> {
+        pthread_cond_destroy<span class="container">(&amp;<span class="title">_cond</span>)</span>;
+    }
+
+    void wait<span class="container">()</span> {
+        pthread_cond_wait<span class="container">(&amp;<span class="title">_cond</span>, <span class="title">_mutex</span>.<span class="title">getRawMutex</span>()</span>);
+    }
+
+    void notify<span class="container">()</span> {
+        pthread_cond_signal<span class="container">(&amp;<span class="title">_cond</span>)</span>;
+    }
+
+    void notifyAll<span class="container">()</span> {
+        pthread_cond_broadcast<span class="container">(&amp;<span class="title">_cond</span>)</span>;
+    }
+private:
+    <span class="type">MutexLock</span>&amp; _mutex;
+    pthread_cond_t _cond;
+};</span>
+</code></pre><h4 id="关于Spurious_wakeup（虚假唤醒）">关于Spurious wakeup（虚假唤醒）</h4><p>虚假唤醒在linux的多处理器系统中，在程序接收到信号前可能会发生。在Windows系统和JAVA虚拟机上也存在。在系统设计时应该可以避免虚假唤醒，但是这会影响条件变量的执行效率，而既然通过while循环就能避免虚假唤醒造成的错误，因此程序的逻辑就变成了while循环的情况。</p>
+<h3 id="3-copy-on-write">3.copy-on-write</h3><p>主要思想是这样的：让读的加锁粒度尽量的小，但当写数据的时候，新的读请求是阻塞的。</p>
+<pre><code><span class="literal">typedef</span> std::shared_ptr&lt;<span class="built_in">Map</span>&gt; MapPtr;    
+MapPtr gData(<span class="keyword">new</span> <span class="built_in">Map</span>);     <span class="comment">// 有一个数据是需要共享的</span>
+
+MapPtr getData() {   <span class="comment">// 读数据只有这一段是加锁的</span>
+    MutexGuard guard(mutex);
+    <span class="keyword">return</span> gData;
+}
+
+<span class="comment">// read threads</span>
+MapPtr _data = getData(); 
+<span class="comment">// process _data....</span>
+
+<span class="comment">// write thread</span>
+MutexGuard guard(mutex);    <span class="comment">// 写数据全场加锁</span>
+<span class="keyword">if</span>(!gData.unique()) {
+    MapPtr tmpData(<span class="keyword">new</span> <span class="built_in">Map</span>(gData.<span class="literal">get</span>()));
+    gData.swap(tmpData);
+}
+<span class="comment">// process _data ...</span>
+</code></pre><h3 id="4-小结">4.小结</h3><p>记得两年前开始了解C++多线程编程的时候看了陈硕的这本书，工作两年，由于长时间使用Python，对C++已经有些陌生了，更别说C++多线程编程了，今天再次拾起这本书，重读前面两章就当复习了。<br>接下来我会抽周末看一下《C++ Concurrency In Action》，也会陆续写一些相关的读书笔记。</p>
 </span>
       
     </div>
@@ -292,7 +415,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/并发编程/" rel="tag">#并发编程</a>
           
         </div>
       
@@ -301,17 +424,13 @@ https://github.com/Whosemario/python2x-xcodeproj">
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/12/19/python-gevent/" rel="next" title="Python gevent (1) 之 greenlet模块">
-                <i class="fa fa-chevron-left"></i> Python gevent (1) 之 greenlet模块
+              <a href="/2016/02/29/python-double-link-queue/" rel="next" title="Python实现一个C版本的双向循环队列listex">
+                <i class="fa fa-chevron-left"></i> Python实现一个C版本的双向循环队列listex
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2015/12/31/summary-2015/" rel="prev" title="2015年终总结">
-                2015年终总结 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -326,10 +445,10 @@ https://github.com/Whosemario/python2x-xcodeproj">
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2015/12/27/python-xcode/"
-     data-title="Python2.7 Xcode Project"
+        <div class="ds-share flat" data-thread-key="2016/03/18/concurrency-program/"
+     data-title="C++ 并发编程 —— 《Linux多线程服务端编程》笔记"
      data-content=""
-     data-url="http://whosemario.github.io/2015/12/27/python-xcode/">
+     data-url="http://whosemario.github.io/2016/03/18/concurrency-program/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -357,8 +476,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2015/12/27/python-xcode/"
-           data-title="Python2.7 Xcode Project" data-url="http://whosemario.github.io/2015/12/27/python-xcode/">
+      <div class="ds-thread" data-thread-key="2016/03/18/concurrency-program/"
+           data-title="C++ 并发编程 —— 《Linux多线程服务端编程》笔记" data-url="http://whosemario.github.io/2016/03/18/concurrency-program/">
       </div>
     
   </div>
@@ -458,7 +577,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
               
             
             
-              <p class="post-toc-empty">此文章未包含目錄</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-互斥器（mutex）"><span class="nav-number">1.</span> <span class="nav-text">1.互斥器（mutex）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-条件变量（condition_variable）"><span class="nav-number">2.</span> <span class="nav-text">2.条件变量（condition variable）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#关于Spurious_wakeup（虚假唤醒）"><span class="nav-number">2.1.</span> <span class="nav-text">关于Spurious wakeup（虚假唤醒）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-copy-on-write"><span class="nav-number">3.</span> <span class="nav-text">3.copy-on-write</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-小结"><span class="nav-number">4.</span> <span class="nav-text">4.小结</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
