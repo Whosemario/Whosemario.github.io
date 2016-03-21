@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="libuv," />
+  <meta name="keywords" content="并发," />
 
 
 
@@ -53,22 +53,22 @@
 
 
 
-<meta name="description" content="继续写关于libuv的事情，利用libuv作为底层网络库实现了一个简单的TcpServer，中间的通信协议使用Google Protobuf
+<meta name="description" content="本文是基于《C++并发编程》第三章的读书笔记
 
-项目地址：https://github.com/Whosemario/ThinkIdeaEx/tree/master/tcp_server">
+1.条件竞争(race condition)并发中竞争条件的形成，取决于一个以上线程的相对执行顺序，每个线程都抢着完成自己的任务。大多数情况下，即使改变执行顺序，也是良性竞争，其结果可以接受。恶性条件竞争通常发生于完成对多于一个的数据块的修改时，例如，对两个连接指针的修改。因为操作要访问两个独立的数据块，独立的指令将会对数据块将进行修改，并且其中一个">
 <meta property="og:type" content="article">
-<meta property="og:title" content="一起玩玩libuv(四) —— TcpServer">
-<meta property="og:url" content="http://whosemario.github.io/2016/02/15/libuv-tutorial-4/index.html">
+<meta property="og:title" content="线程间共享数据">
+<meta property="og:url" content="http://whosemario.github.io/2016/03/20/lock-structure/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="继续写关于libuv的事情，利用libuv作为底层网络库实现了一个简单的TcpServer，中间的通信协议使用Google Protobuf
+<meta property="og:description" content="本文是基于《C++并发编程》第三章的读书笔记
 
-项目地址：https://github.com/Whosemario/ThinkIdeaEx/tree/master/tcp_server">
-<meta property="og:updated_time" content="2016-02-19T14:38:52.000Z">
+1.条件竞争(race condition)并发中竞争条件的形成，取决于一个以上线程的相对执行顺序，每个线程都抢着完成自己的任务。大多数情况下，即使改变执行顺序，也是良性竞争，其结果可以接受。恶性条件竞争通常发生于完成对多于一个的数据块的修改时，例如，对两个连接指针的修改。因为操作要访问两个独立的数据块，独立的指令将会对数据块将进行修改，并且其中一个">
+<meta property="og:updated_time" content="2016-03-21T10:48:39.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="一起玩玩libuv(四) —— TcpServer">
-<meta name="twitter:description" content="继续写关于libuv的事情，利用libuv作为底层网络库实现了一个简单的TcpServer，中间的通信协议使用Google Protobuf
+<meta name="twitter:title" content="线程间共享数据">
+<meta name="twitter:description" content="本文是基于《C++并发编程》第三章的读书笔记
 
-项目地址：https://github.com/Whosemario/ThinkIdeaEx/tree/master/tcp_server">
+1.条件竞争(race condition)并发中竞争条件的形成，取决于一个以上线程的相对执行顺序，每个线程都抢着完成自己的任务。大多数情况下，即使改变执行顺序，也是良性竞争，其结果可以接受。恶性条件竞争通常发生于完成对多于一个的数据块的修改时，例如，对两个连接指针的修改。因为操作要访问两个独立的数据块，独立的指令将会对数据块将进行修改，并且其中一个">
 
 
 
@@ -80,7 +80,7 @@
   };
 </script>
 
-  <title> 一起玩玩libuv(四) —— TcpServer | Whosemario的家 </title>
+  <title> 线程间共享数据 | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -230,7 +230,7 @@
             
             
               
-                一起玩玩libuv(四) —— TcpServer
+                线程间共享数据
               
             
           </h1>
@@ -239,8 +239,8 @@
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2016-02-15T15:15:17+08:00" content="2016-02-15">
-              2016-02-15
+            <time itemprop="dateCreated" datetime="2016-03-20T09:32:47+08:00" content="2016-03-20">
+              2016-03-20
             </time>
           </span>
 
@@ -249,8 +249,8 @@
               &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/libuv/" itemprop="url" rel="index">
-                    <span itemprop="name">libuv</span>
+                  <a href="/categories/并发编程/" itemprop="url" rel="index">
+                    <span itemprop="name">并发编程</span>
                   </a>
                 </span>
 
@@ -265,8 +265,8 @@
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2016/02/15/libuv-tutorial-4/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/15/libuv-tutorial-4/" itemprop="commentsCount"></span>
+                <a href="/2016/03/20/lock-structure/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/20/lock-structure/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -286,9 +286,21 @@
 
       
         <span itemprop="articleBody"><blockquote>
-<p>继续写关于libuv的事情，利用libuv作为底层网络库实现了一个简单的TcpServer，中间的通信协议使用<a href="http://whosemario.github.io/2016/02/07/protobuf/">Google Protobuf</a></p>
+<p>本文是基于《C++并发编程》第三章的读书笔记</p>
 </blockquote>
-<p>项目地址：<a href="https://github.com/Whosemario/ThinkIdeaEx/tree/master/tcp_server" target="_blank" rel="external">https://github.com/Whosemario/ThinkIdeaEx/tree/master/tcp_server</a></p>
+<h3 id="1-条件竞争(race_condition)">1.条件竞争(race condition)</h3><p>并发中竞争条件的形成，取决于一个以上线程的相对执行顺序，每个线程都抢着完成自己的任务。大多数情况下，即使改变执行顺序，也是良性竞争，其结果可以接受。恶性条件竞争通常发生于完成对多于一个的数据块的修改时，例如，对两个连接指针的修改。因为操作要访问两个独立的数据块，独立的指令将会对数据块将进行修改，并且其中一个线程可能正在进行时，另一个线程就对数据块进行了访问。<br>保护共享数据结构的最基本的方式，是使用C++标准库提供的互斥量(mutex)。</p>
+<h3 id="2-C++11的互斥器">2.C++11的互斥器</h3><p><a href="http://whosemario.github.io/2016/03/18/concurrency-program/">上一篇</a>实现了一个互斥器，看一下C++11提供的互斥器的用法。      </p>
+<pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;mutex&gt;</span></span>
+
+<span class="built_in">std</span>::mutex one_mutex;
+
+{
+    <span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; guard(one_mutex);
+    ... ...
+}
+</code></pre><h3 id="3-_死锁：解决方案">3. 死锁：解决方案</h3><h4 id="避免嵌套锁">避免嵌套锁</h4><p>第一个建议往往是最简单的：一个线程已获得一个锁时，再别去获取第二个(don’t acquire a lock if you already hold one)。当你需要获取多个锁，使用一个<strong>std::lock</strong>来做这件事(对获取锁的操作上锁)，避免产生死锁。</p>
+<h4 id="避免在持有锁时调用用户提供的代码">避免在持有锁时调用用户提供的代码</h4><p>第二个建议是次简单的：因为代码是用户提供的，你没有办法确定用户要做什么；用户程序可能做任何事情，包括获取锁。</p>
+<h4 id="使用固定顺序获取锁">使用固定顺序获取锁</h4><p>当硬性条件要求你获取两个以上(包括两个)的锁，并且不能使用<strong>std::lock</strong>单独操作来获取它们;那么最好在每个线程上，用固定的顺序获取它们获取它们(锁)。</p>
 </span>
       
     </div>
@@ -297,7 +309,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/libuv/" rel="tag">#libuv</a>
+            <a href="/tags/并发/" rel="tag">#并发</a>
           
         </div>
       
@@ -306,17 +318,13 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/02/07/protobuf/" rel="next" title="Google Protobuf 初体验">
-                <i class="fa fa-chevron-left"></i> Google Protobuf 初体验
+              <a href="/2016/03/18/concurrency-program/" rel="next" title="C++ 并发编程 —— 《Linux多线程服务端编程》笔记">
+                <i class="fa fa-chevron-left"></i> C++ 并发编程 —— 《Linux多线程服务端编程》笔记
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2016/02/17/hash-table/" rel="prev" title="关于Python Dict">
-                关于Python Dict <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -331,10 +339,10 @@
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2016/02/15/libuv-tutorial-4/"
-     data-title="一起玩玩libuv(四) —— TcpServer"
+        <div class="ds-share flat" data-thread-key="2016/03/20/lock-structure/"
+     data-title="线程间共享数据"
      data-content=""
-     data-url="http://whosemario.github.io/2016/02/15/libuv-tutorial-4/">
+     data-url="http://whosemario.github.io/2016/03/20/lock-structure/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -362,8 +370,8 @@
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2016/02/15/libuv-tutorial-4/"
-           data-title="一起玩玩libuv(四) —— TcpServer" data-url="http://whosemario.github.io/2016/02/15/libuv-tutorial-4/">
+      <div class="ds-thread" data-thread-key="2016/03/20/lock-structure/"
+           data-title="线程间共享数据" data-url="http://whosemario.github.io/2016/03/20/lock-structure/">
       </div>
     
   </div>
@@ -463,7 +471,7 @@
               
             
             
-              <p class="post-toc-empty">此文章未包含目錄</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-条件竞争(race_condition)"><span class="nav-number">1.</span> <span class="nav-text">1.条件竞争(race condition)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-C++11的互斥器"><span class="nav-number">2.</span> <span class="nav-text">2.C++11的互斥器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-_死锁：解决方案"><span class="nav-number">3.</span> <span class="nav-text">3. 死锁：解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#避免嵌套锁"><span class="nav-number">3.1.</span> <span class="nav-text">避免嵌套锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#避免在持有锁时调用用户提供的代码"><span class="nav-number">3.2.</span> <span class="nav-text">避免在持有锁时调用用户提供的代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用固定顺序获取锁"><span class="nav-number">3.3.</span> <span class="nav-text">使用固定顺序获取锁</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">

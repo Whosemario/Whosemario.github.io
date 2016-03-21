@@ -237,6 +237,234 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/27/libuv-tutorial-2/" itemprop="url">
+                  一起玩玩libuv(二)
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-01-27T21:37:53+08:00" content="2016-01-27">
+              2016-01-27
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/libuv/" itemprop="url" rel="index">
+                    <span itemprop="name">libuv</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/27/libuv-tutorial-2/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/27/libuv-tutorial-2/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>Handle和Request是libuv最基本的数据结构，或者说对象。libuv的各种功能都是通过它们来实现。本文利用libuv的Timer Handle实现了一个周期性gc的实例程序；利用filesystem Request实现了一个异步读取文件的实例。</p>
+</blockquote>
+<h3 id="1-Handle_与_Request">1.Handle 与 Request</h3><blockquote>
+<p>Handles represent long-lived objects capable of performing certain operations while active. Some examples: a prepare handle gets its callback called once every loop iteration when active, and a TCP server handle get its connection callback called every time there is a new connection.<br>Requests represent (typically) short-lived operations. These operations can be performed over a handle: write requests are used to write data on a handle; or standalone: getaddrinfo requests don’t need a handle they run directly on the loop.</p>
+</blockquote>
+<p>上面是我摘录了官网上对Handle和Request的解释，目前来说，本人对Handle和Request的理解是：Handle是一种长期的对象，我们可以在Handle上挂一个Timer，周期性的调用某个Callback；Request是一个短期的对象，比如从文件里面读一段数据。<br>下面就是libuv中Handle和Request的声明。</p>
+<pre><code><span class="comment">/* Handle types. */</span>
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_loop_s <span class="keyword">uv_loop_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_handle_s <span class="keyword">uv_handle_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_stream_s <span class="keyword">uv_stream_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_tcp_s <span class="keyword">uv_tcp_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_udp_s <span class="keyword">uv_udp_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_pipe_s <span class="keyword">uv_pipe_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_tty_s <span class="keyword">uv_tty_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_poll_s <span class="keyword">uv_poll_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_timer_s <span class="keyword">uv_timer_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_prepare_s <span class="keyword">uv_prepare_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_check_s <span class="keyword">uv_check_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_idle_s <span class="keyword">uv_idle_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_async_s <span class="keyword">uv_async_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_process_s <span class="keyword">uv_process_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_fs_event_s <span class="keyword">uv_fs_event_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_fs_poll_s <span class="keyword">uv_fs_poll_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_signal_s <span class="keyword">uv_signal_t</span>;
+
+<span class="comment">/* Request types. */</span>
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_req_s <span class="keyword">uv_req_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_getaddrinfo_s <span class="keyword">uv_getaddrinfo_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_getnameinfo_s <span class="keyword">uv_getnameinfo_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_shutdown_s <span class="keyword">uv_shutdown_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_write_s <span class="keyword">uv_write_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_connect_s <span class="keyword">uv_connect_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_udp_send_s <span class="keyword">uv_udp_send_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_fs_s <span class="keyword">uv_fs_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_work_s <span class="keyword">uv_work_t</span>;
+
+<span class="comment">/* None of the above. */</span>
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_cpu_info_s <span class="keyword">uv_cpu_info_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_interface_address_s <span class="keyword">uv_interface_address_t</span>;
+<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_dirent_s <span class="keyword">uv_dirent_t</span>;
+</code></pre><h3 id="2-timer">2.timer</h3><p>每一个异步IO库都少不了Timer，下面是利用Timer实现一个gc的周期性处理程序，但我们希望当loop中没有其他的handle的时候，loop会结束。因此我们要使用<strong>uv_unref</strong>接口，将Timer的Handle的引用在loop之前先删除。</p>
+<pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span>
+<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span>
+<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;uv.h&gt;</span></span>
+
+<span class="keyword">uv_loop_t</span>* loop;
+<span class="keyword">uv_timer_t</span> gc_timer;
+<span class="keyword">uv_timer_t</span> fake_job_timer;
+
+<span class="function"><span class="keyword">void</span> <span class="title">gc_cb</span><span class="params">(uv_timer_t* handle)</span> </span>{
+    <span class="built_in">printf</span>(<span class="string">"GC unused objects.\n"</span>);
+}
+
+<span class="function"><span class="keyword">void</span> <span class="title">fake_job_cb</span><span class="params">(uv_timer_t* handle)</span> </span>{
+    <span class="built_in">printf</span>(<span class="string">"Fake job done.\n"</span>);
+}
+
+<span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span>
+</span>{
+    loop = uv_default_loop();
+
+    uv_timer_init(loop, &amp;gc_timer);
+    uv_unref((<span class="keyword">uv_handle_t</span>*)&amp;gc_timer);
+
+    uv_timer_start(&amp;gc_timer, gc_cb, <span class="number">0</span>, <span class="number">2000</span>);
+
+    uv_timer_init(loop, &amp;fake_job_timer);
+    uv_timer_start(&amp;fake_job_timer, fake_job_cb, <span class="number">9000</span>, <span class="number">0</span>);
+
+    <span class="keyword">return</span> uv_run(loop, UV_RUN_DEFAULT);
+}
+</code></pre><p>输出如下：</p>
+<pre><code>output:
+<span class="variable">GC</span> unused objects.
+<span class="variable">GC</span> unused objects.
+<span class="variable">GC</span> unused objects.
+<span class="variable">GC</span> unused objects.
+<span class="variable">GC</span> unused objects.    
+<span class="variable">Fake</span> job done.
+<span class="variable">Program</span> ended with exit code: <span class="number">0</span>
+</code></pre><h3 id="3-_filesystem">3. filesystem</h3><p>Linux系统提供的文件数据读是阻塞模式的，libuv为了将所有的IO操作都搞成异步的，在文件操作上加入了线程池。对文件操作是一种Request，向loop请求一种Request(open, read, close)，libuv通过callback返回最终结果。</p>
+<pre><code><span class="comment">#include &lt;stdio.h&gt;</span>
+<span class="comment">#include &lt;stdlib.h&gt;</span>
+<span class="comment">#include &lt;fcntl.h&gt;</span>
+<span class="comment">#include &lt;sys/stat.h&gt;</span>
+<span class="comment">#include &lt;uv.h&gt;</span>
+
+uv_fs_t open_fs_r;
+uv_fs_t read_fs_r;
+
+<span class="keyword">static</span> <span class="type">char</span> buffer[<span class="number">1024</span>];
+<span class="keyword">static</span> uv_buf_t iov;
+<span class="keyword">static</span> read_off = <span class="number">0</span>;
+
+<span class="type">void</span> read_cb(uv_fs_t* request) {
+    <span class="keyword">if</span>(request-&gt;<span class="literal">result</span> &lt; <span class="number">0</span>) {
+        fprintf(<span class="literal">stderr</span>, <span class="string">"error read file; %s\n"</span>, uv_strerror(request-&gt;<span class="literal">result</span>));
+    } <span class="keyword">else</span> <span class="keyword">if</span>(request-&gt;<span class="literal">result</span> == <span class="number">0</span>) {
+        uv_fs_t close_fs_r;
+        uv_fs_close(uv_default_loop(), &amp;close_fs_r, open_fs_r.<span class="literal">result</span>, <span class="type">NULL</span>);
+    } <span class="keyword">else</span> {
+        iov.base[request-&gt;<span class="literal">result</span>] = <span class="number">0</span>;
+        fprintf(<span class="literal">stdout</span>, <span class="string">"%s"</span>, iov.base);
+        read_off += request-&gt;<span class="literal">result</span>;
+        uv_fs_read(uv_default_loop(), &amp;read_fs_r, open_fs_r.<span class="literal">result</span>, &amp;iov, <span class="number">1</span>, read_off, read_cb);
+    }
+}
+
+<span class="type">void</span> open_cb(uv_fs_t* request) {
+    <span class="keyword">if</span>(request-&gt;<span class="literal">result</span> &gt; <span class="number">0</span>) {   
+        iov = uv_buf_init(buffer, sizeof(buffer) - <span class="number">1</span>);
+        uv_fs_read(uv_default_loop(), &amp;read_fs_r, request-&gt;<span class="literal">result</span>, &amp;iov, <span class="number">1</span>, read_off, read_cb);
+    } <span class="keyword">else</span> {
+        fprintf(<span class="literal">stderr</span>, <span class="string">"error open file: %s\n"</span>, uv_strerror(request-&gt;<span class="literal">result</span>));
+    }
+}
+
+<span class="type">int</span> main(<span class="type">int</span> argc, <span class="type">char</span> **argv)
+{
+    uv_fs_open(uv_default_loop(), &amp;open_fs_r, argv[<span class="number">1</span>], <span class="type">O_RDONLY</span>, <span class="type">S_IRWXU</span>, open_cb);
+    uv_run(uv_default_loop(), <span class="type">UV_RUN_DEFAULT</span>);
+    uv_fs_req_cleanup(&amp;open_fs_r);
+    uv_fs_req_cleanup(&amp;read_fs_r);
+}
+</code></pre><h3 id="4-后记">4.后记</h3><p>libuv将所有的IO在上层抽象为异步IO，但在内部实现做了区分——网络IO是走kqueue和epoll，文件IO是利用线程池。</p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/01/26/libuv-tutorial-1/" itemprop="url">
                   一起玩玩libuv (一)
                 </a>
@@ -1987,118 +2215,12 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/12/31/summary-2015/" itemprop="url">
-                  2015年终总结
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-12-31T20:53:14+08:00" content="2015-12-31">
-              2015-12-31
-            </time>
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/12/31/summary-2015/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/31/summary-2015/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>2015年的最后一天了，是该总结一下</p>
-</blockquote>
-<h3 id="宝贝女儿出生">宝贝女儿出生</h3><p>这一年最重要的事情就是我的宝贝女儿出生了，在2015年12月29号，下午15点30分，宝贝女儿来到了这个世界，以后生活的中心也就开始围绕着她来转咯。</p>
-<p>女儿的出生也意味着我的人生迈入了另一个阶段，我成为了一个父亲，预示着自己要更有责任感，要有耐心，做事要多为老婆和女儿考虑。</p>
-<h3 id="辛苦&amp;纠结">辛苦&amp;纠结</h3><p>这也是辛苦的一年，我们的游戏上线了，在上线的几个月工作也是非常的辛苦，但游戏和我们预期的也一样，最终结果也并不好，这里面也有很多因素，但现在不想去总结什么，但从个人角度来说，经历了一次从游戏开发初期到游戏上线的过程，也是一份难得的经历。</p>
-<p>为何纠结，自己也很难说清楚。主要是觉得，在公司的这两年，自己的成长还是太慢了，究其原因，我个人主要觉得有如下几点：</p>
-<ol>
-<li>不够专注，一开始想客户端服务端两手抓，起初感觉很好，但持续下去你会发现哪一点你都不够深入，<strong>接下来一年深入服务端研究，主要深入网络，Python两个方面。网络涉及的面比较广，先把业务方面的东西搞懂，然后根据业务需求了解网络底层，同时关注Go，Erlang这些分布式语言，他们的好处，他们涉及的领域；Python方面这一整年都在研究，但研究的还是不深入，主要是读代码的工具不行，只是在看书，印象不深刻，接下来借助Xcode进行Debug，再次深入解析Python</strong></li>
-<li>迷惘，游戏这个行业真的是自己喜欢的行业么，我希望去做一些更有意义的工作，而不是现在的螺丝钉。但如果让你带一个团队，你真的有能力去做这件事情么？话题又回到了对自己的<strong>准确认识</strong>上面了。要正确的评估自己目前的实力！<strong>其实目前自己历练还是太少，大局观都没有，比如怎样设计架构，怎样优化系统，都没有明确的概念。这是为什么？归根结底还是自己懒，游戏在开发阶段有一段时间的MangoDB系统调优，自己没有参与；到游戏上线时期，又有系统性能调优自己也没有参加，如果当时自己参与，或许可以从中学到更多。</strong></li>
-<li>关于团队，自己所在的团队就是一个正在成长的团队，你的leader也很年轻，从他身上学习的东西也很少，但并不是没有。在这种情况下，自己就要想法子从其他方面学习，会走很多弯路，甚至没有走过正确的路。</li>
-</ol>
-<h3 id="2016年要做什么">2016年要做什么</h3><ol>
-<li>业务一定要更加熟练，其实无论是留下还是另寻出路，都要对当前的业务熟练，这样对自己和团队都是一种负责的表现</li>
-<li>多多参与服务端的优化，多尝试考虑怎样让服务端的架构更合理，更健壮，更高效。这个过程也是开阔知识面的过程。</li>
-<li>开阔思路，不要一味的去写代码，开阔眼界，多去学习其他方面的知识，不限于编程。</li>
-<li>2016的新的技术栈：Redis，MangoDB，Erlang，Golang</li>
-<li><strong>心疼老婆、孝敬老妈，爱我的女儿</strong></li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2139,7 +2261,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">30</span>
+              <span class="site-state-item-count">31</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
@@ -2153,7 +2275,7 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">14</span>
+              <span class="site-state-item-count">15</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>

@@ -241,6 +241,124 @@
             
               
                 
+                <a class="post-title-link" href="/2016/03/20/lock-structure/" itemprop="url">
+                  线程间共享数据
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-03-20T09:32:47+08:00" content="2016-03-20">
+              2016-03-20
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/并发编程/" itemprop="url" rel="index">
+                    <span itemprop="name">并发编程</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/20/lock-structure/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/20/lock-structure/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>本文是基于《C++并发编程》第三章的读书笔记</p>
+</blockquote>
+<h3 id="1-条件竞争(race_condition)">1.条件竞争(race condition)</h3><p>并发中竞争条件的形成，取决于一个以上线程的相对执行顺序，每个线程都抢着完成自己的任务。大多数情况下，即使改变执行顺序，也是良性竞争，其结果可以接受。恶性条件竞争通常发生于完成对多于一个的数据块的修改时，例如，对两个连接指针的修改。因为操作要访问两个独立的数据块，独立的指令将会对数据块将进行修改，并且其中一个线程可能正在进行时，另一个线程就对数据块进行了访问。<br>保护共享数据结构的最基本的方式，是使用C++标准库提供的互斥量(mutex)。</p>
+<h3 id="2-C++11的互斥器">2.C++11的互斥器</h3><p><a href="http://whosemario.github.io/2016/03/18/concurrency-program/">上一篇</a>实现了一个互斥器，看一下C++11提供的互斥器的用法。      </p>
+<pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;mutex&gt;</span></span>
+
+<span class="built_in">std</span>::mutex one_mutex;
+
+{
+    <span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; guard(one_mutex);
+    ... ...
+}
+</code></pre><h3 id="3-_死锁：解决方案">3. 死锁：解决方案</h3><h4 id="避免嵌套锁">避免嵌套锁</h4><p>第一个建议往往是最简单的：一个线程已获得一个锁时，再别去获取第二个(don’t acquire a lock if you already hold one)。当你需要获取多个锁，使用一个<strong>std::lock</strong>来做这件事(对获取锁的操作上锁)，避免产生死锁。</p>
+<h4 id="避免在持有锁时调用用户提供的代码">避免在持有锁时调用用户提供的代码</h4><p>第二个建议是次简单的：因为代码是用户提供的，你没有办法确定用户要做什么；用户程序可能做任何事情，包括获取锁。</p>
+<h4 id="使用固定顺序获取锁">使用固定顺序获取锁</h4><p>当硬性条件要求你获取两个以上(包括两个)的锁，并且不能使用<strong>std::lock</strong>单独操作来获取它们;那么最好在每个线程上，用固定的顺序获取它们获取它们(锁)。</p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/03/18/concurrency-program/" itemprop="url">
                   C++ 并发编程 —— 《Linux多线程服务端编程》笔记
                 </a>
@@ -1821,240 +1939,12 @@ public:
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/01/27/libuv-tutorial-2/" itemprop="url">
-                  一起玩玩libuv(二)
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-01-27T21:37:53+08:00" content="2016-01-27">
-              2016-01-27
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/libuv/" itemprop="url" rel="index">
-                    <span itemprop="name">libuv</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/01/27/libuv-tutorial-2/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/27/libuv-tutorial-2/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>Handle和Request是libuv最基本的数据结构，或者说对象。libuv的各种功能都是通过它们来实现。本文利用libuv的Timer Handle实现了一个周期性gc的实例程序；利用filesystem Request实现了一个异步读取文件的实例。</p>
-</blockquote>
-<h3 id="1-Handle_与_Request">1.Handle 与 Request</h3><blockquote>
-<p>Handles represent long-lived objects capable of performing certain operations while active. Some examples: a prepare handle gets its callback called once every loop iteration when active, and a TCP server handle get its connection callback called every time there is a new connection.<br>Requests represent (typically) short-lived operations. These operations can be performed over a handle: write requests are used to write data on a handle; or standalone: getaddrinfo requests don’t need a handle they run directly on the loop.</p>
-</blockquote>
-<p>上面是我摘录了官网上对Handle和Request的解释，目前来说，本人对Handle和Request的理解是：Handle是一种长期的对象，我们可以在Handle上挂一个Timer，周期性的调用某个Callback；Request是一个短期的对象，比如从文件里面读一段数据。<br>下面就是libuv中Handle和Request的声明。</p>
-<pre><code><span class="comment">/* Handle types. */</span>
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_loop_s <span class="keyword">uv_loop_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_handle_s <span class="keyword">uv_handle_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_stream_s <span class="keyword">uv_stream_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_tcp_s <span class="keyword">uv_tcp_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_udp_s <span class="keyword">uv_udp_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_pipe_s <span class="keyword">uv_pipe_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_tty_s <span class="keyword">uv_tty_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_poll_s <span class="keyword">uv_poll_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_timer_s <span class="keyword">uv_timer_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_prepare_s <span class="keyword">uv_prepare_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_check_s <span class="keyword">uv_check_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_idle_s <span class="keyword">uv_idle_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_async_s <span class="keyword">uv_async_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_process_s <span class="keyword">uv_process_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_fs_event_s <span class="keyword">uv_fs_event_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_fs_poll_s <span class="keyword">uv_fs_poll_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_signal_s <span class="keyword">uv_signal_t</span>;
-
-<span class="comment">/* Request types. */</span>
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_req_s <span class="keyword">uv_req_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_getaddrinfo_s <span class="keyword">uv_getaddrinfo_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_getnameinfo_s <span class="keyword">uv_getnameinfo_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_shutdown_s <span class="keyword">uv_shutdown_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_write_s <span class="keyword">uv_write_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_connect_s <span class="keyword">uv_connect_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_udp_send_s <span class="keyword">uv_udp_send_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_fs_s <span class="keyword">uv_fs_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_work_s <span class="keyword">uv_work_t</span>;
-
-<span class="comment">/* None of the above. */</span>
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_cpu_info_s <span class="keyword">uv_cpu_info_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_interface_address_s <span class="keyword">uv_interface_address_t</span>;
-<span class="keyword">typedef</span> <span class="keyword">struct</span> uv_dirent_s <span class="keyword">uv_dirent_t</span>;
-</code></pre><h3 id="2-timer">2.timer</h3><p>每一个异步IO库都少不了Timer，下面是利用Timer实现一个gc的周期性处理程序，但我们希望当loop中没有其他的handle的时候，loop会结束。因此我们要使用<strong>uv_unref</strong>接口，将Timer的Handle的引用在loop之前先删除。</p>
-<pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span>
-<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span>
-<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;uv.h&gt;</span></span>
-
-<span class="keyword">uv_loop_t</span>* loop;
-<span class="keyword">uv_timer_t</span> gc_timer;
-<span class="keyword">uv_timer_t</span> fake_job_timer;
-
-<span class="function"><span class="keyword">void</span> <span class="title">gc_cb</span><span class="params">(uv_timer_t* handle)</span> </span>{
-    <span class="built_in">printf</span>(<span class="string">"GC unused objects.\n"</span>);
-}
-
-<span class="function"><span class="keyword">void</span> <span class="title">fake_job_cb</span><span class="params">(uv_timer_t* handle)</span> </span>{
-    <span class="built_in">printf</span>(<span class="string">"Fake job done.\n"</span>);
-}
-
-<span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span>
-</span>{
-    loop = uv_default_loop();
-
-    uv_timer_init(loop, &amp;gc_timer);
-    uv_unref((<span class="keyword">uv_handle_t</span>*)&amp;gc_timer);
-
-    uv_timer_start(&amp;gc_timer, gc_cb, <span class="number">0</span>, <span class="number">2000</span>);
-
-    uv_timer_init(loop, &amp;fake_job_timer);
-    uv_timer_start(&amp;fake_job_timer, fake_job_cb, <span class="number">9000</span>, <span class="number">0</span>);
-
-    <span class="keyword">return</span> uv_run(loop, UV_RUN_DEFAULT);
-}
-</code></pre><p>输出如下：</p>
-<pre><code>output:
-<span class="variable">GC</span> unused objects.
-<span class="variable">GC</span> unused objects.
-<span class="variable">GC</span> unused objects.
-<span class="variable">GC</span> unused objects.
-<span class="variable">GC</span> unused objects.    
-<span class="variable">Fake</span> job done.
-<span class="variable">Program</span> ended with exit code: <span class="number">0</span>
-</code></pre><h3 id="3-_filesystem">3. filesystem</h3><p>Linux系统提供的文件数据读是阻塞模式的，libuv为了将所有的IO操作都搞成异步的，在文件操作上加入了线程池。对文件操作是一种Request，向loop请求一种Request(open, read, close)，libuv通过callback返回最终结果。</p>
-<pre><code><span class="comment">#include &lt;stdio.h&gt;</span>
-<span class="comment">#include &lt;stdlib.h&gt;</span>
-<span class="comment">#include &lt;fcntl.h&gt;</span>
-<span class="comment">#include &lt;sys/stat.h&gt;</span>
-<span class="comment">#include &lt;uv.h&gt;</span>
-
-uv_fs_t open_fs_r;
-uv_fs_t read_fs_r;
-
-<span class="keyword">static</span> <span class="type">char</span> buffer[<span class="number">1024</span>];
-<span class="keyword">static</span> uv_buf_t iov;
-<span class="keyword">static</span> read_off = <span class="number">0</span>;
-
-<span class="type">void</span> read_cb(uv_fs_t* request) {
-    <span class="keyword">if</span>(request-&gt;<span class="literal">result</span> &lt; <span class="number">0</span>) {
-        fprintf(<span class="literal">stderr</span>, <span class="string">"error read file; %s\n"</span>, uv_strerror(request-&gt;<span class="literal">result</span>));
-    } <span class="keyword">else</span> <span class="keyword">if</span>(request-&gt;<span class="literal">result</span> == <span class="number">0</span>) {
-        uv_fs_t close_fs_r;
-        uv_fs_close(uv_default_loop(), &amp;close_fs_r, open_fs_r.<span class="literal">result</span>, <span class="type">NULL</span>);
-    } <span class="keyword">else</span> {
-        iov.base[request-&gt;<span class="literal">result</span>] = <span class="number">0</span>;
-        fprintf(<span class="literal">stdout</span>, <span class="string">"%s"</span>, iov.base);
-        read_off += request-&gt;<span class="literal">result</span>;
-        uv_fs_read(uv_default_loop(), &amp;read_fs_r, open_fs_r.<span class="literal">result</span>, &amp;iov, <span class="number">1</span>, read_off, read_cb);
-    }
-}
-
-<span class="type">void</span> open_cb(uv_fs_t* request) {
-    <span class="keyword">if</span>(request-&gt;<span class="literal">result</span> &gt; <span class="number">0</span>) {   
-        iov = uv_buf_init(buffer, sizeof(buffer) - <span class="number">1</span>);
-        uv_fs_read(uv_default_loop(), &amp;read_fs_r, request-&gt;<span class="literal">result</span>, &amp;iov, <span class="number">1</span>, read_off, read_cb);
-    } <span class="keyword">else</span> {
-        fprintf(<span class="literal">stderr</span>, <span class="string">"error open file: %s\n"</span>, uv_strerror(request-&gt;<span class="literal">result</span>));
-    }
-}
-
-<span class="type">int</span> main(<span class="type">int</span> argc, <span class="type">char</span> **argv)
-{
-    uv_fs_open(uv_default_loop(), &amp;open_fs_r, argv[<span class="number">1</span>], <span class="type">O_RDONLY</span>, <span class="type">S_IRWXU</span>, open_cb);
-    uv_run(uv_default_loop(), <span class="type">UV_RUN_DEFAULT</span>);
-    uv_fs_req_cleanup(&amp;open_fs_r);
-    uv_fs_req_cleanup(&amp;read_fs_r);
-}
-</code></pre><h3 id="4-后记">4.后记</h3><p>libuv将所有的IO在上层抽象为异步IO，但在内部实现做了区分——网络IO是走kqueue和epoll，文件IO是利用线程池。</p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2095,7 +1985,7 @@ uv_fs_t read_fs_r;
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">30</span>
+              <span class="site-state-item-count">31</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
@@ -2109,7 +1999,7 @@ uv_fs_t read_fs_r;
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">14</span>
+              <span class="site-state-item-count">15</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>
