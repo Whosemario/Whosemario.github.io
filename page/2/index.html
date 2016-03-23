@@ -237,6 +237,223 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/30/libuv-tutorial-3/" itemprop="url">
+                  一起玩玩libuv(三)
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-01-30T15:38:23+08:00" content="2016-01-30">
+              2016-01-30
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/libuv/" itemprop="url" rel="index">
+                    <span itemprop="name">libuv</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/30/libuv-tutorial-3/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/30/libuv-tutorial-3/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>这次我们利用uv_tcp_t来实现一个简单的echo server</p>
+</blockquote>
+<h3 id="1-_libuv为TCP通信提供了什么">1. libuv为TCP通信提供了什么</h3><p>libuv中使用TCP通信和基本的socket编程相差无几：</p>
+<ol>
+<li>使用<strong>uv_tcp_init</strong>初始化一个<strong>uv_tcp_t</strong></li>
+<li>使用<strong>uv_tcp_bind</strong>绑定ip和port</li>
+<li>使用<strong>uv_listen</strong>监听客户端连接</li>
+<li>使用<strong>uv_accept</strong>获取成功的连接</li>
+</ol>
+<p>对libuv来说，TCP也是流数据的一种，所以读入和写出使用<strong>uv_write</strong>和<strong>uv_read_start</strong>两个接口。</p>
+<h3 id="2-_具体实现">2. 具体实现</h3><p>具体的实现并不复杂： </p>
+<ol>
+<li>创建第一个负责监听客户端连接的uv_tcp_t(server)，使用<strong>uv_listen</strong>注册回调函数</li>
+<li>在connect_cb的回调函数中使用<strong>uv_accept</strong>获取一个已经完成的连接，并赋值给一个新的uv_tcp_t(client)</li>
+<li>关于向客户端写入：创建一个Request(uv_write_t)和一个Buffer(uv_buf_t)，Buffer里面存储着要传送的信息，Request可以理解为一个向Stream的写入请求</li>
+<li>关于读客户端信息：<strong>uv_read_start</strong>接口用于向libuv申请需要监听哪个uv_tcp_t的读信息，并在回调中处理读信息，回调函数nread参数说明信息长度，buf参数有信息内容</li>
+</ol>
+<p>代码如下：</p>
+<pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span>
+<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;uv.h&gt;</span></span>
+
+<span class="preprocessor">#<span class="keyword">define</span> DEFAULT_PORT <span class="number">7000</span></span>
+<span class="preprocessor">#<span class="keyword">define</span> DEFAULT_BACKLOG <span class="number">5</span></span>
+<span class="preprocessor">#<span class="keyword">define</span> PS <span class="string">"&gt;&gt;&gt; "</span></span>
+
+<span class="keyword">struct</span> sockaddr_in addr;
+
+<span class="function"><span class="keyword">void</span> <span class="title">alloc_buffer</span><span class="params">(uv_handle_t* handle,
+                    size_t suggested_size,
+                    uv_buf_t* buf)</span> </span>{
+    buf-&gt;base = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(suggested_size);
+    buf-&gt;len = suggested_size;
+}
+
+<span class="function"><span class="keyword">void</span> <span class="title">write_to_remote</span><span class="params">(uv_stream_t* client, <span class="keyword">char</span>* content, <span class="keyword">int</span> size)</span></span>;
+
+<span class="function"><span class="keyword">void</span> <span class="title">read_cb</span><span class="params">(uv_stream_t* client,
+             ssize_t nread,
+             <span class="keyword">const</span> uv_buf_t* buf)</span> </span>{
+    <span class="keyword">if</span>(nread &lt; <span class="number">0</span>) {
+        <span class="keyword">if</span>(nread != UV_EOF)
+            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"Read error %s\n"</span>, uv_strerror(nread));
+        uv_close(client, <span class="literal">NULL</span>);
+    } <span class="keyword">else</span> <span class="keyword">if</span>(nread &gt; <span class="number">0</span>){
+        write_to_remote(client, buf-&gt;base, nread);
+    }
+}
+
+<span class="function"><span class="keyword">void</span> <span class="title">write_cb</span><span class="params">(uv_write_t* req, <span class="keyword">int</span> status)</span> </span>{
+    <span class="keyword">if</span>(status) {
+        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"write cb error %s\n"</span>, uv_strerror(status));
+    }
+    <span class="built_in">free</span>(req);
+}
+
+<span class="function"><span class="keyword">void</span> <span class="title">write_to_remote</span><span class="params">(uv_stream_t* client, <span class="keyword">char</span>* content, <span class="keyword">int</span> size)</span> </span>{
+    <span class="keyword">if</span>(size &lt; <span class="number">0</span>)
+        size = <span class="built_in">strlen</span>(content);
+    <span class="keyword">uv_write_t</span>* w_req = (<span class="keyword">uv_write_t</span>*)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">uv_write_t</span>));
+    <span class="keyword">char</span> * reply = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(size + <span class="number">5</span>);
+    <span class="built_in">strcat</span>(reply, content);
+    <span class="built_in">strcat</span>(reply, PS);
+    <span class="keyword">uv_buf_t</span> buf = uv_buf_init(reply, <span class="built_in">strlen</span>(reply));
+    uv_write(w_req, client, &amp;buf, <span class="number">1</span>, write_cb);
+}
+
+<span class="function"><span class="keyword">void</span> <span class="title">connect_cb</span><span class="params">(uv_stream_t* server, <span class="keyword">int</span> status)</span> </span>{
+    <span class="keyword">if</span>(status &lt; <span class="number">0</span>) {
+        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"new connect error %s"</span>, uv_strerror(status));
+    } <span class="keyword">else</span> {
+        <span class="keyword">uv_tcp_t</span> *client = (<span class="keyword">uv_tcp_t</span>*)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">uv_tcp_t</span>));
+        uv_tcp_init(uv_default_loop(), client);
+        <span class="keyword">if</span>(uv_accept(server, client) == <span class="number">0</span>) {
+            write_to_remote(client, <span class="string">"Hi, I will repeat you.\n"</span>, -<span class="number">1</span>);
+            uv_read_start(client, alloc_buffer, read_cb);
+
+        } <span class="keyword">else</span> {
+            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"accept error.\n"</span>);
+        }
+    }
+}
+
+<span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span>
+</span>{
+    <span class="keyword">uv_tcp_t</span> server;
+    uv_tcp_init(uv_default_loop(), &amp;server);
+
+    uv_ip4_addr(<span class="string">"0.0.0.0"</span>, DEFAULT_PORT, &amp;addr);
+
+    uv_tcp_bind(&amp;server, (<span class="keyword">const</span> <span class="keyword">struct</span> sockaddr_in*)&amp;addr, <span class="number">0</span>);
+
+    <span class="keyword">int</span> r = uv_listen(&amp;server, DEFAULT_BACKLOG, connect_cb);
+    <span class="keyword">if</span>(r) {
+        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"uv listen error.\n"</span>);
+        <span class="keyword">return</span> <span class="number">1</span>;
+    }
+
+    <span class="keyword">return</span> uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+}
+</code></pre><h3 id="3-_验证">3. 验证</h3><p>使用telnet连接Server，连接成功后，将会首先收到客户端的一条回复，之后你的每一次输入Server都会返回给客户端。</p>
+<pre><code><span class="symbol">whosemario:</span>~ whosemario<span class="variable">$ </span>telnet <span class="number">127.0</span>.<span class="number">0</span>.<span class="number">1</span> <span class="number">7000</span>
+<span class="constant">Trying</span> <span class="number">127.0</span>.<span class="number">0</span>.<span class="number">1</span>...
+<span class="constant">Connected</span> to localhost.
+<span class="constant">Escape</span> character is <span class="string">'^]'</span>.
+<span class="constant">Hi</span>, <span class="constant">I</span> will repeat you.
+<span class="prompt">&gt;&gt;</span>&gt; <span class="constant">Hi</span>, <span class="constant">I</span> am at home
+<span class="constant">Hi</span>, <span class="constant">I</span> am at home
+<span class="prompt">&gt;&gt;</span>&gt; <span class="constant">I</span> am <span class="constant">Happy</span>.
+<span class="constant">I</span> am <span class="constant">Happy</span>.
+<span class="prompt">&gt;&gt;</span>&gt; <span class="constant">OK</span>
+<span class="constant">OK</span>
+<span class="prompt">&gt;&gt;</span>&gt; <span class="constant">Play</span>
+<span class="constant">Play</span>
+<span class="prompt">&gt;&gt;</span>&gt;
+</code></pre>
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/01/27/libuv-tutorial-2/" itemprop="url">
                   一起玩玩libuv(二)
                 </a>
@@ -2040,181 +2257,6 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/01/03/python-PyType-GenericAlloc/" itemprop="url">
-                  Python源码解析——PyType_GenericAlloc
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-01-03T22:16:21+08:00" content="2016-01-03">
-              2016-01-03
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/01/03/python-PyType-GenericAlloc/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/03/python-PyType-GenericAlloc/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>为什么要写PyType_GenericAlloc函数，原因是本人想写一篇关于创建Class的源码解析的博文，发现内容比较多，因此就打算分开解析里面比较重要的内容。</p>
-<p>PyType_GenericAlloc用来做什么，从函数命名可以看出<strong>GenericAlloc</strong>说明是用于一般情况的内存空间分配，<strong>PyType</strong>说明是针对PyTypeObject进行内存空间分配的。</p>
-</blockquote>
-<h3 id="1-关于GC">1.关于GC</h3><p>Python有自己的GC逻辑，这里不多讲，主要想说明Python会维护需要GC的各种PyObject，因此Python在PyObject的头部又加入了一个PyGC_Head。</p>
-<pre><code><span class="comment"># 内存分布</span>
-
-        |<span class="string">-------------</span>|
-        |<span class="string">  PyGC_Head  </span>|
-        |<span class="string">-------------</span>|
-        |<span class="string">  PyObject   </span>|
-        |<span class="string">             </span>|
-        |<span class="string">     ...     </span>|
-</code></pre><p>因此有一个函数<strong>_PyObject_GC_Malloc</strong>负责分配上述的内存空间。</p>
-<pre><code>PyObject *
-_PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
-{
-    PyObject *op;
-    PyGC_Head *g;
-    <span class="keyword">if</span> (basicsize &gt; PY_SSIZE_T_MAX - <span class="keyword">sizeof</span>(PyGC_Head))
-        <span class="keyword">return</span> PyErr_NoMemory();
-    g = (PyGC_Head *)PyObject_MALLOC(
-        <span class="keyword">sizeof</span>(PyGC_Head) + basicsize);
-    ...
-    op = FROM_GC(g);
-    <span class="keyword">return</span> op;
- }
-</code></pre><h3 id="2-PyType_GenericAlloc全景">2.PyType_GenericAlloc全景</h3><pre><code><span class="type">PyObject</span> *
-<span class="type">PyType_GenericAlloc</span>(<span class="type">PyTypeObject</span> *<span class="class"><span class="keyword">type</span>, <span class="title">Py_ssize_t</span> <span class="title">nitems</span>)
-</span>{
-    <span class="type">PyObject</span> *obj;
-    const size_t size = _PyObject_VAR_SIZE(<span class="class"><span class="keyword">type</span>, <span class="title">nitems+1</span>);</span>   [<span class="number">1</span>]
-    <span class="comment">/* note that we need to add one, for the sentinel */</span>
-
-    <span class="keyword">if</span> (<span class="type">PyType_IS_GC</span>(<span class="class"><span class="keyword">type</span>))
-</span>        obj = _PyObject_GC_Malloc(size);    [<span class="number">2</span>]
-    <span class="keyword">else</span>
-        obj = (<span class="type">PyObject</span> *)<span class="type">PyObject_MALLOC</span>(size);
-
-    <span class="keyword">if</span> (obj == <span class="type">NULL</span>)
-        <span class="keyword">return</span> <span class="type">PyErr_NoMemory</span>();
-
-    memset(obj, '\<span class="number">0</span>', size);
-
-    <span class="keyword">if</span> (<span class="class"><span class="keyword">type</span><span class="title">-&gt;tp_flags</span> <span class="title">&amp;</span> <span class="title">Py_TPFLAGS_HEAPTYPE</span>)
-</span>        <span class="type">Py_INCREF</span>(<span class="class"><span class="keyword">type</span>);</span>
-
-    <span class="keyword">if</span> (<span class="class"><span class="keyword">type</span><span class="title">-&gt;tp_itemsize</span> <span class="title">==</span> 0)
-</span>        <span class="type">PyObject_INIT</span>(obj, <span class="class"><span class="keyword">type</span>);</span>
-    <span class="keyword">else</span>
-        (void) <span class="type">PyObject_INIT_VAR</span>((<span class="type">PyVarObject</span> *)obj, <span class="class"><span class="keyword">type</span>, <span class="title">nitems</span>);</span>  [<span class="number">3</span>]
-
-    <span class="keyword">if</span> (<span class="type">PyType_IS_GC</span>(<span class="class"><span class="keyword">type</span>))
-</span>        _PyObject_GC_TRACK(obj);
-    <span class="keyword">return</span> obj;
-}
-</code></pre><p>关注三点，[1]处，计算要创建的PyObject的大小（nitems为什么要加1需要再深入看一下）。</p>
-<pre><code><span class="comment">#define _PyObject_VAR_SIZE(typeobj, nitems)     \</span>
-(size_t)                                    <span class="string">\</span>
-<span class="function"><span class="params">( ( (typeobj)-&gt;tp_basicsize +               <span class="string">\</span>
-    (nitems)*(typeobj)-&gt;tp_itemsize +       <span class="string">\</span>
-    (SIZEOF_VOID_P - <span class="number">1</span>)                     <span class="string">\</span>
-  ) &amp; ~(SIZEOF_VOID_P - <span class="number">1</span>)                  <span class="string">\</span>
-)</span></span>
-</code></pre><p>size的组成是tp_basicsize + nitems * tp_itemsize，后面加上SIZEOF_VOID_P - 1是为了内存对齐。</p>
-<p>[2]处使用<strong>_PyObject_GC_Malloc</strong>进行真正的内存分配。</p>
-<p>[3]处初始化PyObject，确切的说应该是PyVarObject，看一下具体初始化了哪些东西</p>
-<ol>
-<li>ob_size = nitems 初始化数量</li>
-<li>ob_type = type 初始化对应的PyObjectType</li>
-<li>ob_refcnt = 1 初始化引用计数为1</li>
-<li>调用_Py_AddToAllObjects，将obj加入到<strong>refchain</strong>双向链表中</li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2261,21 +2303,21 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">31</span>
+              <span class="site-state-item-count">32</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             <a href="/categories">
-              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-count">10</span>
               <span class="site-state-item-name">分類</span>
               </a>
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">15</span>
+              <span class="site-state-item-count">16</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>
