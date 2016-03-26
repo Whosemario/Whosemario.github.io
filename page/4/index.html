@@ -237,6 +237,240 @@
             
               
                 
+                <a class="post-title-link" href="/2015/11/08/python-slot/" itemprop="url">
+                  python __slots__
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2015-11-08T18:57:49+08:00" content="2015-11-08">
+              2015-11-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/11/08/python-slot/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/08/python-slot/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <p><a href="http://www.jianshu.com/p/82ce2151d73b" target="_blank" rel="external">上一篇</a>翻译了一篇Python中使用__slots__达到节省内存的方法，今天就看一下Python内部是怎么实现__slots__这个功能的。</p>
+<pre><code>&gt;&gt;&gt; class <span class="function"><span class="title">A</span><span class="params">(object)</span></span>:
+...     __slots__ = [<span class="string">"v"</span>]
+...
+&gt;&gt;&gt; <span class="tag">a</span> = <span class="function"><span class="title">A</span><span class="params">()</span></span> 
+&gt;&gt;&gt; <span class="tag">a</span><span class="class">.v</span> = <span class="number">1</span>
+&gt;&gt;&gt; <span class="tag">a</span><span class="class">.b</span> = <span class="number">1</span>
+Traceback (most recent call last):
+  File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;
+AttributeError: <span class="string">'A'</span> <span class="tag">object</span> has no attribute <span class="string">'b'</span>
+&gt;&gt;&gt; <span class="function"><span class="title">type</span><span class="params">(A.v)</span></span>
+&lt;type <span class="string">'member_descriptor'</span>&gt;
+</code></pre><p>上面这一段代码，Class A声明了__slots__参数，对实例a的v变量进行赋值没有问题，但对实例a的b变量赋值，则会有个AttributeError的异常发生。再仔细看看A.v，原来他是一个<a href="https://docs.python.org/2/howto/descriptor.html" target="_blank" rel="external">descriptor</a>(有时间可以写一篇Python descriptor相关的文章，Python中很多功能的实现都离不开descriptor)！<br>那么，Python在构建Class A的时候到底都做了什么，我们慢慢地解析下去。</p>
+<h4 id="Class_A的创建">Class A的创建</h4><p>Python中类的构建的相关字节码是BUILD_CLASS:</p>
+<pre><code># in ceval.c
+case BUILD_CLASS:
+      u = TOP()<span class="comment">;</span>
+      v = SECOND()<span class="comment">;</span>
+      w = THIRD()<span class="comment">;</span>
+      STACKADJ(-2)<span class="comment">;</span>
+      x = build_class(u, v, w)<span class="comment">;</span>
+      SET_TOP(x)<span class="comment">;</span>
+      Py_DECREF(u)<span class="comment">;</span>
+      Py_DECREF(v)<span class="comment">;</span>
+      Py_DECREF(w)<span class="comment">;</span>
+</code></pre><p>顺着这段起始代码顺藤摸瓜，最后会到命名为type_new的方法中去：</p>
+<pre><code>  # <span class="keyword">in</span> typeobject.c
+  <span class="keyword">static</span> PyObject *
+  type_new(PyTypeObject *metatype, PyObject *args, PyObject *kwds) {
+        ....
+        <span class="comment">// dict 可以理解为你将要新建的类的locals，里面便含有__slots__字段</span>
+        <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"SO!O!:type"</span>, kwlist,
+                                 &amp;name,
+                                 &amp;PyTuple_Type, &amp;bases,
+                                 &amp;PyDict_Type, &amp;dict))
+            <span class="keyword">return</span> NULL;
+        ....
+        <span class="comment">// 获取__slots__参数</span>
+        slots = PyDict_GetItemString(dict, <span class="string">"__slots__"</span>);
+        nslots = <span class="number">0</span>;
+        add_dict = <span class="number">0</span>;    <span class="comment">// 是否要加入__dict__</span>
+        add_weak = <span class="number">0</span>;  <span class="comment">// 是否要加入__weakref__</span>
+
+        <span class="keyword">if</span> (slots == NULL) {
+              <span class="comment">//... ignore</span>
+        } <span class="keyword">else</span> {
+              <span class="comment">// 会对slots做一下处理，包括计算nslots，但不影响我们对slots实现的理解</span>
+        }
+
+        <span class="comment">// 为需要创建的类分配空间</span>
+        <span class="class"><span class="keyword">type</span> </span>= (PyTypeObject *)metatype-&gt;tp_alloc(metatype, nslots);
+        ....
+        <span class="comment">// 转换指针，变为PyHeapTypeObject，PyHeapTypeObject和PyTypeObject的关系可以认为是包含关系，具体的细节可以再写一篇文章了</span>
+        et = (PyHeapTypeObject *)<span class="class"><span class="keyword">type</span>;</span>
+        ....
+        <span class="comment">// 将slots相关的参数设置为members</span>
+        mp = PyHeapType_GET_MEMBERS(et);
+        slotoffset = <span class="keyword">base</span>-&gt;tp_basicsize;
+        <span class="keyword">if</span> (slots != NULL) {
+            <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nslots; i++, mp++) {
+                mp-&gt;name = PyString_AS_STRING(
+                              PyTuple_GET_ITEM(slots, i));
+                mp-&gt;<span class="class"><span class="keyword">type</span> </span>= T_OBJECT_EX;
+                mp-&gt;offset = slotoffset;
+                ....
+                slotoffset += sizeof(PyObject *);
+             }
+         }
+         ....
+         <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_members</span> </span>= PyHeapType_GET_MEMBERS(et);
+         ....
+         PyType_Ready(<span class="class"><span class="keyword">type</span>);</span>
+         ....
+}
+</code></pre><p>上面我们忽略了一些不相干的代码，代码的主要逻辑就是将__slots__定义的内容放到type的末尾，并且让type的tp_members变量指向type的末尾，这些内容将会在PyType_Ready函数中用到。<br>这里忽略PyType_Ready的内容，只说明在PyType_Ready中会调用add_members方法，下面看一下add_members的实现：</p>
+<pre><code><span class="preprocessor"># in typeobject.c</span>
+<span class="function"><span class="keyword">static</span> <span class="keyword">int</span>
+<span class="title">add_members</span><span class="params">(PyTypeObject *type, PyMemberDef *memb)</span> </span>{
+    PyObject *dict = type-&gt;tp_dict;
+    <span class="keyword">for</span> (; memb-&gt;name != <span class="literal">NULL</span>; memb++) {
+          PyObject *descr;
+          <span class="keyword">if</span> (PyDict_GetItemString(dict, memb-&gt;name))
+              <span class="keyword">continue</span>;
+          descr = PyDescr_NewMember(type, memb);
+          <span class="keyword">if</span> (descr == <span class="literal">NULL</span>)
+              <span class="keyword">return</span> -<span class="number">1</span>;
+          <span class="keyword">if</span> (PyDict_SetItemString(dict, memb-&gt;name, descr) &lt; <span class="number">0</span>)
+              <span class="keyword">return</span> -<span class="number">1</span>;
+          Py_DECREF(descr);
+      }
+      <span class="keyword">return</span> <span class="number">0</span>;
+}
+</code></pre><p>上面的代码逻辑还是很好理解的，将memb里面的内容（即slots的内容）创建为member_descriptor，加入到tp_dict里面去。</p>
+<h4 id="Class_A的属性设置">Class A的属性设置</h4><p>实例的属性设置最终会在PyObject_GenericSetAttr方法中处理，PyObject_GenericSetAttr方法又会调用_PyObject_GenericSetAttrWithDict方法，我们来看一下_PyObject_GenericSetAttrWithDict方法到底怎么做的，才可以实现文章开始展示的效果。</p>
+<pre><code>int
+_PyObject_GenericSetAttrWithDict(PyObject *obj, PyObject *name,
+                             PyObject *value, PyObject *dict) {
+    PyTypeObject *tp = Py_TYPE(obj);
+    descr = _PyType_Lookup(tp, name);
+    f = <span class="built_in">NULL</span>;
+    <span class="keyword">if</span> (descr != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span>
+        PyType_HasFeature(descr<span class="subst">-&gt;</span>ob_type,Py_TPFLAGS_HAVE_CLASS)) {
+        f = descr<span class="subst">-&gt;</span>ob_type<span class="subst">-&gt;</span>tp_descr_set;
+        <span class="comment">// 对于slots相关的参数将会进入下面的if语句</span>
+        <span class="keyword">if</span> (f != <span class="built_in">NULL</span> <span class="subst">&amp;&amp;</span> PyDescr_IsData(descr)) {
+            res = f(descr, obj, value);
+            goto done;
+        }
+    }
+    <span class="attribute">...</span><span class="built_in">.
+    </span><span class="keyword">if</span> (dict == <span class="built_in">NULL</span>) {
+        <span class="comment">// 对于不是slots提供的属性，尝试去obj自己的dict中查找，</span>
+        <span class="comment">// 但在构建类时，由于有__slots__属性，所以tp_dictoffset为0，</span>
+        <span class="comment">// 因此dictptr等于NULL</span>
+        dictptr = _PyObject_GetDictPtr(obj);
+        <span class="keyword">if</span> (dictptr != <span class="built_in">NULL</span>) {
+              <span class="attribute">...</span><span class="built_in">. 
+        </span>}
+    }
+    <span class="keyword">if</span> (dict != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
+    <span class="keyword">if</span> (f != <span class="built_in">NULL</span>) {<span class="attribute">...</span><span class="built_in">.</span>}
+    <span class="keyword">if</span> (descr == <span class="built_in">NULL</span>) {
+        <span class="comment">// 此时输出错误信息</span>
+        PyErr_Format(PyExc_AttributeErr<span class="subst">or</span>,
+                 <span class="string">"'%.100s' object has no attribute '%.200s'"</span>,
+                 tp<span class="subst">-&gt;</span>tp_name, PyString_AS_STRING(name));
+        goto done;
+    }
+    <span class="attribute">...</span><span class="built_in">.
+</span>}
+</code></pre><p>对于slots定义的变量，会找到对应的descr，调用对应的set方法，对于slots没有定义的变量，最终会跑到抛出异常的那段逻辑。</p>
+<h4 id="总结">总结</h4><p>__slots__的实现还是比较好懂的，Python在构建类的时候，会检查__slots__变量是否存在，如果存在，为slots变量建立member_descriptor，并放入tp_dict里面，并且这个类的tp<em>dictoffset为0，它的实例将不会有自己的\</em>_dict__。</p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2015/11/08/libuv-timer/" itemprop="url">
                   libuv Timer 模块
                 </a>
@@ -550,21 +784,21 @@ results.sort()
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-count">33</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             <a href="/categories">
-              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-count">11</span>
               <span class="site-state-item-name">分類</span>
               </a>
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">16</span>
+              <span class="site-state-item-count">17</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>

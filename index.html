@@ -241,6 +241,183 @@
             
               
                 
+                <a class="post-title-link" href="/2016/03/26/docker-tutorial/" itemprop="url">
+                  Mac OSX Docker 教程 (一)
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-03-26T19:09:32+08:00" content="2016-03-26">
+              2016-03-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index">
+                    <span itemprop="name">Docker</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/26/docker-tutorial/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/26/docker-tutorial/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>本文基于Docker官方网站的<a href="https://docs.docker.com/mac/" target="_blank" rel="external">Mac OSX教程</a>所写。</p>
+</blockquote>
+<h3 id="安装Docker_Toolbox">安装Docker Toolbox</h3><p>Docker Toolbox包含如下的Docker工具：</p>
+<ul>
+<li>Docker CLI 用于创建Docker镜像和Docker容器</li>
+<li>Docker Machine 让你可以在Mac OSX以命令行的方式操作Docker引擎</li>
+<li>Docker Compose用于运行docker-compose命令</li>
+<li>Kitematic —— Docker的GUI组件</li>
+<li>Docker快速启动shell</li>
+<li>Oracle VM 虚拟机</li>
+</ul>
+<h4 id="步骤一：检查系统版本号">步骤一：检查系统版本号</h4><p>检查操作系统版本号，版本号必须 &gt;= 10.8</p>
+<h4 id="步骤二：安装Docker_Tool">步骤二：安装Docker Tool</h4><p>下载<a href="https://www.docker.com/products/docker-toolbox" target="_blank" rel="external">Docker Toolbox</a>并开始进行安装，安装很傻瓜，一路next就可以。</p>
+<h4 id="步骤三：检查是否安装成功">步骤三：检查是否安装成功</h4><ol>
+<li><p>首先开启Docker Quickstart Terminal</p>
+<p> <img src="/images/docker-tutorial-1-p1.png" alt=""></p>
+</li>
+<li><p>终端会有如下输出</p>
+<pre><code><span class="type">Last</span> login: <span class="type">Sat</span> <span class="type">Jul</span> <span class="number">11</span> <span class="number">20</span>:<span class="number">09</span>:<span class="number">45</span> on ttys002
+bash '/<span class="type">Applications</span>/<span class="type">Docker</span> <span class="type">Quickstart</span> <span class="type">Terminal</span>.app/<span class="type">Contents</span>/<span class="type">Resources</span>/<span class="type">Scripts</span>/    start.sh'
+<span class="type">Get</span> http:<span class="comment">///var/run/docker.sock/v1.19/images/json?all=1&amp;filters=%7B%22dangling%22%3A%5B%22true%22%5D%7D: dial unix /var/run/docker.sock: no such file or directory. Are you trying to connect to a TLS-enabled daemon without TLS?</span>
+<span class="type">Get</span> http:<span class="comment">///var/run/docker.sock/v1.19/images/json?all=1: dial unix /var/run/docker.sock: no such file or directory. Are you trying to connect to a TLS-enabled daemon without TLS?</span>
+-bash: lolcat: command not found
+
+mary at meepers in ~
+$ bash '/<span class="type">Applications</span>/<span class="type">Docker</span> <span class="type">Quickstart</span> <span class="type">Terminal</span>.app/<span class="type">Contents</span>/<span class="type">Resources</span>/<span class="type">Scripts</span>/start.sh'
+<span class="type">Creating</span> <span class="type">Machine</span> dev...
+<span class="type">Creating</span> <span class="type">VirtualBox</span> <span class="type">VM</span>...
+<span class="type">Creating</span> <span class="type">SSH</span> key...
+<span class="type">Starting</span> <span class="type">VirtualBox</span> <span class="type">VM</span>...
+<span class="type">Starting</span> <span class="type">VM</span>...
+<span class="type">To</span> see how to connect <span class="type">Docker</span> to <span class="keyword">this</span> machine, run: docker-machine env dev
+<span class="type">Starting</span> machine dev...
+<span class="type">Setting</span> environment variables <span class="keyword">for</span> machine dev...
+
+                    ##         .
+              ## ## ##        ==
+           ## ## ## ## ##    ===
+       /<span class="string">""""""</span><span class="string">""""""</span><span class="string">"""""\___/ ===
+  ~~~ {~~ ~~~~ ~~~ ~~~~ ~~~ ~ /  ===- ~~~
+       \______ o           __/
+         \    \         __/
+          \____\_______/
+
+The Docker Quick Start Terminal is configured to use Docker with the “default” VM.</span>
+</code></pre></li>
+<li><p>键入<strong>docker run hello-world</strong></p>
+<pre><code>$ docker run hello-world
+Unable <span class="built_in">to</span> find image <span class="string">'hello-world:latest'</span> locally
+latest: Pulling <span class="built_in">from</span> library/hello-world
+<span class="number">535020</span>c3e8ad: Pull complete
+af340544ed62: Pull complete
+Digest: sha256:a68868bfe696c00866942e8f5ca39e3e31b79c1e50feaee4ce5e28df2f051d5c
+Status: Downloaded newer image <span class="keyword">for</span> hello-world:latest
+
+Hello <span class="built_in">from</span> Docker.
+This message shows that your installation appears <span class="built_in">to</span> be working correctly.
+
+To generate this message, Docker took <span class="operator">the</span> following steps:
+<span class="number">1.</span> The Docker Engine CLI client contacted <span class="operator">the</span> Docker Engine daemon.
+<span class="number">2.</span> The Docker Engine daemon pulled <span class="operator">the</span> <span class="string">"hello-world"</span> image <span class="built_in">from</span> <span class="operator">the</span> Docker Hub.
+<span class="number">3.</span> The Docker Engine daemon created <span class="operator">a</span> <span class="built_in">new</span> container <span class="built_in">from</span> that image which runs <span class="operator">the</span> executable that produces <span class="operator">the</span> output you are currently reading.
+<span class="number">4.</span> The Docker Engine daemon streamed that output <span class="built_in">to</span> <span class="operator">the</span> Docker Engine CLI client, which sent <span class="keyword">it</span> <span class="built_in">to</span> your terminal.
+
+To <span class="keyword">try</span> something more ambitious, you can run <span class="operator">an</span> Ubuntu container <span class="operator">with</span>:
+$ docker run -<span class="keyword">it</span> ubuntu bash
+
+Share images, automate workflows, <span class="operator">and</span> more <span class="operator">with</span> <span class="operator">a</span> free Docker Hub account:
+<span class="keyword">https</span>://hub.docker.com
+
+For more examples <span class="operator">and</span> ideas, visit:
+<span class="keyword">https</span>://docs.docker.com/userguide/
+</code></pre></li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/03/23/net-io-model/" itemprop="url">
                   网络IO模型
                 </a>
@@ -1681,174 +1858,6 @@ test_tuple.py:<span class="number">21</span>: size=<span class="number">280</spa
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/02/07/protobuf/" itemprop="url">
-                  Google Protobuf 初体验
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-02-07T22:52:12+08:00" content="2016-02-07">
-              2016-02-07
-            </time>
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/02/07/protobuf/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/07/protobuf/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>在<a href="http://whosemario.github.io/2016/01/30/libuv-tutorial-3/"><strong>大家一起玩libuv</strong></a>系列中间加入protobuf的基础教程是为了给我即将写的TcpServer做一个基本工作。TcpServer通信协议我打算使用protobuf来做，所以先讲讲protobuf怎样实现进程间通信的service吧。</p>
-</blockquote>
-<h4 id="1-安装">1.安装</h4><p>偷懒了，在mac上使用<strong>brew</strong>安装protobuf，版本是2.6.1.</p>
-<pre><code><span class="keyword">brew </span>install protobuf
-</code></pre><p>根据官网的<a href="https://developers.google.com/protocol-buffers/docs/cpptutorial" target="_blank" rel="external">C++教程</a>一步一步地使用protobuf。</p>
-<h4 id="2-编写proto文件">2.编写proto文件</h4><pre><code><span class="keyword">package</span> communication;
-
-<span class="keyword">option</span> cc_generic_services = <span class="literal">true</span>;
-
-<span class="class"><span class="keyword">message</span> <span class="title">Void</span> </span>{
-}
-
-<span class="class"><span class="keyword">message</span> <span class="title">Message</span> </span>{
-    <span class="keyword">required</span> <span class="built_in">bytes</span> content = <span class="number">1</span>;
-}
-
-<span class="class"><span class="keyword">service</span> <span class="title">CommunicationService</span> </span>{
-    <span class="function"><span class="keyword">rpc</span> send_message(Message) <span class="keyword">returns</span>(Void)</span>;
-}
-</code></pre><h4 id="3-生成C++文件">3.生成C++文件</h4><pre><code>protoc <span class="comment">--cpp_out=./ message_communication.proto</span>
-</code></pre><p>在本地生成了message_communication.ph.h和message_communication.pb.cc两个源文件。</p>
-<h4 id="4-使用">4.使用</h4><p>我们现在实现一个简单的应用。</p>
-<p><img src="/images/protobuf-p1.png" alt=""></p>
-<p>Stub发送端尝试去发送一个简单的字符串，接收端接收这个数据。其实发送端和接收端可以位于两个进程上，甚至两个不同的物理机上都可以，但这次用例展示主要适用于展示protobuf的使用，因此我们使用一个公共的内存用于两端的数据通信。所以上图中虚线才是真正的数据通路。</p>
-<pre><code><span class="comment">#include &lt;iostream&gt;</span>
-<span class="comment">#include &lt;sstream&gt;</span>
-<span class="comment">#include &lt;string&gt;</span>
-<span class="comment">#include "proto/message_communication.pb.h"</span>
-
-struct <span class="type">StoreStruct</span> {
-    <span class="type">int</span> index;
-    std::<span class="type">string</span> content;
-};
-
-<span class="keyword">static</span> <span class="type">StoreStruct</span> global_memory;
-
-class <span class="type">ServiceChannel</span> : public google::protobuf::<span class="type">RpcChannel</span> {
-public:
-    <span class="type">void</span> <span class="type">CallMethod</span>(<span class="keyword">const</span> google::protobuf::<span class="type">MethodDescriptor</span> *<span class="keyword">method</span>, google::protobuf::<span class="type">RpcController</span> *controller, <span class="keyword">const</span> google::protobuf::<span class="type">Message</span> *request, google::protobuf::<span class="type">Message</span> *response, google::protobuf::<span class="type">Closure</span> *done) {
-        global_memory.index = <span class="keyword">method</span>-&gt;index();
-        std::ostringstream os;
-        <span class="keyword">if</span>(request-&gt;<span class="type">SerializeToOstream</span>(&amp;os)) {
-            global_memory.content = os.str();
-        }
-    }
-};
-
-class <span class="type">MyCommunicationService</span> : public communication::<span class="type">CommunicationService</span> {
-public:
-    <span class="type">void</span> send_message(::google::protobuf::<span class="type">RpcController</span>* controller,
-                                            <span class="keyword">const</span> ::communication::<span class="type">Message</span>* msg,
-                                            ::communication::<span class="type">Void</span>* rep,
-                                            ::google::protobuf::<span class="type">Closure</span>* done) {
-        std::cout &lt;&lt; <span class="string">"receive data is "</span> &lt;&lt; msg-&gt;content() &lt;&lt; std::endl;
-    }
-
-    <span class="type">void</span> receive_data() {
-        <span class="keyword">const</span> google::protobuf::<span class="type">MethodDescriptor</span> *<span class="keyword">method</span> = descriptor()-&gt;<span class="keyword">method</span>(global_memory.index);
-        google::protobuf::<span class="type">Message</span>* msg = <span class="type">GetRequestPrototype</span>(<span class="keyword">method</span>).<span class="type">New</span>();
-        std::istringstream <span class="keyword">is</span>(global_memory.content);
-        msg-&gt;<span class="type">ParseFromIstream</span>(&amp;<span class="keyword">is</span>);
-        <span class="type">CallMethod</span>(<span class="keyword">method</span>, nullptr, msg, nullptr, nullptr);
-    }
-};
-
-<span class="type">int</span> main()
-{
-    communication::<span class="type">Message</span> msg;
-    msg.set_content(<span class="string">"I will send a message"</span>);
-
-    <span class="type">ServiceChannel</span> service_channel;
-    communication::<span class="type">CommunicationService_Stub</span> stub(&amp;service_channel);
-    stub.send_message(nullptr, &amp;msg, nullptr, nullptr);
-
-    <span class="type">MyCommunicationService</span> receiver;
-    receiver.receive_data();
-    <span class="keyword">return</span> <span class="number">0</span>;
-}
-</code></pre><p>首先创建一个Message，并且将Message的content变量赋值。之后利用Stub将数据传输出去。MyCommunicationService接收数据，并调用CallMethod方法，CallMethod会根据method的index调用对应的函数，这里就是send_message了。</p>
-<h4 id="5-后记">5.后记</h4><p>过大年我写博客也是蛮拼的了。</p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -1895,21 +1904,21 @@ public:
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-count">33</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             <a href="/categories">
-              <span class="site-state-item-count">10</span>
+              <span class="site-state-item-count">11</span>
               <span class="site-state-item-name">分類</span>
               </a>
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">16</span>
+              <span class="site-state-item-count">17</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>
