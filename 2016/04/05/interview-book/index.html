@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python," />
+  <meta name="keywords" content="面试," />
 
 
 
@@ -53,40 +53,16 @@
 
 
 
-<meta name="description" content="粗略地讲一下个人对Python服务器Hotfix的理解
-
-1.Hotfix期望目标
-Python服务器不停机
-不需要重新赋值实例的__class__
-不需要重新赋值module
-
-基于上面的期望目标，需要怎样实现Hotfix？
-2.Hotfix基本思路怎样保持Module的引用不变方案1最容易想到的就是reload方法，其实reload方法内部实现也是分别调用find_module和load_mo">
+<meta name="description" content="最近在维护一本Gitbook，和面试相关的，本人将持续维护中…">
 <meta property="og:type" content="article">
-<meta property="og:title" content="关于Python服务器Hotfix的个人理解">
-<meta property="og:url" content="http://whosemario.github.io/2016/02/22/python-reload/index.html">
+<meta property="og:title" content="一本很有意义的GitBook">
+<meta property="og:url" content="http://whosemario.github.io/2016/04/05/interview-book/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="粗略地讲一下个人对Python服务器Hotfix的理解
-
-1.Hotfix期望目标
-Python服务器不停机
-不需要重新赋值实例的__class__
-不需要重新赋值module
-
-基于上面的期望目标，需要怎样实现Hotfix？
-2.Hotfix基本思路怎样保持Module的引用不变方案1最容易想到的就是reload方法，其实reload方法内部实现也是分别调用find_module和load_mo">
-<meta property="og:updated_time" content="2016-02-22T15:51:07.000Z">
+<meta property="og:description" content="最近在维护一本Gitbook，和面试相关的，本人将持续维护中…">
+<meta property="og:updated_time" content="2016-04-05T13:46:42.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="关于Python服务器Hotfix的个人理解">
-<meta name="twitter:description" content="粗略地讲一下个人对Python服务器Hotfix的理解
-
-1.Hotfix期望目标
-Python服务器不停机
-不需要重新赋值实例的__class__
-不需要重新赋值module
-
-基于上面的期望目标，需要怎样实现Hotfix？
-2.Hotfix基本思路怎样保持Module的引用不变方案1最容易想到的就是reload方法，其实reload方法内部实现也是分别调用find_module和load_mo">
+<meta name="twitter:title" content="一本很有意义的GitBook">
+<meta name="twitter:description" content="最近在维护一本Gitbook，和面试相关的，本人将持续维护中…">
 
 
 
@@ -98,7 +74,7 @@ Python服务器不停机
   };
 </script>
 
-  <title> 关于Python服务器Hotfix的个人理解 | Whosemario的家 </title>
+  <title> 一本很有意义的GitBook | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -248,7 +224,7 @@ Python服务器不停机
             
             
               
-                关于Python服务器Hotfix的个人理解
+                一本很有意义的GitBook
               
             
           </h1>
@@ -257,8 +233,8 @@ Python服务器不停机
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2016-02-22T22:27:18+08:00" content="2016-02-22">
-              2016-02-22
+            <time itemprop="dateCreated" datetime="2016-04-05T21:44:57+08:00" content="2016-04-05">
+              2016-04-05
             </time>
           </span>
 
@@ -267,8 +243,8 @@ Python服务器不停机
               &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
+                  <a href="/categories/面试/" itemprop="url" rel="index">
+                    <span itemprop="name">面试</span>
                   </a>
                 </span>
 
@@ -283,8 +259,8 @@ Python服务器不停机
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2016/02/22/python-reload/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/22/python-reload/" itemprop="commentsCount"></span>
+                <a href="/2016/04/05/interview-book/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/05/interview-book/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -303,20 +279,7 @@ Python服务器不停机
       
 
       
-        <span itemprop="articleBody"><blockquote>
-<p>粗略地讲一下个人对Python服务器Hotfix的理解</p>
-</blockquote>
-<h3 id="1-Hotfix期望目标">1.Hotfix期望目标</h3><ol>
-<li>Python服务器不停机</li>
-<li>不需要重新赋值实例的__class__</li>
-<li>不需要重新赋值module</li>
-</ol>
-<p>基于上面的期望目标，需要怎样实现Hotfix？</p>
-<h3 id="2-Hotfix基本思路">2.Hotfix基本思路</h3><h4 id="怎样保持Module的引用不变">怎样保持Module的引用不变</h4><h5 id="方案1">方案1</h5><p>最容易想到的就是<strong>reload</strong>方法，其实reload方法内部实现也是分别调用<strong>find_module</strong>和<strong>load_module</strong>两个方法，在load_module方法中如果sys.module中存在需要加载的Module，那么加载module的内容是在老module的基础上加载的。这样我们会发现reload前后module的id是相同的。</p>
-<h5 id="方案2">方案2</h5><p>单独调用imp.find_module方法和imp.load_module两个方法，当然前提也是要加载的Module在sys.module中存在。</p>
-<h4 id="Class不替换而是修改内部的function">Class不替换而是修改内部的function</h4><h5 id="方案1-1">方案1</h5><p>此方案是基于Module不变的方案1来做的，在reload之前，保存老的module的__dict__内容，然后reload之后，去尝试更新老的__dict__中的方法，并将其再次赋值给新的module。</p>
-<h5 id="方案2-1">方案2</h5><p>此方案也对应Module不变的方案2来做的，我们需要利用sys.meta_path来hook住Python的find_module函数（原因我在<a href="http://whosemario.github.io/2016/01/15/python-import-2/">这里</a>讲过），从而在import的过程中尝试替换新的module的Class和Function。</p>
-<h3 id="3-小结">3.小结</h3><p>上面说的都很抽象，原因是上面的有些思路工作在用，不愿意具体讲，其次这里只是做一些个人的理解，等着合适的时候写一个Python服务器Hotfix的功能模块。</p>
+        <span itemprop="articleBody"><p>最近在维护一本<a href="https://www.gitbook.com/book/whosemario/interview-book/details" target="_blank" rel="external">Gitbook</a>，和面试相关的，本人将持续维护中…</p>
 </span>
       
     </div>
@@ -325,7 +288,7 @@ Python服务器不停机
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/面试/" rel="tag">#面试</a>
           
         </div>
       
@@ -334,17 +297,13 @@ Python服务器不停机
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/02/17/hash-table/" rel="next" title="关于Python Dict">
-                <i class="fa fa-chevron-left"></i> 关于Python Dict
+              <a href="/2016/03/26/docker-tutorial/" rel="next" title="Mac OSX Docker 教程 (一)">
+                <i class="fa fa-chevron-left"></i> Mac OSX Docker 教程 (一)
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2016/02/24/libuv-read-code-1/" rel="prev" title="一起玩玩libuv(五)—— kqueue以及uv__io_poll">
-                一起玩玩libuv(五)—— kqueue以及uv__io_poll <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -359,10 +318,10 @@ Python服务器不停机
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2016/02/22/python-reload/"
-     data-title="关于Python服务器Hotfix的个人理解"
+        <div class="ds-share flat" data-thread-key="2016/04/05/interview-book/"
+     data-title="一本很有意义的GitBook"
      data-content=""
-     data-url="http://whosemario.github.io/2016/02/22/python-reload/">
+     data-url="http://whosemario.github.io/2016/04/05/interview-book/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -390,8 +349,8 @@ Python服务器不停机
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2016/02/22/python-reload/"
-           data-title="关于Python服务器Hotfix的个人理解" data-url="http://whosemario.github.io/2016/02/22/python-reload/">
+      <div class="ds-thread" data-thread-key="2016/04/05/interview-book/"
+           data-title="一本很有意义的GitBook" data-url="http://whosemario.github.io/2016/04/05/interview-book/">
       </div>
     
   </div>
@@ -491,7 +450,7 @@ Python服务器不停机
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Hotfix期望目标"><span class="nav-number">1.</span> <span class="nav-text">1.Hotfix期望目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Hotfix基本思路"><span class="nav-number">2.</span> <span class="nav-text">2.Hotfix基本思路</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#怎样保持Module的引用不变"><span class="nav-number">2.1.</span> <span class="nav-text">怎样保持Module的引用不变</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#方案1"><span class="nav-number">2.1.1.</span> <span class="nav-text">方案1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#方案2"><span class="nav-number">2.1.2.</span> <span class="nav-text">方案2</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Class不替换而是修改内部的function"><span class="nav-number">2.2.</span> <span class="nav-text">Class不替换而是修改内部的function</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#方案1-1"><span class="nav-number">2.2.1.</span> <span class="nav-text">方案1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#方案2-1"><span class="nav-number">2.2.2.</span> <span class="nav-text">方案2</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-小结"><span class="nav-number">3.</span> <span class="nav-text">3.小结</span></a></li></ol></div>
+              <p class="post-toc-empty">此文章未包含目錄</p>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
