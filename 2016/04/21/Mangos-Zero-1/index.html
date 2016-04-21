@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Python," />
+  <meta name="keywords" content="游戏," />
 
 
 
@@ -53,31 +53,47 @@
 
 
 
-<meta name="description" content="理解Python Import机制可以对Python的Package结构进行更深刻的理解。
+<meta name="description" content="本篇文章是我几个月前在CSDN的blog上写的，现在移过来
+折腾了两天，终于将Mangos Zero在自己的Windows电脑上搭建起来了，下面总结一下安装Mangos Zero过程。网上也有很多安装Mangos Zero的教程，都比较老了，有些基本不能用了。
 
-1.__import__函数__import__函数是import关键字的内部实现。
-static PyObject *
-builtin___import__(PyObject *self, PyObject *args, PyObject *kwds) {
-    static char *kwlist">
+1. 安装环境
+Windows XP 64位
+
+2. 前期准备
+MySQL（本人使用的是5.5的版本）
+SQLyog（这个根据个人喜好，">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python Import机制（一）">
-<meta property="og:url" content="http://whosemario.github.io/2016/01/10/python-import/index.html">
+<meta property="og:title" content="Mangos Zero 编译安装">
+<meta property="og:url" content="http://whosemario.github.io/2016/04/21/Mangos-Zero-1/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="理解Python Import机制可以对Python的Package结构进行更深刻的理解。
+<meta property="og:description" content="本篇文章是我几个月前在CSDN的blog上写的，现在移过来
+折腾了两天，终于将Mangos Zero在自己的Windows电脑上搭建起来了，下面总结一下安装Mangos Zero过程。网上也有很多安装Mangos Zero的教程，都比较老了，有些基本不能用了。
 
-1.__import__函数__import__函数是import关键字的内部实现。
-static PyObject *
-builtin___import__(PyObject *self, PyObject *args, PyObject *kwds) {
-    static char *kwlist">
-<meta property="og:updated_time" content="2016-01-10T18:15:57.000Z">
+1. 安装环境
+Windows XP 64位
+
+2. 前期准备
+MySQL（本人使用的是5.5的版本）
+SQLyog（这个根据个人喜好，">
+<meta property="og:image" content="http://img.blog.csdn.net/20151205222912569">
+<meta property="og:image" content="http://img.blog.csdn.net/20151205223222361">
+<meta property="og:image" content="http://img.blog.csdn.net/20151205224009966">
+<meta property="og:image" content="http://img.blog.csdn.net/20151205225953575">
+<meta property="og:image" content="http://img.blog.csdn.net/20151205230127299">
+<meta property="og:image" content="http://img.blog.csdn.net/20151205230359778">
+<meta property="og:image" content="http://img.blog.csdn.net/20151205232214037">
+<meta property="og:updated_time" content="2016-04-21T11:52:02.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python Import机制（一）">
-<meta name="twitter:description" content="理解Python Import机制可以对Python的Package结构进行更深刻的理解。
+<meta name="twitter:title" content="Mangos Zero 编译安装">
+<meta name="twitter:description" content="本篇文章是我几个月前在CSDN的blog上写的，现在移过来
+折腾了两天，终于将Mangos Zero在自己的Windows电脑上搭建起来了，下面总结一下安装Mangos Zero过程。网上也有很多安装Mangos Zero的教程，都比较老了，有些基本不能用了。
 
-1.__import__函数__import__函数是import关键字的内部实现。
-static PyObject *
-builtin___import__(PyObject *self, PyObject *args, PyObject *kwds) {
-    static char *kwlist">
+1. 安装环境
+Windows XP 64位
+
+2. 前期准备
+MySQL（本人使用的是5.5的版本）
+SQLyog（这个根据个人喜好，">
 
 
 
@@ -89,7 +105,7 @@ builtin___import__(PyObject *self, PyObject *args, PyObject *kwds) {
   };
 </script>
 
-  <title> Python Import机制（一） | Whosemario的家 </title>
+  <title> Mangos Zero 编译安装 | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -239,7 +255,7 @@ builtin___import__(PyObject *self, PyObject *args, PyObject *kwds) {
             
             
               
-                Python Import机制（一）
+                Mangos Zero 编译安装
               
             
           </h1>
@@ -248,34 +264,19 @@ builtin___import__(PyObject *self, PyObject *args, PyObject *kwds) {
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2016-01-10T22:57:56+08:00" content="2016-01-10">
-              2016-01-10
+            <time itemprop="dateCreated" datetime="2016-04-21T19:49:41+08:00" content="2016-04-21">
+              2016-04-21
             </time>
           </span>
 
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
           
 
           
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2016/01/10/python-import/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/10/python-import/" itemprop="commentsCount"></span>
+                <a href="/2016/04/21/Mangos-Zero-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/21/Mangos-Zero-1/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -295,202 +296,83 @@ builtin___import__(PyObject *self, PyObject *args, PyObject *kwds) {
 
       
         <span itemprop="articleBody"><blockquote>
-<p>理解Python Import机制可以对Python的Package结构进行更深刻的理解。</p>
+<p>本篇文章是我几个月前在CSDN的blog上写的，现在移过来</p>
+<p>折腾了两天，终于将Mangos Zero在自己的Windows电脑上搭建起来了，下面总结一下安装Mangos Zero过程。网上也有很多安装Mangos Zero的教程，都比较老了，有些基本不能用了。</p>
 </blockquote>
-<h3 id="1-__import__函数">1.__import__函数</h3><p>__import__函数是import关键字的内部实现。</p>
-<pre><code><span class="function"><span class="keyword">static</span> PyObject *
-<span class="title">builtin___import__</span><span class="params">(PyObject *self, PyObject *args, PyObject *kwds)</span> </span>{
-    <span class="keyword">static</span> <span class="keyword">char</span> *kwlist[] = {<span class="string">"name"</span>, <span class="string">"globals"</span>, <span class="string">"locals"</span>, <span class="string">"fromlist"</span>,
-                         <span class="string">"level"</span>, <span class="number">0</span>};
-    <span class="keyword">char</span> *name;
-    PyObject *globals = <span class="literal">NULL</span>;
-    PyObject *locals = <span class="literal">NULL</span>;
-    PyObject *fromlist = <span class="literal">NULL</span>;
-    <span class="keyword">int</span> level = -<span class="number">1</span>;
-
-    <span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwds, <span class="string">"s|OOOi:__import__"</span>,
-                kwlist, &amp;name, &amp;globals, &amp;locals, &amp;fromlist, &amp;level))
-        <span class="keyword">return</span> <span class="literal">NULL</span>;
-
-    <span class="keyword">return</span> PyImport_ImportModuleLevel(name, globals, locals,
-                                  fromlist, level);
-}
-</code></pre><p>builtin___import__函数内部很简单，主要是提取kwlist列出的几个参数，然后就进入了<strong>PyImport_ImportModuleLevel</strong>方法内。<strong>PyImport_ImportModuleLevel</strong>函数只是对即将进行的操作进行<strong>加锁</strong>，然后调用方法<strong>import_module_level</strong>。</p>
-<pre><code><span class="function"><span class="keyword">static</span> PyObject *
-<span class="title">import_module_level</span><span class="params">(<span class="keyword">char</span> *name, PyObject *globals, PyObject *locals,
-                    PyObject *fromlist, <span class="keyword">int</span> level)</span> </span>{
-
-    <span class="comment">// [1] 获取import发生时的package</span>
-    parent = get_parent(globals, buf, &amp;buflen, level);
-
-    <span class="comment">// [2] 解析module的路径结构，依次加载每一个package/module</span>
-    head = load_next(parent, level &lt; <span class="number">0</span> ? Py_None : parent, &amp;name, buf,
-                    &amp;buflen);
-    <span class="keyword">if</span> (head == <span class="literal">NULL</span>)
-        <span class="keyword">goto</span> error_exit;
-
-    tail = head;
-    Py_INCREF(tail);
-    <span class="keyword">while</span> (name) {
-        next = load_next(tail, tail, &amp;name, buf, &amp;buflen);
-        Py_DECREF(tail);
-        <span class="keyword">if</span> (next == <span class="literal">NULL</span>) {
-            Py_DECREF(head);
-            <span class="keyword">goto</span> error_exit;
-        }
-        tail = next;
-    }
-
-    <span class="comment">// import xx.xx.xx 形式</span>
-    <span class="keyword">if</span> (fromlist == <span class="literal">NULL</span>) {
-        Py_DECREF(tail);
-        PyMem_FREE(buf);
-        <span class="keyword">return</span> head;
-    }
-
-    Py_DECREF(head);
-    <span class="comment">// from xx.xx import xx 形式</span>
-    <span class="keyword">if</span> (!ensure_fromlist(tail, fromlist, buf, buflen, <span class="number">0</span>)) {
-        Py_DECREF(tail);
-        <span class="keyword">goto</span> error_exit;
-    }
-
-    PyMem_FREE(buf);
-    <span class="keyword">return</span> tail;
-}
-</code></pre><p><strong>get_parent</strong>方法用于获取当前import动作所在的package。<strong>load_next</strong>可以认为是在导入name中声明的每一个模块，每次调用load_next都会返回本次导入的模块的PyObject，并且修改name的信息，将上次导入的模块的名称删除。</p>
-<h3 id="2-get_parent函数">2.get_parent函数</h3><pre><code><span class="function"><span class="keyword">static</span> PyObject *
-<span class="title">get_parent</span><span class="params">(PyObject *globals, <span class="keyword">char</span> *buf, Py_ssize_t *p_buflen, <span class="keyword">int</span> level)</span>
-</span>{
-
-    ......
-    <span class="comment">// 获取__package__信息，就是当前import的环境下，其所在的package叫什么名字</span>
-    pkgname = PyDict_GetItem(globals, pkgstr);
-
-    <span class="keyword">if</span> ((pkgname != <span class="literal">NULL</span>) &amp;&amp; (pkgname != Py_None)) {
-        ......
-        <span class="comment">// 如果package是存在的，那么我们直接使用它</span>
-        <span class="comment">// 将package的内容直接设置到buf里面</span>
-        <span class="built_in">strcpy</span>(buf, PyString_AS_STRING(pkgname));
-    } <span class="keyword">else</span> {
-        <span class="comment">// __package__并没有设置，我们通过其他方法找出来</span>
-        <span class="comment">// 先获得我们import的环境的__name__变量</span>
-        modname = PyDict_GetItem(globals, namestr);
-        <span class="keyword">if</span> (modname == <span class="literal">NULL</span> || !PyString_Check(modname))
-            <span class="keyword">return</span> Py_None;
-
-        <span class="comment">// 再获得__path__变量，需要知道的一点是在__init__.py</span>
-        <span class="comment">// 内部__path__变量是存在的，但其他module内部__path__</span>
-        <span class="comment">// 变量是为None的</span>
-        modpath = PyDict_GetItem(globals, pathstr);
-        <span class="keyword">if</span> (modpath != <span class="literal">NULL</span>) {
-            ......
-            <span class="comment">// __path__已经被设置了，那么__name__的值就是package的名称</span>
-            <span class="comment">// 将package的内容直接设置到buf里面</span>
-            <span class="built_in">strcpy</span>(buf, PyString_AS_STRING(modname));
-            ......
-        } <span class="keyword">else</span> {
-            <span class="comment">// __package__名称为空，那么import的动作是在某个module内部的</span>
-            <span class="keyword">char</span> *start = PyString_AS_STRING(modname);
-            <span class="comment">// lastdot就是当前module所在的package的名称</span>
-            <span class="keyword">char</span> *lastdot = <span class="built_in">strrchr</span>(start, <span class="string">'.'</span>);
-            <span class="keyword">size_t</span> len;
-            <span class="keyword">int</span> error;
-            <span class="keyword">if</span> (lastdot == <span class="literal">NULL</span> &amp;&amp; level &gt; <span class="number">0</span>) {
-                PyErr_SetString(PyExc_ValueError,
-                    <span class="string">"Attempted relative import in non-package"</span>);
-                <span class="keyword">return</span> <span class="literal">NULL</span>;
-            }
-            <span class="keyword">if</span> (lastdot == <span class="literal">NULL</span>) {
-                <span class="comment">// 我们import的环境是最上层的环境</span>
-                <span class="comment">// 比如说得命令行环境</span>
-                <span class="comment">// 程序最初的运行文件等</span>
-                error = PyDict_SetItem(globals, pkgstr, Py_None);
-                <span class="keyword">if</span> (error) {
-                    PyErr_SetString(PyExc_ValueError,
-                        <span class="string">"Could not set __package__"</span>);
-                    <span class="keyword">return</span> <span class="literal">NULL</span>;
-                }
-                <span class="keyword">return</span> Py_None;
-            }
-            len = lastdot - start;
-            <span class="comment">// 将__package__的信息设置到buf里面去</span>
-            <span class="built_in">strncpy</span>(buf, start, len);
-            ......
-        }
-    }
-    <span class="comment">// level &gt; 0 的情况很多时候都是</span>
-    <span class="comment">// from ... import a.b</span>
-    <span class="comment">// 上面的level=3</span>
-    <span class="keyword">while</span> (--level &gt; <span class="number">0</span>) {
-        <span class="keyword">char</span> *dot = <span class="built_in">strrchr</span>(buf, <span class="string">'.'</span>);
-        <span class="keyword">if</span> (dot == <span class="literal">NULL</span>) {
-            PyErr_SetString(PyExc_ValueError,
-                <span class="string">"Attempted relative import beyond "</span>
-                <span class="string">"toplevel package"</span>);
-            <span class="keyword">return</span> <span class="literal">NULL</span>;
-        }
-        *dot = <span class="string">'\0'</span>;
-    }
-    *p_buflen = <span class="built_in">strlen</span>(buf);
-
-    modules = PyImport_GetModuleDict();
-    <span class="comment">// 从sys.modules中获取对应的package</span>
-    parent = PyDict_GetItemString(modules, buf);
-    <span class="keyword">return</span> parent;
-}    
-</code></pre><h3 id="3-load_next函数">3.load_next函数</h3><pre><code><span class="keyword">static</span> <span class="type">PyObject</span> *
-load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, <span class="type">PyObject</span> *altmod, <span class="type">char</span> **p_name, <span class="type">char</span> *buf,
-          <span class="type">Py_ssize_t</span> *p_buflen)
-{
-    ... ...
-    // p_name指向被截取后的路径名称
-    <span class="keyword">if</span> (dot == <span class="type">NULL</span>) {
-        *p_name = <span class="type">NULL</span>;
-        len = strlen(name);
-    }
-    <span class="keyword">else</span> {
-        *p_name = dot+<span class="number">1</span>;
-        len = dot-name;
-    }
-    ... ...
-    // 修改buf的内容，将截取的模块内容拷贝到buf后
-    p = buf + *p_buflen;
-    <span class="keyword">if</span> (p != buf)
-        *p++ = '.';
-    <span class="keyword">if</span> (p+len-buf &gt;= <span class="type">MAXPATHLEN</span>) {
-        <span class="type">PyErr_SetString</span>(<span class="type">PyExc_ValueError</span>,
-                        <span class="string">"Module name too long"</span>);
-        <span class="keyword">return</span> <span class="type">NULL</span>;
-    }
-    strncpy(p, name, len);
-    p[len] = '\<span class="number">0</span>';
-    *p_buflen = p+len-buf;
-
-    // <span class="keyword">import</span>模块
-    <span class="literal">result</span> = import_submodule(<span class="keyword">mod</span>, p, buf);
-    <span class="keyword">if</span> (<span class="literal">result</span> == <span class="type">Py_None</span> &amp;&amp; altmod != <span class="keyword">mod</span>) {
-        //如果没有<span class="keyword">import</span>成功，那么我们从默认路径开始<span class="keyword">import</span>
-        <span class="type">Py_DECREF</span>(<span class="literal">result</span>);
-        /* <span class="type">Here</span>, altmod must be <span class="type">None</span> <span class="keyword">and</span> <span class="keyword">mod</span> must <span class="keyword">not</span> be <span class="type">None</span> */
-        <span class="literal">result</span> = import_submodule(altmod, p, p);
-        <span class="keyword">if</span> (<span class="literal">result</span> != <span class="type">NULL</span> &amp;&amp; <span class="literal">result</span> != <span class="type">Py_None</span>) {
-            <span class="keyword">if</span> (mark_miss(buf) != <span class="number">0</span>) {
-                <span class="type">Py_DECREF</span>(<span class="literal">result</span>);
-                <span class="keyword">return</span> <span class="type">NULL</span>;
-            }
-            strncpy(buf, name, len);
-            buf[len] = '\<span class="number">0</span>';
-            *p_buflen = len;
-        }
-    }
-    ... ...
-
-    <span class="keyword">return</span> <span class="literal">result</span>;
-}
-</code></pre><h3 id="4-领悟">4.领悟</h3><ol>
-<li>import是不能import进module内部的类的，比如说module A中实现了类A，那么<strong>import A_p.A.A</strong>会有问题，需要改为<strong>from A_p.A import A</strong></li>
-<li>对应<strong>from A_p.A import a</strong>形式，我们可以看成<strong>__import__(name = “A_p.A”, from_list = [“a”])</strong>，函数返回的是module A</li>
+<h3 id="1-_安装环境">1. 安装环境</h3><ol>
+<li>Windows XP 64位</li>
+</ol>
+<h3 id="2-_前期准备">2. 前期准备</h3><ol>
+<li><a href="http://dev.mysql.com/downloads/mysql/" target="_blank" rel="external">MySQL</a>（本人使用的是5.5的版本）</li>
+<li><a href="http://code.google.com/p/sqlyog/wiki/Downloads" target="_blank" rel="external">SQLyog</a>（这个根据个人喜好，就是MySQL的GUI）</li>
+<li><a href="https://git-for-windows.github.io/" target="_blank" rel="external">Git</a></li>
+<li>World of Warcraft 1.12 (Google找一下，我这边有一个，但忘记网址了，过一阵子上传到网盘上)</li>
+<li>VS 2010 或更高版本 （本人是VS2013）</li>
+</ol>
+<h3 id="3-_安装MySQL">3. 安装MySQL</h3><p>MySQL的安装我就不多说了，不会的网上一大堆教程的，这里要记住MySQL安装过程中设置的密码，后面会用到。</p>
+<h3 id="4-_安装Git">4. 安装Git</h3><p>安装指引一步一步安装就好，没有什么可注意的地方。</p>
+<h3 id="5-_创建一个根目录">5. 创建一个根目录</h3><p>创建一个名为Mangos的根目录，下面的所有操作我们都会在这个目录下进行</p>
+<h3 id="6-_下载database">6. 下载database</h3><pre><code>&gt; cd Mangos
+&gt; git <span class="keyword">clone</span> <span class="title">--recursive</span> http://github.com/mangoszero/database.git -b develop21
+</code></pre><p>这里要多少几句，我使用的是<strong>develop21</strong>分支，一开始我使用的是<strong>release20</strong>这个分支，但发现database和server的版本不匹配，并且按网上的说法打Patch都解决不了，所有就用了最新的开发分支，经本人测试完全可用。因为是开发分支，可能开发者在上面修改导致一些其他问题，所以我自己也fork了一个这样的分支，大家也可用clone我自己的git</p>
+<pre><code>git <span class="keyword">clone</span> <span class="title">--recursive</span> https://github.com/Whosemario/database.git -b develop21
+</code></pre><h3 id="7-将数据加载到MySQL">7.将数据加载到MySQL</h3><pre><code><span class="blockquote">&gt; cd Mangos</span>
+<span class="blockquote">&gt; cd database</span>
+<span class="blockquote">&gt; InstallDatabases.bat</span>
+</code></pre><p>起始就是运行database文件夹下的<strong>InstallDatabases.bat</strong>脚本。跟着提示一路配置下去。几点要注意：</p>
+<ol>
+<li>第一步输入N进行下一步</li>
+<li>MySQL的密码就是上面安装MySQL设置的密码</li>
+<li>没有其他什么要求，剩下的配置都使用默认就好，下面的教程将根据默认配置来<br>如果一切顺利，你会在MySQL里面看到三个新的数据库，如下<br><img src="http://img.blog.csdn.net/20151205222912569" alt="这里写图片描述"><br>它们分别是<strong>character0</strong> <strong>mangos0</strong> <strong>realmd</strong><br>此时还没完，这里的character0的版本会和mangos server的版本不一致，打开character0的db_version这张表。<br><img src="http://img.blog.csdn.net/20151205223222361" alt="这里写图片描述"><br>它的structure一列位1，但server需要的版本为2，所以我们要为character0打个Patch，在database/Character/Updates/rel21/目录下有一个sql文件Rel21_2_0_honor_flush.sql，将其运行即可。</li>
+</ol>
+<h3 id="8-_下载server">8. 下载server</h3><pre><code>&gt; cd Mangos
+&gt; git <span class="keyword">clone</span> <span class="title">https</span>://github.com/mangoszero/server.git --recursive -b develop21
+</code></pre><p>相同的，我也有一个对应的repo</p>
+<pre><code>git <span class="keyword">clone</span> <span class="title">https</span>://github.com/Whosemario/server.git -b develop21
+</code></pre><h3 id="9-_编译server">9. 编译server</h3><p>到Mangos/server/win目录下，里面有很多安装软件，分别安装cmake和openssl，然后运行MaNGOS_EasyBuild.exe，点击按钮<strong>Check</strong> <strong>Now</strong>，如果上面的安装一切正常，会如图<br><img src="http://img.blog.csdn.net/20151205224009966" alt="这里写图片描述"><br>点击Build Options，会有一些基本选项，按自己的需求去选择，没有什么大问题，然后点击Generate Project，最后会打开你的Visual Studio，然后rebuild整个项目，项目rebuild成功后，会在Mangos文件加下生成<strong>server_build</strong>的目录，然后进行下面两步操作：</p>
+<ol>
+<li>将server_build/bin/Debug/下的文件都拷贝到你的WoW客户端的根目录（也就是WoW.exe所在的目录）</li>
+<li>再将server_build/bin/Debug/tools/下的文件都拷贝到你的WoW客户端的根目录</li>
+<li>在WoW客户端目录下，运行<strong>ExtractResources.sh</strong>，跟着指引一步一步配置，当运行完后，会生成三个目录 <strong>dbc</strong> <strong>maps</strong> <strong>vmaps</strong>。</li>
+<li>在Mangos目录下新建名为Data的文件夹，将上面的三个目录拷贝到Data文件夹下</li>
+</ol>
+<h3 id="10-_配置Mangos_Server">10. 配置Mangos Server</h3><ol>
+<li><p>进入Mangos/server_build/bin/Debug/文件夹下，将mangosd.conf.dist文件重命名为mangosd.conf，并修改里面的内容</p>
+<pre><code><span class="setting">DataDir = <span class="value"><span class="string">"."</span>    </span></span>
+</code></pre><p> 修改为</p>
+<pre><code><span class="setting">DataDir = <span class="value"><span class="string">"C:\Mangos\Data"</span></span></span>
+</code></pre><p> 假设你的Mangos新建在C盘根目录下。</p>
+<pre><code>LoginDatabaseInfo      "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;realmd"</span>
+WorldDatabaseInfo      = "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;mangos"</span>
+ScriptDev2DatabaseInfo = "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;mangos"</span>
+CharacterDatabaseInfo  = "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;character0"</span>
+</code></pre></li>
+</ol>
+<p>修改为：</p>
+<pre><code>LoginDatabaseInfo      = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;realmd"</span>
+WorldDatabaseInfo      = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;mangos0"</span>
+ScriptDev2DatabaseInfo = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;mangos0"</span>
+CharacterDatabaseInfo  = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;characters"</span>
+</code></pre><p>假设你的MySQL密码为123456.</p>
+<ol>
+<li><p>将realmd.conf.dist文件重命名为realmd.conf</p>
+<pre><code>LoginDatabaseInfo     = "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;realmd"</span>
+</code></pre><p>改为：</p>
+<pre><code>LoginDatabaseInfo     = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;realmd"</span>
+</code></pre></li>
+<li>修改realmd数据库里面的realmlist表，将第一列带有MaNGOS的字符串替换为MyWoW</li>
+</ol>
+<h3 id="11-_修改客户端">11. 修改客户端</h3><ol>
+<li>打开realmlist.wtf，将最后的域名改为127.0.0.1</li>
+</ol>
+<h3 id="12-_启动游戏">12. 启动游戏</h3><ol>
+<li>打开Mango\server_build\bin\Debug\realmd.exe<br> <img src="http://img.blog.csdn.net/20151205225953575" alt="这里写图片描述"></li>
+<li>打开Mango\server_build\bin\Debug\mangosd.exe<br> <img src="http://img.blog.csdn.net/20151205230127299" alt="这里写图片描述"></li>
+<li>新建一个玩家<br><img src="http://img.blog.csdn.net/20151205230359778" alt="这里写图片描述"></li>
+<li><p>打开客户端WoW.exe<br><img src="http://img.blog.csdn.net/20151205232214037" alt="这里写图片描述"></p>
+<h3 id="reference">reference</h3></li>
+<li><p><a href="https://www.getmangos.eu/wiki/Installation%20Guides/Windows/MaNGOS%20Rel21.md" target="_blank" rel="external">How to Setup a MaNGOS Rel21 Server from Scratch</a></p>
+</li>
 </ol>
 </span>
       
@@ -500,7 +382,7 @@ load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, 
       
         <div class="post-tags">
           
-            <a href="/tags/Python/" rel="tag">#Python</a>
+            <a href="/tags/游戏/" rel="tag">#游戏</a>
           
         </div>
       
@@ -509,17 +391,13 @@ load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, 
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/01/05/python-class-instance/" rel="next" title="Python源码解析——Class实例创建">
-                <i class="fa fa-chevron-left"></i> Python源码解析——Class实例创建
+              <a href="/2016/04/05/interview-book/" rel="next" title="一本很有意义的GitBook">
+                <i class="fa fa-chevron-left"></i> 一本很有意义的GitBook
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2016/01/15/python-import-2/" rel="prev" title="Python Import机制（二）">
-                Python Import机制（二） <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -534,10 +412,10 @@ load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, 
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2016/01/10/python-import/"
-     data-title="Python Import机制（一）"
+        <div class="ds-share flat" data-thread-key="2016/04/21/Mangos-Zero-1/"
+     data-title="Mangos Zero 编译安装"
      data-content=""
-     data-url="http://whosemario.github.io/2016/01/10/python-import/">
+     data-url="http://whosemario.github.io/2016/04/21/Mangos-Zero-1/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -565,8 +443,8 @@ load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, 
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2016/01/10/python-import/"
-           data-title="Python Import机制（一）" data-url="http://whosemario.github.io/2016/01/10/python-import/">
+      <div class="ds-thread" data-thread-key="2016/04/21/Mangos-Zero-1/"
+           data-title="Mangos Zero 编译安装" data-url="http://whosemario.github.io/2016/04/21/Mangos-Zero-1/">
       </div>
     
   </div>
@@ -666,7 +544,7 @@ load_next(<span class="type">PyObject</span> *<span class="keyword">mod</span>, 
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-__import__函数"><span class="nav-number">1.</span> <span class="nav-text">1.__import__函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-get_parent函数"><span class="nav-number">2.</span> <span class="nav-text">2.get_parent函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-load_next函数"><span class="nav-number">3.</span> <span class="nav-text">3.load_next函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-领悟"><span class="nav-number">4.</span> <span class="nav-text">4.领悟</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-_安装环境"><span class="nav-number">1.</span> <span class="nav-text">1. 安装环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-_前期准备"><span class="nav-number">2.</span> <span class="nav-text">2. 前期准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-_安装MySQL"><span class="nav-number">3.</span> <span class="nav-text">3. 安装MySQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-_安装Git"><span class="nav-number">4.</span> <span class="nav-text">4. 安装Git</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-_创建一个根目录"><span class="nav-number">5.</span> <span class="nav-text">5. 创建一个根目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-_下载database"><span class="nav-number">6.</span> <span class="nav-text">6. 下载database</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-将数据加载到MySQL"><span class="nav-number">7.</span> <span class="nav-text">7.将数据加载到MySQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-_下载server"><span class="nav-number">8.</span> <span class="nav-text">8. 下载server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-_编译server"><span class="nav-number">9.</span> <span class="nav-text">9. 编译server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-_配置Mangos_Server"><span class="nav-number">10.</span> <span class="nav-text">10. 配置Mangos Server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-_修改客户端"><span class="nav-number">11.</span> <span class="nav-text">11. 修改客户端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-_启动游戏"><span class="nav-number">12.</span> <span class="nav-text">12. 启动游戏</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reference"><span class="nav-number">13.</span> <span class="nav-text">reference</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">

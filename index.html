@@ -241,6 +241,172 @@
             
               
                 
+                <a class="post-title-link" href="/2016/04/21/Mangos-Zero-1/" itemprop="url">
+                  Mangos Zero 编译安装
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-04-21T19:49:41+08:00" content="2016-04-21">
+              2016-04-21
+            </time>
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/04/21/Mangos-Zero-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/21/Mangos-Zero-1/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>本篇文章是我几个月前在CSDN的blog上写的，现在移过来</p>
+<p>折腾了两天，终于将Mangos Zero在自己的Windows电脑上搭建起来了，下面总结一下安装Mangos Zero过程。网上也有很多安装Mangos Zero的教程，都比较老了，有些基本不能用了。</p>
+</blockquote>
+<h3 id="1-_安装环境">1. 安装环境</h3><ol>
+<li>Windows XP 64位</li>
+</ol>
+<h3 id="2-_前期准备">2. 前期准备</h3><ol>
+<li><a href="http://dev.mysql.com/downloads/mysql/" target="_blank" rel="external">MySQL</a>（本人使用的是5.5的版本）</li>
+<li><a href="http://code.google.com/p/sqlyog/wiki/Downloads" target="_blank" rel="external">SQLyog</a>（这个根据个人喜好，就是MySQL的GUI）</li>
+<li><a href="https://git-for-windows.github.io/" target="_blank" rel="external">Git</a></li>
+<li>World of Warcraft 1.12 (Google找一下，我这边有一个，但忘记网址了，过一阵子上传到网盘上)</li>
+<li>VS 2010 或更高版本 （本人是VS2013）</li>
+</ol>
+<h3 id="3-_安装MySQL">3. 安装MySQL</h3><p>MySQL的安装我就不多说了，不会的网上一大堆教程的，这里要记住MySQL安装过程中设置的密码，后面会用到。</p>
+<h3 id="4-_安装Git">4. 安装Git</h3><p>安装指引一步一步安装就好，没有什么可注意的地方。</p>
+<h3 id="5-_创建一个根目录">5. 创建一个根目录</h3><p>创建一个名为Mangos的根目录，下面的所有操作我们都会在这个目录下进行</p>
+<h3 id="6-_下载database">6. 下载database</h3><pre><code>&gt; cd Mangos
+&gt; git <span class="keyword">clone</span> <span class="title">--recursive</span> http://github.com/mangoszero/database.git -b develop21
+</code></pre><p>这里要多少几句，我使用的是<strong>develop21</strong>分支，一开始我使用的是<strong>release20</strong>这个分支，但发现database和server的版本不匹配，并且按网上的说法打Patch都解决不了，所有就用了最新的开发分支，经本人测试完全可用。因为是开发分支，可能开发者在上面修改导致一些其他问题，所以我自己也fork了一个这样的分支，大家也可用clone我自己的git</p>
+<pre><code>git <span class="keyword">clone</span> <span class="title">--recursive</span> https://github.com/Whosemario/database.git -b develop21
+</code></pre><h3 id="7-将数据加载到MySQL">7.将数据加载到MySQL</h3><pre><code><span class="blockquote">&gt; cd Mangos</span>
+<span class="blockquote">&gt; cd database</span>
+<span class="blockquote">&gt; InstallDatabases.bat</span>
+</code></pre><p>起始就是运行database文件夹下的<strong>InstallDatabases.bat</strong>脚本。跟着提示一路配置下去。几点要注意：</p>
+<ol>
+<li>第一步输入N进行下一步</li>
+<li>MySQL的密码就是上面安装MySQL设置的密码</li>
+<li>没有其他什么要求，剩下的配置都使用默认就好，下面的教程将根据默认配置来<br>如果一切顺利，你会在MySQL里面看到三个新的数据库，如下<br><img src="http://img.blog.csdn.net/20151205222912569" alt="这里写图片描述"><br>它们分别是<strong>character0</strong> <strong>mangos0</strong> <strong>realmd</strong><br>此时还没完，这里的character0的版本会和mangos server的版本不一致，打开character0的db_version这张表。<br><img src="http://img.blog.csdn.net/20151205223222361" alt="这里写图片描述"><br>它的structure一列位1，但server需要的版本为2，所以我们要为character0打个Patch，在database/Character/Updates/rel21/目录下有一个sql文件Rel21_2_0_honor_flush.sql，将其运行即可。</li>
+</ol>
+<h3 id="8-_下载server">8. 下载server</h3><pre><code>&gt; cd Mangos
+&gt; git <span class="keyword">clone</span> <span class="title">https</span>://github.com/mangoszero/server.git --recursive -b develop21
+</code></pre><p>相同的，我也有一个对应的repo</p>
+<pre><code>git <span class="keyword">clone</span> <span class="title">https</span>://github.com/Whosemario/server.git -b develop21
+</code></pre><h3 id="9-_编译server">9. 编译server</h3><p>到Mangos/server/win目录下，里面有很多安装软件，分别安装cmake和openssl，然后运行MaNGOS_EasyBuild.exe，点击按钮<strong>Check</strong> <strong>Now</strong>，如果上面的安装一切正常，会如图<br><img src="http://img.blog.csdn.net/20151205224009966" alt="这里写图片描述"><br>点击Build Options，会有一些基本选项，按自己的需求去选择，没有什么大问题，然后点击Generate Project，最后会打开你的Visual Studio，然后rebuild整个项目，项目rebuild成功后，会在Mangos文件加下生成<strong>server_build</strong>的目录，然后进行下面两步操作：</p>
+<ol>
+<li>将server_build/bin/Debug/下的文件都拷贝到你的WoW客户端的根目录（也就是WoW.exe所在的目录）</li>
+<li>再将server_build/bin/Debug/tools/下的文件都拷贝到你的WoW客户端的根目录</li>
+<li>在WoW客户端目录下，运行<strong>ExtractResources.sh</strong>，跟着指引一步一步配置，当运行完后，会生成三个目录 <strong>dbc</strong> <strong>maps</strong> <strong>vmaps</strong>。</li>
+<li>在Mangos目录下新建名为Data的文件夹，将上面的三个目录拷贝到Data文件夹下</li>
+</ol>
+<h3 id="10-_配置Mangos_Server">10. 配置Mangos Server</h3><ol>
+<li><p>进入Mangos/server_build/bin/Debug/文件夹下，将mangosd.conf.dist文件重命名为mangosd.conf，并修改里面的内容</p>
+<pre><code><span class="setting">DataDir = <span class="value"><span class="string">"."</span>    </span></span>
+</code></pre><p> 修改为</p>
+<pre><code><span class="setting">DataDir = <span class="value"><span class="string">"C:\Mangos\Data"</span></span></span>
+</code></pre><p> 假设你的Mangos新建在C盘根目录下。</p>
+<pre><code>LoginDatabaseInfo      "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;realmd"</span>
+WorldDatabaseInfo      = "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;mangos"</span>
+ScriptDev2DatabaseInfo = "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;mangos"</span>
+CharacterDatabaseInfo  = "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;character0"</span>
+</code></pre></li>
+</ol>
+<p>修改为：</p>
+<pre><code>LoginDatabaseInfo      = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;realmd"</span>
+WorldDatabaseInfo      = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;mangos0"</span>
+ScriptDev2DatabaseInfo = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;mangos0"</span>
+CharacterDatabaseInfo  = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;characters"</span>
+</code></pre><p>假设你的MySQL密码为123456.</p>
+<ol>
+<li><p>将realmd.conf.dist文件重命名为realmd.conf</p>
+<pre><code>LoginDatabaseInfo     = "<span class="number">127.0.0.1</span><span class="comment">;3306;mangos;mangos;realmd"</span>
+</code></pre><p>改为：</p>
+<pre><code>LoginDatabaseInfo     = "<span class="number">127.0.0.1</span><span class="comment">;3306;root;123456;realmd"</span>
+</code></pre></li>
+<li>修改realmd数据库里面的realmlist表，将第一列带有MaNGOS的字符串替换为MyWoW</li>
+</ol>
+<h3 id="11-_修改客户端">11. 修改客户端</h3><ol>
+<li>打开realmlist.wtf，将最后的域名改为127.0.0.1</li>
+</ol>
+<h3 id="12-_启动游戏">12. 启动游戏</h3><ol>
+<li>打开Mango\server_build\bin\Debug\realmd.exe<br> <img src="http://img.blog.csdn.net/20151205225953575" alt="这里写图片描述"></li>
+<li>打开Mango\server_build\bin\Debug\mangosd.exe<br> <img src="http://img.blog.csdn.net/20151205230127299" alt="这里写图片描述"></li>
+<li>新建一个玩家<br><img src="http://img.blog.csdn.net/20151205230359778" alt="这里写图片描述"></li>
+<li><p>打开客户端WoW.exe<br><img src="http://img.blog.csdn.net/20151205232214037" alt="这里写图片描述"></p>
+<h3 id="reference">reference</h3></li>
+<li><p><a href="https://www.getmangos.eu/wiki/Installation%20Guides/Windows/MaNGOS%20Rel21.md" target="_blank" rel="external">How to Setup a MaNGOS Rel21 Server from Scratch</a></p>
+</li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/04/05/interview-book/" itemprop="url">
                   一本很有意义的GitBook
                 </a>
@@ -1632,229 +1798,6 @@ nfds = kevent(<span class="keyword">loop</span>-&gt;backend_fd,
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/02/17/hash-table/" itemprop="url">
-                  关于Python Dict
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-02-17T09:40:35+08:00" content="2016-02-17">
-              2016-02-17
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/02/17/hash-table/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/17/hash-table/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>这篇文章主要是写一些自己对Python原生Dict的理解和感悟</p>
-</blockquote>
-<h3 id="1-对比">1.对比</h3><p>游戏里面很多策划表是以Python Dict的形式存在的，并且这些Python Dict是常驻内存的，在Python的GC机制里面也是存在于最老的generation里面的。那么Python Dict到底有多耗内存呢？我利用pymalloctrace做过一个简单的对比。      </p>
-<h5 id="Case_One：">Case One：</h5><p>构建一个如下数据      </p>
-<pre><code>d = {
-    <span class="number">1</span> : {<span class="number">1</span>:<span class="number">1</span>, <span class="number">2</span>:<span class="number">4</span>, <span class="number">3</span>:<span class="number">9</span>, ... <span class="number">19</span>:<span class="number">361</span>}
-    <span class="number">2</span> : <span class="decorator">{...}</span>
-    ...
-    <span class="number">9999</span>: <span class="decorator">{...}</span>
-}
-</code></pre><p>利用pytracemalloc看一下它的内存占用量到底有多少，测试代码如下：</p>
-<pre><code> 1 # -*- coding:utf-8 -*-
- 2
- 3 import os
- 4 import sys
- 5 import tracemalloc
- 6
- 7 tracemalloc.start()
- 8
- 9 <span class="keyword">d</span> = {}
-10 <span class="keyword">for</span> i <span class="keyword">in</span> xrange(1, 10000):
-11     sub_d = {}
-12     <span class="keyword">for</span> j <span class="keyword">in</span> xrange(1, 20):
-13         sub_d[j] = j*<span class="literal">j</span>
-14     <span class="keyword">d</span>[i] = sub_d
-15
-16 snapshot = tracemalloc.take_snapshot()
-17 statis = snapshot.statistics(<span class="string">"lineno"</span>)
-18 <span class="keyword">total</span> = 0
-19 <span class="keyword">for</span> stat <span class="keyword">in</span> statis:
-20     <span class="keyword">total</span> += stat.size
-21
-22 <span class="keyword">for</span> stat <span class="keyword">in</span> statis[:10]:
-23     <span class="keyword">print</span> stat
-24
-25 <span class="keyword">print</span> <span class="keyword">total</span> / 1024.0 / 1024.0, <span class="string">"M"</span>
-</code></pre><p>最后输出的结果：</p>
-<pre><code>test_dict.py:<span class="number">13</span>: size=<span class="number">8208</span> KiB, count=<span class="number">10731</span>, average=<span class="number">783</span> B
-test_dict.py:<span class="number">11</span>: size=<span class="number">2734</span> KiB, count=<span class="number">9999</span>, average=<span class="number">280</span> B
-test_dict.py:<span class="number">14</span>: size=<span class="number">768</span> KiB, count=<span class="number">1</span>, average=<span class="number">768</span> KiB
-test_dict.py:<span class="number">10</span>: size=<span class="number">229</span> KiB, count=<span class="number">237</span>, average=<span class="number">992</span> B
-test_dict.py:<span class="number">16</span>: size=<span class="number">456</span> B, count=<span class="number">1</span>, average=<span class="number">456</span> B
-<span class="number">11.66065979</span> M
-</code></pre><p>11M，占用最多的地方就是在Dict被赋值的地方。</p>
-<h5 id="Case_Two">Case Two</h5><p>接下来换一种方式：数据使用tuple进行存储，索引用dict，输入格式如下：</p>
-<pre><code>value_index = {<span class="number">1</span> : <span class="number">0</span>, <span class="number">2</span> : <span class="number">1</span>, ... <span class="number">19</span>: <span class="number">18</span>}
-top_index = {<span class="number">1</span> : <span class="number">0</span>, <span class="number">2</span> : <span class="number">1</span>, ... <span class="number">9999</span> : <span class="number">9998</span>}
-d = (
-    (<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>, ..., <span class="number">361</span>),
-    (<span class="number">1</span>, <span class="number">4</span>, <span class="number">9</span>, ..., <span class="number">361</span>), 
-    ...
-)
-</code></pre><p>测试代码如下：</p>
-<pre><code>   <span class="number">1</span> <span class="comment"># -*- coding:utf-8 -*-</span>
- <span class="number">2</span>
- <span class="number">3</span> <span class="keyword">import</span> os
- <span class="number">4</span> <span class="keyword">import</span> sys
- <span class="number">5</span> <span class="keyword">import</span> tracemalloc
- <span class="number">6</span>
- <span class="number">7</span> <span class="function"><span class="keyword">def</span> <span class="title">sub_gen</span><span class="params">()</span>:</span>
- <span class="number">8</span>     <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">20</span>):
- <span class="number">9</span>         <span class="keyword">yield</span> i*i
-<span class="number">10</span>
-<span class="number">11</span> <span class="function"><span class="keyword">def</span> <span class="title">gen</span><span class="params">()</span>:</span>
-<span class="number">12</span>     <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">10000</span>):
-<span class="number">13</span>         <span class="keyword">yield</span> tuple(sub_gen())
-<span class="number">14</span>
-<span class="number">15</span> tracemalloc.start()
-<span class="number">16</span>
-<span class="number">17</span> value_index = {}
-<span class="number">18</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">20</span>):
-<span class="number">19</span>     value_index[i] = i - <span class="number">1</span>
-<span class="number">20</span>
-<span class="number">21</span> top_index = {}
-<span class="number">22</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">1</span>, <span class="number">10000</span>):
-<span class="number">23</span>     top_index[i] = i - <span class="number">1</span>
-<span class="number">24</span>
-<span class="number">25</span> d = tuple(gen())
-<span class="number">26</span>
-<span class="number">27</span> snapshot = tracemalloc.take_snapshot()
-<span class="number">28</span> statis = snapshot.statistics(<span class="string">"lineno"</span>)
-<span class="number">29</span> total = <span class="number">0</span>
-<span class="number">30</span> <span class="keyword">for</span> stat <span class="keyword">in</span> statis:
-<span class="number">31</span>     total += stat.size
-<span class="number">32</span>
-<span class="number">33</span> <span class="keyword">for</span> stat <span class="keyword">in</span> statis[:<span class="number">10</span>]:
-<span class="number">34</span>     <span class="keyword">print</span> stat
-<span class="number">35</span>
-<span class="number">36</span> <span class="keyword">print</span> total / <span class="number">1024.0</span> / <span class="number">1024.0</span>, <span class="string">"M"</span>
-</code></pre><p>运行结果如下：</p>
-<pre><code>test_tuple.py:<span class="number">13</span>: size=<span class="number">2031</span> KiB, count=<span class="number">10000</span>, average=<span class="number">208</span> B
-test_tuple.py:<span class="number">23</span>: size=<span class="number">998</span> KiB, count=<span class="number">239</span>, average=<span class="number">4278</span> B
-test_tuple.py:<span class="number">9</span>: size=<span class="number">478</span> KiB, count=<span class="number">494</span>, average=<span class="number">992</span> B
-test_tuple.py:<span class="number">22</span>: size=<span class="number">229</span> KiB, count=<span class="number">237</span>, average=<span class="number">992</span> B
-test_tuple.py:<span class="number">12</span>: size=<span class="number">229</span> KiB, count=<span class="number">237</span>, average=<span class="number">992</span> B
-test_tuple.py:<span class="number">25</span>: size=<span class="number">78.0</span> KiB, count=<span class="number">2</span>, average=<span class="number">39.0</span> KiB
-test_tuple.py:<span class="number">19</span>: size=<span class="number">768</span> B, count=<span class="number">1</span>, average=<span class="number">768</span> B
-test_tuple.py:<span class="number">27</span>: size=<span class="number">456</span> B, count=<span class="number">1</span>, average=<span class="number">456</span> B
-test_tuple.py:<span class="number">21</span>: size=<span class="number">280</span> B, count=<span class="number">1</span>, average=<span class="number">280</span> B
-<span class="number">3.95300292969</span> M
-</code></pre><p>结果才3M，为什么会差距这么大，原因就是在tuple和dict的内部实现的不同。</p>
-<h3 id="2-Dict内部实现说明">2.Dict内部实现说明</h3><p>Python Dict是一个Hash表，其解决冲突的方式是<strong>开放寻址法</strong>。在Dict中存储数据是一个线性数组，key值通过hash函数转换为一个整数，对应于数组中的索引，如果此索引下的数据没有被占用，怎将数据存储；否则，当存在冲突的时候，开放寻址法利用冲突函数找到下一个索引，重复上面的步骤。<br>基于某些理论，当数组中可用空间小于1/3时，此线性数据将会进行扩展，下面是Python Dict中在插入数据之后会进行检查，如果空间不满足要求则进行扩展。</p>
-<pre><code><span class="preprocessor"># in dictobject.c</span>
-<span class="function"><span class="keyword">static</span> <span class="keyword">int</span>
-<span class="title">dict_set_item_by_hash_or_entry</span><span class="params">(<span class="keyword">register</span> PyObject *op, PyObject *key,
-                           <span class="keyword">long</span> hash, PyDictEntry *ep, PyObject *value)</span>
-</span>{
-    ....
-    <span class="keyword">if</span> (!(mp-&gt;ma_used &gt; n_used &amp;&amp; mp-&gt;ma_fill*<span class="number">3</span> &gt;= (mp-&gt;ma_mask+<span class="number">1</span>)*<span class="number">2</span>))
-        <span class="keyword">return</span> <span class="number">0</span>;
-    <span class="keyword">return</span> dictresize(mp, (mp-&gt;ma_used &gt; <span class="number">50000</span> ? <span class="number">2</span> : <span class="number">4</span>) * mp-&gt;ma_used);
-}
-</code></pre><p>我们看到最后一段，dict的扩容将会以使用数量的2倍或者4倍进行扩容，保守上说整个线性数组中有1/3的空间是没有用的。</p>
-<h3 id="3-Tuple内部实现说明">3.Tuple内部实现说明</h3><p>tuple的内部实现则很简单。</p>
-<pre><code><span class="keyword">typedef</span> <span class="keyword">struct</span> {
-    PyObject_VAR_HEAD
-    PyObject *ob_item[<span class="number">1</span>];
-} PyTupleObject;
-</code></pre><p>ob_item存储tuple数据，可以理解为一个线性的数组，其大小在初始化的时候已经确定且无法改变。</p>
-<h3 id="4-小结">4.小结</h3><p>Python dict和tuple内存占用为何差这么多，原因不仅是上面提到的线性数组利用率的问题，还有线性数组存储的数据：tuple只是存储PyObject，但是dict要存储对应的hash值，key和value，这也是导致内存占用差距变大的原因。</p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -1901,7 +1844,7 @@ test_tuple.py:<span class="number">21</span>: size=<span class="number">280</spa
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">34</span>
+              <span class="site-state-item-count">35</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
@@ -1915,7 +1858,7 @@ test_tuple.py:<span class="number">21</span>: size=<span class="number">280</spa
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">18</span>
+              <span class="site-state-item-count">19</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>
