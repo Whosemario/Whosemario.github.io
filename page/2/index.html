@@ -237,6 +237,122 @@
             
               
                 
+                <a class="post-title-link" href="/2016/02/22/python-reload/" itemprop="url">
+                  关于Python服务器Hotfix的个人理解
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-02-22T22:27:18+08:00" content="2016-02-22">
+              2016-02-22
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/02/22/python-reload/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/22/python-reload/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>粗略地讲一下个人对Python服务器Hotfix的理解</p>
+</blockquote>
+<h3 id="1-Hotfix期望目标">1.Hotfix期望目标</h3><ol>
+<li>Python服务器不停机</li>
+<li>不需要重新赋值实例的__class__</li>
+<li>不需要重新赋值module</li>
+</ol>
+<p>基于上面的期望目标，需要怎样实现Hotfix？</p>
+<h3 id="2-Hotfix基本思路">2.Hotfix基本思路</h3><h4 id="怎样保持Module的引用不变">怎样保持Module的引用不变</h4><h5 id="方案1">方案1</h5><p>最容易想到的就是<strong>reload</strong>方法，其实reload方法内部实现也是分别调用<strong>find_module</strong>和<strong>load_module</strong>两个方法，在load_module方法中如果sys.module中存在需要加载的Module，那么加载module的内容是在老module的基础上加载的。这样我们会发现reload前后module的id是相同的。</p>
+<h5 id="方案2">方案2</h5><p>单独调用imp.find_module方法和imp.load_module两个方法，当然前提也是要加载的Module在sys.module中存在。</p>
+<h4 id="Class不替换而是修改内部的function">Class不替换而是修改内部的function</h4><h5 id="方案1-1">方案1</h5><p>此方案是基于Module不变的方案1来做的，在reload之前，保存老的module的__dict__内容，然后reload之后，去尝试更新老的__dict__中的方法，并将其再次赋值给新的module。</p>
+<h5 id="方案2-1">方案2</h5><p>此方案也对应Module不变的方案2来做的，我们需要利用sys.meta_path来hook住Python的find_module函数（原因我在<a href="http://whosemario.github.io/2016/01/15/python-import-2/">这里</a>讲过），从而在import的过程中尝试替换新的module的Class和Function。</p>
+<h3 id="3-小结">3.小结</h3><p>上面说的都很抽象，原因是上面的有些思路工作在用，不愿意具体讲，其次这里只是做一些个人的理解，等着合适的时候写一个Python服务器Hotfix的功能模块。</p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/02/17/hash-table/" itemprop="url">
                   关于Python Dict
                 </a>
@@ -1877,145 +1993,6 @@ self.statem.change_to(<span class="string">"idle"</span>)
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/01/16/observer-pattern/" itemprop="url">
-                  新手教学中的观察者模式
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-01-16T14:21:02+08:00" content="2016-01-16">
-              2016-01-16
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/设计模式/" itemprop="url" rel="index">
-                    <span itemprop="name">设计模式</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/01/16/observer-pattern/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/16/observer-pattern/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>手游的新手教学是再常见不过了，我们的手游新手教学也进行了三次比较大得迭代，每次迭代不仅包括策划案的迭代，也包括游戏逻辑代码的设计迭代。新手的实现中最主要使用了<strong>观察者模式</strong>，本文先大体讲一下新手模块的设计方案，之后终点介绍<strong>观察者模式</strong>在游戏中的使用。</p>
-</blockquote>
-<h3 id="1-新手教学的设计实现">1.新手教学的设计实现</h3><p>我们希望将新手模块设计成一个尽量独立的模块，不去影响其他模块的开发。举个简单的例子，在装备界面我们会设计一个新手教学，但我们不希望由于新手教学的加入导致装备界面的逻辑还要进行过多的修改。基于这样的需求或者说最基本的初衷，我们可以将新手模块设计如下：</p>
-<p><img src="/images/observer-pattern-p1.png" alt=""></p>
-<p>每一个新手步骤可以理解为用户随着新手指引的每一次点击操作(或者滑动，拖拽操作)，从新手步骤1到新手步骤2的条件就是<strong>event_1</strong>这个事件被触发了，同时我们可以发现<strong>event_1</strong>事件的触发是通过用户操作装备界面的”操作”进行触发的。这样整个流程就很明白了，UI层接受用户的操作，根据不同的操作下放不同的事件，UI层是不需要关心是谁去接收或者说处理这些事件的，事件可以有监听者也可以没有，在这里，新手模块就是某些事件的监听者，它监听到某些事件后，根据策划的需求转换自己的当前状态，最明显的就是转换到下一个新手阶段。这种设计就是非常常见的<strong>观察者模式</strong>。<br>游戏逻辑的各个角落都在使用这种模式，但接下来我们先回顾一下<strong>观察者模式</strong>到底长什么样。</p>
-<h3 id="2-观察者模式">2.观察者模式</h3><p><img src="/images/observer-pattern-p2.png" alt=""></p>
-<p>上面是最基本的观察者模式的UML图     </p>
-<ul>
-<li>Dispatcher: 分发消息的对象，也成为目标对象。一个目标对象可以有多个观察者，目标可以添加或者删除观察者。</li>
-<li>Listener：观察者，具有do_event方法，接收Dispatcher的调用。  </li>
-</ul>
-<p>但在我们的游戏中，并没有完全参照观察者模式的架构进行实现，我们的实现很简单：一个Dispatcher类，维护者所有的listener，并且listener其实只是PyFunction。</p>
-<pre><code><span class="keyword">class</span> Dispatcher(object):
-
-    def __init__(<span class="keyword">self</span>):
-        super(Dispatcher, <span class="keyword">self</span>).__init__()
-        <span class="comment">// event -&gt; listener_list</span>
-        <span class="keyword">self</span>.listeners = <span class="comment">{}</span>
-
-    def add_listener(<span class="keyword">self</span>, <span class="keyword">event</span>, listener):
-        <span class="keyword">if</span> <span class="keyword">not</span> <span class="keyword">self</span>.listeners.get(<span class="keyword">event</span>, None):
-            <span class="keyword">self</span>.listeners[<span class="keyword">event</span>] = []
-        <span class="keyword">self</span>.listeners[<span class="keyword">event</span>].append(listener)
-
-    def remove_listener(<span class="keyword">self</span>, <span class="keyword">event</span>, listener):
-        <span class="keyword">if</span> listener <span class="keyword">in</span> <span class="keyword">self</span>.listeners.get(<span class="keyword">event</span>, []):
-            <span class="keyword">self</span>.listeners[<span class="keyword">event</span>].<span class="keyword">remove</span>(listener)
-
-    def dispatch_event(<span class="keyword">self</span>, <span class="keyword">event</span>, data):
-        <span class="keyword">if</span> <span class="keyword">event</span> <span class="keyword">in</span> <span class="keyword">self</span>.listeners:
-            <span class="keyword">for</span> listener <span class="keyword">in</span> <span class="keyword">self</span>.listeners[<span class="keyword">event</span>]:
-                listener(data)
-</code></pre><h3 id="3-观察者模式在游戏中的使用">3.观察者模式在游戏中的使用</h3><p>成就系统又是一个典型使用观察者模式的模块，比如获得十件金装，每一次获得一件金装，变会dispatch一个获得金装的事件，成就系统获取事件并记录，当达到十件金装的时候通知玩家达成此成就。<br>观察者模式的使用，降低了模块直接的耦合度，我们删除或者关闭一个模块的功能，其他模块并不需要关心，因为他们直接的”交流”都是通过事件传输的，而不是直接的方法调用。</p>
-<h3 id="4-Reference">4.Reference</h3><ol>
-<li><a href="http://gameprogrammingpatterns.com/observer.html" target="_blank" rel="external">Game Programming Pattern —— Observer</a></li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2062,7 +2039,7 @@ self.statem.change_to(<span class="string">"idle"</span>)
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-count">36</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>

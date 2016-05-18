@@ -237,6 +237,198 @@
             
               
                 
+                <a class="post-title-link" href="/2015/11/22/python-coroutine/" itemprop="url">
+                  Python Coroutine 初探
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2015-11-22T16:07:06+08:00" content="2015-11-22">
+              2015-11-22
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/11/22/python-coroutine/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/22/python-coroutine/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <h3 id="从Python2-5开始">从Python2.5开始</h3><p>首先引用PEP342开篇的一段话</p>
+<blockquote>
+<p>This PEP proposes some enhancements to the API and syntax of generators, to make them usable as simple coroutines.</p>
+</blockquote>
+<p>在Python2.x，我们可以用Generator来实现Coroutine的功能。</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">coroutine</span><span class="params">(func)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">(*args, **kwargs)</span>:</span>
+        cr = func(*args, **kwargs)    
+        <span class="keyword">try</span>:
+            cr.next()
+        <span class="keyword">except</span> StopIteration: <span class="keyword">pass</span>
+        <span class="keyword">return</span> cr
+    <span class="keyword">return</span> wrapper
+</code></pre><p>上面是一个coroutine的修饰器，如下是使用此修饰器的方法。</p>
+<pre><code><span class="decorator">@coroutine</span>
+<span class="function"><span class="keyword">def</span> <span class="title">grep</span><span class="params">(pattern)</span>:</span>
+     <span class="keyword">print</span> <span class="string">"Looking for %s"</span> % pattern
+     <span class="keyword">while</span> <span class="keyword">True</span>:
+     line = (<span class="keyword">yield</span>)
+     <span class="keyword">if</span> pattern <span class="keyword">in</span> line:
+     <span class="keyword">print</span> line,
+
+ g = grep(<span class="string">"hello"</span>)
+ g.send(<span class="string">"hello world"</span>)
+ g.send(<span class="string">"test hello"</span>)
+ g.send(<span class="string">"test world"</span>)
+</code></pre><p>其实python在编译grep这段代码的时候，发现有yield关键字，func_code的co_flags会存在CO_GENERATOR标志位，因此在<strong>PyEval_EvalCodeEx</strong>执行的过程中会返回一个generator实例，而不是去执行这个函数的func_code。generator实例中会保存对应的PyFrameObject。</p>
+<pre><code>PyObject *
+PyGen_New(PyFrameObject *f)
+{
+    PyGenObject *gen = PyObject_GC_New(PyGenObject, <span class="subst">&amp;</span>PyGen_Type);
+    <span class="attribute">...</span> <span class="attribute">...</span>
+    gen<span class="subst">-&gt;</span>gi_frame = f;
+    Py_INCREF(f<span class="subst">-&gt;</span>f_code);
+    gen<span class="subst">-&gt;</span>gi_code = (PyObject *)(f<span class="subst">-&gt;</span>f_code);
+    gen<span class="subst">-&gt;</span>gi_running = <span class="number">0</span>;
+    gen<span class="subst">-&gt;</span>gi_weakreflist = <span class="built_in">NULL</span>;
+    _PyObject_GC_TRACK(gen);
+    <span class="keyword">return</span> (PyObject *)gen;
+}
+</code></pre><p>在generator的send方法中会继续运行此时保存的PyFrameObject。</p>
+<pre><code><span class="keyword">static</span> <span class="type">PyObject</span> *
+gen_send_ex(<span class="type">PyGenObject</span> *gen, <span class="type">PyObject</span> *arg, <span class="type">int</span> exc)
+{
+    <span class="type">PyThreadState</span> *tstate = <span class="type">PyThreadState_GET</span>();
+    <span class="type">PyFrameObject</span> *f = gen-&gt;gi_frame;
+    <span class="type">PyObject</span> *<span class="literal">result</span>;
+    ... ...
+    <span class="literal">result</span> = <span class="type">PyEval_EvalFrameEx</span>(f, exc);
+    ... ...
+    <span class="keyword">return</span> <span class="literal">result</span>
+}
+</code></pre><h3 id="Python3-3的yield_from">Python3.3的yield from</h3><p>Python3.3针对Generator加入了新的语法<strong>yield</strong> <strong>from</strong>，个人感觉新的语法可以让某些功能的实现更新简洁（其实就是少写点代码啊，，，），但真正本质上并没有改善Generator。<a href="http://blog.theerrorlog.com/yield-from-in-python-3.html" target="_blank" rel="external">这篇文章</a>对yield from语法做了一定的解释。</p>
+<h3 id="Python3-5_async_def">Python3.5 async def</h3><p>Python3.5引入了async def语法，定义一个coroutine。</p>
+<pre><code><span class="keyword">import</span> asyncio
+
+<span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span><span class="params">(x, y)</span>:</span>
+    print(<span class="string">"Compute %s + %s ..."</span> % (x, y))
+    <span class="keyword">await</span> asyncio.sleep(<span class="number">1.0</span>)
+    <span class="keyword">return</span> x + y
+
+<span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">print_sum</span><span class="params">(x, y)</span>:</span>
+    result = <span class="keyword">await</span> compute(x, y)
+    print(<span class="string">"%s + %s = %s"</span> % (x, y, result))
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(print_sum(<span class="number">1</span>, <span class="number">2</span>))
+loop.close()
+</code></pre><p>当async def函数里面调用await的时候，这个coroutine将会被挂起(Suspended)。但看Python3.5的源码后发现，coroutine的内部实现和generator的内部实现基本相同。</p>
+<pre><code><span class="comment"># genobject.c</span>
+PyTypeObject PyCoro_Type = {
+    PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
+    <span class="string">"coroutine"</span>,                                /<span class="keyword">*</span> tp_name <span class="keyword">*</span>/
+    ...
+    coro_methods,                               /<span class="keyword">*</span> tp_methods <span class="keyword">*</span>/
+    ...
+};
+</code></pre><p>上面是coroutine的PyTypeObject的定义，其实一开始的示例代码中print_sum函数返回的正是一个coroutine实例（是不是跟generator很像呢？！）。我们在看一下coro_methods的定义。</p>
+<pre><code><span class="keyword">static</span> PyMethodDef coro_methods[] = {
+    {<span class="string">"send"</span>,(Py<span class="built_in">CFunction</span>)_PyGen_Send, METH_O, coro_send_doc},
+    {<span class="string">"throw"</span>,(Py<span class="built_in">CFunction</span>)gen_throw, METH_VARARGS, coro_throw_doc},
+    {<span class="string">"close"</span>,(Py<span class="built_in">CFunction</span>)gen_close, METH_NOARGS, coro_close_doc},
+    {<span class="literal">NULL</span>, <span class="literal">NULL</span>}        <span class="comment">/* Sentinel */</span>
+};
+</code></pre><p><strong>send</strong>方法的实现就是_PyGen_Send，和generator的实现一模一样，await后面可以紧跟一个新的coroutine实例，这个功能则归功于Python3.3开始出现的yield from语法。</p>
+<h3 id="references：">references：</h3><ol>
+<li>PEP342 - <a href="https://www.python.org/dev/peps/pep-0342/" target="_blank" rel="external">https://www.python.org/dev/peps/pep-0342/</a></li>
+<li>PEP380 - <a href="https://docs.python.org/3/whatsnew/3.3.html#pep-380" target="_blank" rel="external">https://docs.python.org/3/whatsnew/3.3.html#pep-380</a></li>
+<li>A Curious Course on Coroutines and Concurrency - <a href="http://www.dabeaz.com/coroutines/Coroutines.pdf" target="_blank" rel="external">http://www.dabeaz.com/coroutines/Coroutines.pdf</a></li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2015/11/12/timer/" itemprop="url">
                   怎样实现一个Timer
                 </a>
@@ -1123,7 +1315,7 @@ results.sort()
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-count">36</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>

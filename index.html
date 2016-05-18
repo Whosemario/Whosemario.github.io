@@ -241,6 +241,120 @@
             
               
                 
+                <a class="post-title-link" href="/2016/05/18/virtual-memory/" itemprop="url">
+                  虚拟内存管理（一）
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-05-18T16:18:51+08:00" content="2016-05-18">
+              2016-05-18
+            </time>
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/05/18/virtual-memory/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/18/virtual-memory/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>很久以前就想写一下关于虚拟内存管理方面的文章，主要还是写给自己看的。原因主要是自己对Linux虚拟内存管理也是一知半解，写一篇博客，记录一下自己这几天的学习笔记，留着以后做参考。</p>
+</blockquote>
+<p>这一篇主要讲一下虚拟地址到物理地址的转换。主要参考《深入理解计算机系统》一书。</p>
+<h3 id="关于逻辑地址、线性地址和物理地址">关于逻辑地址、线性地址和物理地址</h3><h5 id="物理地址：">物理地址：</h5><p>物理地址可以想象成实际物理存储上的地址 </p>
+<h5 id="线性地址：">线性地址：</h5><p>线性地址也可以叫做虚拟地址，是一个不真实的地址，可以理解为页式管理中的地址      </p>
+<h5 id="逻辑地址：">逻辑地址：</h5><p>逻辑地址与线性地址一样，是一个不真实的地址，用于Intel段式管理中的地址      </p>
+<h5 id="三个地址的转换关系：">三个地址的转换关系：</h5><p>逻辑地址–&gt;线性地址–&gt;物理地址</p>
+<h3 id="逻辑地址–&gt;线性地址">逻辑地址–&gt;线性地址</h3><p>逻辑地址由两部分组成，段标识符和段内偏移地址。段标识符是有个16位长的字段组成，叫做段选择符。其中高13位是一个索引号，如下图：<br><img src="/images/virtual-memory-1-1.png" alt=""></p>
+<p>索引号用于索引段描述符表的某一段描述符，段描述符格式如下图：<br><img src="/images/virtual-memory-1-2.png" alt=""></p>
+<p>在Linux下，段描述符的Base都是0，因此逻辑地址的段内偏移量就是线性地址，接下来看一下线性地址怎样转换成物理地址的。</p>
+<h3 id="线性地址–&gt;物理地址">线性地址–&gt;物理地址</h3><p>首先宏观上的看一下线性地址（虚拟地址）到物理地址的转换<br><img src="/images/virtual-memory-1-3.png" alt=""></p>
+<p>虚拟地址高位有一个页表索引，通过页表索引可以在页表中找到对应的一个页表入口(Page Table Entry)，在PTE中可以得到物理页号，然后在加上原先在虚拟地址中的偏移量，就会定位到最终的地址。</p>
+<h4 id="基本流程">基本流程</h4><p><img src="/images/virtual-memory-1-4.png" alt=""></p>
+<p>如上图是一个正常的命中流程：    </p>
+<ol>
+<li>处理器生成一个虚拟地址，并将其给MMU</li>
+<li>MMU生成一个PTE地址，从高速缓存/主存中请求获取</li>
+<li>高速缓存/主存将PTE数据传回MMU</li>
+<li>MMU生成物理地址，传给高速缓存/主存</li>
+<li>高速缓存/主存将数据传回处理器</li>
+</ol>
+<p><img src="/images/virtual-memory-1-5.png" alt=""></p>
+<p>上图是发生缺页中断的情况，高速缓存/主存会将牺牲页换出，将新页换进。</p>
+<h4 id="利用TLB加速地址翻译">利用TLB加速地址翻译</h4><p>TLB全称翻译后备缓冲器(Translation Lookaside Buffer)，位于MMU内存，其实就是缓存住了一些PTE，那么MMU就不需要从高速缓存/主存中获取PTE了。</p>
+<h4 id="多级页表">多级页表</h4><p>如果是32位的虚拟地址空间，一个页的大小为4K，那一张页表就有1M个PTE，如果每个PTE的大小为4个字节，那么页表占用内存大小为4MB。如果是64位机器，它的寻址位数是48位，那页表就更大了。<br>解决方式是讲页表分为多级，如下图：<br><img src="/images/virtual-memory-1-6.png" alt="">  </p>
+<p>地址翻译的过程基本就差不多了。 </p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/04/21/Mangos-Zero-1/" itemprop="url">
                   Mangos Zero 编译安装
                 </a>
@@ -1682,122 +1796,6 @@ nfds = kevent(<span class="keyword">loop</span>-&gt;backend_fd,
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/02/22/python-reload/" itemprop="url">
-                  关于Python服务器Hotfix的个人理解
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-02-22T22:27:18+08:00" content="2016-02-22">
-              2016-02-22
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/02/22/python-reload/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/22/python-reload/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>粗略地讲一下个人对Python服务器Hotfix的理解</p>
-</blockquote>
-<h3 id="1-Hotfix期望目标">1.Hotfix期望目标</h3><ol>
-<li>Python服务器不停机</li>
-<li>不需要重新赋值实例的__class__</li>
-<li>不需要重新赋值module</li>
-</ol>
-<p>基于上面的期望目标，需要怎样实现Hotfix？</p>
-<h3 id="2-Hotfix基本思路">2.Hotfix基本思路</h3><h4 id="怎样保持Module的引用不变">怎样保持Module的引用不变</h4><h5 id="方案1">方案1</h5><p>最容易想到的就是<strong>reload</strong>方法，其实reload方法内部实现也是分别调用<strong>find_module</strong>和<strong>load_module</strong>两个方法，在load_module方法中如果sys.module中存在需要加载的Module，那么加载module的内容是在老module的基础上加载的。这样我们会发现reload前后module的id是相同的。</p>
-<h5 id="方案2">方案2</h5><p>单独调用imp.find_module方法和imp.load_module两个方法，当然前提也是要加载的Module在sys.module中存在。</p>
-<h4 id="Class不替换而是修改内部的function">Class不替换而是修改内部的function</h4><h5 id="方案1-1">方案1</h5><p>此方案是基于Module不变的方案1来做的，在reload之前，保存老的module的__dict__内容，然后reload之后，去尝试更新老的__dict__中的方法，并将其再次赋值给新的module。</p>
-<h5 id="方案2-1">方案2</h5><p>此方案也对应Module不变的方案2来做的，我们需要利用sys.meta_path来hook住Python的find_module函数（原因我在<a href="http://whosemario.github.io/2016/01/15/python-import-2/">这里</a>讲过），从而在import的过程中尝试替换新的module的Class和Function。</p>
-<h3 id="3-小结">3.小结</h3><p>上面说的都很抽象，原因是上面的有些思路工作在用，不愿意具体讲，其次这里只是做一些个人的理解，等着合适的时候写一个Python服务器Hotfix的功能模块。</p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -1844,7 +1842,7 @@ nfds = kevent(<span class="keyword">loop</span>-&gt;backend_fd,
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">35</span>
+              <span class="site-state-item-count">36</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
