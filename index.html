@@ -241,6 +241,130 @@
             
               
                 
+                <a class="post-title-link" href="/2016/05/20/lscpu-cmd/" itemprop="url">
+                  lscpu中的 socket、core、thread的意义
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-05-20T14:17:33+08:00" content="2016-05-20">
+              2016-05-20
+            </time>
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/05/20/lscpu-cmd/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/20/lscpu-cmd/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <p>Linux上如下指令可以查看CPU的信息</p>
+<pre><code><span class="blockquote">&gt; lscpu</span>
+</code></pre><p>在我们线上机器上的结果如下：</p>
+<pre><code>Architecture:          x86_64
+CPU <span class="function"><span class="title">op-mode</span><span class="params">(s)</span></span>:        <span class="number">32</span>-bit, <span class="number">64</span>-bit
+Byte Order:            Little Endian
+<span class="function"><span class="title">CPU</span><span class="params">(s)</span></span>:                <span class="number">32</span>
+On-line <span class="function"><span class="title">CPU</span><span class="params">(s)</span></span> list:   <span class="number">0</span>-<span class="number">31</span>
+<span class="function"><span class="title">Thread</span><span class="params">(s)</span></span> per core:    <span class="number">2</span>
+<span class="function"><span class="title">Core</span><span class="params">(s)</span></span> per socket:    <span class="number">8</span>
+<span class="function"><span class="title">Socket</span><span class="params">(s)</span></span>:             <span class="number">2</span>
+NUMA <span class="function"><span class="title">node</span><span class="params">(s)</span></span>:          <span class="number">2</span>
+Vendor ID:             GenuineIntel
+CPU family:            <span class="number">6</span>
+Model:                 <span class="number">62</span>
+Model name:            <span class="function"><span class="title">Intel</span><span class="params">(R)</span></span> <span class="function"><span class="title">Xeon</span><span class="params">(R)</span></span> CPU E5-<span class="number">2640</span> v2 @ <span class="number">2.00</span>GHz
+Stepping:              <span class="number">4</span>
+CPU MHz:               <span class="number">1320.468</span>
+CPU max MHz:           <span class="number">2500.0000</span>
+CPU min MHz:           <span class="number">1200.0000</span>
+BogoMIPS:              <span class="number">4000.99</span>
+Virtualization:        VT-x
+L1d cache:             <span class="number">32</span>K
+L1i cache:             <span class="number">32</span>K
+L2 cache:              <span class="number">256</span>K
+L3 cache:              <span class="number">20480</span>K
+NUMA node0 <span class="function"><span class="title">CPU</span><span class="params">(s)</span></span>:     <span class="number">0</span>-<span class="number">7</span>,<span class="number">16</span>-<span class="number">23</span>
+NUMA node1 <span class="function"><span class="title">CPU</span><span class="params">(s)</span></span>:     <span class="number">8</span>-<span class="number">15</span>,<span class="number">24</span>-<span class="number">31</span>
+</code></pre><p>上面的信息，有几个比较有意思：</p>
+<pre><code><span class="function"><span class="title">Thread</span><span class="params">(s)</span></span> per core:    <span class="number">2</span>
+<span class="function"><span class="title">Core</span><span class="params">(s)</span></span> per socket:    <span class="number">8</span>
+<span class="function"><span class="title">Socket</span><span class="params">(s)</span></span>:             <span class="number">2</span>
+</code></pre><h5 id="什么是Socket">什么是Socket</h5><p>Socket就是主板上插CPU的槽的数量</p>
+<h5 id="什么是Core">什么是Core</h5><p>Core就是平时说的核，双核、四核等，就是每个CPU上的核数</p>
+<h5 id="什么是Thread">什么是Thread</h5><p>thread就是每个core上的硬件线程数，即超线程</p>
+<p>对操作系统来说，其逻辑CPU的数量就是Socket*Core*Thread</p>
+<h3 id="参考资料">参考资料</h3><p>[1] <a href="http://diego.assencio.com/?index=614d73283d49e939ebfb648cfb86819d" target="_blank" rel="external">Getting CPU architecture information with lscpu</a><br>[2] <a href="http://blog.chinaunix.net/uid-20940095-id-3596134.html" target="_blank" rel="external"> 处理器三个概念理解及延伸（socket，core，thread，SMT，CMP，SMP）</a></p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/05/18/virtual-memory/" itemprop="url">
                   虚拟内存管理（一）
                 </a>
@@ -1549,253 +1673,6 @@ redis&gt;
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/02/24/libuv-read-code-1/" itemprop="url">
-                  一起玩玩libuv(五)—— kqueue以及uv__io_poll
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-02-24T09:31:58+08:00" content="2016-02-24">
-              2016-02-24
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/libuv/" itemprop="url" rel="index">
-                    <span itemprop="name">libuv</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/02/24/libuv-read-code-1/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/24/libuv-read-code-1/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>本文讲一下kqueue的基本使用以及在libuv中uv__io_poll函数的kqueue部分的实现</p>
-</blockquote>
-<h3 id="1-kqueue简介">1.kqueue简介</h3><pre><code>int <span class="function"><span class="title">kqueue</span><span class="params">(void)</span></span>
-</code></pre><p>生成一个内核事件队列，并返回队列的描述符。</p>
-<h4 id="struct_kevent">struct kevent</h4><pre><code>struct kevent { 
-    uintptr_t ident;        /<span class="keyword">*</span> 事件 ID <span class="keyword">*</span>/ 
-    short     filter;       /<span class="keyword">*</span> 事件过滤器 <span class="keyword">*</span>/ 
-    u_short   flags;        /<span class="keyword">*</span> 行为标识 <span class="keyword">*</span>/ 
-    u_int     fflags;       /<span class="keyword">*</span> 过滤器标识值 <span class="keyword">*</span>/ 
-    intptr_t  data;         /<span class="keyword">*</span> 过滤器数据 <span class="keyword">*</span>/ 
-    void      <span class="keyword">*</span>udata;       /<span class="keyword">*</span> 应用透传数据 <span class="keyword">*</span>/ 
- }; 
-</code></pre><h5 id="ident">ident</h5><p>一般设置为文件描述符</p>
-<h5 id="filter">filter</h5><p>内核检查ident上注册的filter的状态，状态发生变化就通知应用程序，Tcp相关的filter如下： </p>
-<ul>
-<li>EVFILT_READ：Socket描述符处于监听状态，当有链接进来的时候，data表示就绪队列的链接的数量；对于其他的描述符，当数据可接受的时候返回，并且data是数据可读的数量    </li>
-<li>EVFILT_WRITE：当写入缓冲区可写的时候返回，data表示写入缓冲区的大小。  </li>
-</ul>
-<h5 id="flags">flags</h5><ul>
-<li>EV_ADD：在kqueue中增加一个event</li>
-<li>EV_DELETE：在kqueue中删除一个event</li>
-</ul>
-<h5 id="fflags">fflags</h5><p>filter相关的flag</p>
-<h5 id="data">data</h5><p>filter相关的数据</p>
-<h5 id="udata">udata</h5><p>用户自定义的数据</p>
-<h4 id="EV_SET_宏定义">EV_SET 宏定义</h4><pre><code><span class="type">EV_SET</span>(&amp;kev, ident, filter, flags, fflags, <span class="typedef"><span class="keyword">data</span>, udata);</span>
-</code></pre><p>EV_SET用于初始化struct kevent</p>
-<h4 id="kevent方法">kevent方法</h4><pre><code><span class="function"><span class="keyword">int</span>
-<span class="title">kevent</span><span class="params">(<span class="keyword">int</span> kq, <span class="keyword">const</span> <span class="keyword">struct</span> kevent *changelist, <span class="keyword">int</span> nchanges, <span class="keyword">struct</span> kevent *eventlist, <span class="keyword">int</span> nevents, <span class="keyword">const</span> <span class="keyword">struct</span> timespec *timeout)</span></span>;
-</code></pre><p>kevent函数用于注册和删除事件，并返回就绪事件或者错误事件。  </p>
-<ul>
-<li>kq：kqueue方法返回的描述符   </li>
-<li>changelist：注册或者删除的事件列表</li>
-<li>nchanges：changelist数量</li>
-<li>eventlist：满足条件的事件通知数组</li>
-<li>nevents：eventlist数量</li>
-<li>timeout：超时时间，timeout是nullptr，kevent无限期等待，否则超时返回</li>
-</ul>
-<h3 id="2-libuv怎样使用kqueue">2.libuv怎样使用kqueue</h3><h4 id="loop初始化">loop初始化</h4><pre><code># <span class="keyword">in</span> <span class="keyword">loop</span>.c
-<span class="keyword">int</span> uv_loop_init(uv_loop_t* <span class="keyword">loop</span>) {
-    ...
-    err = uv__platform_loop_init(<span class="keyword">loop</span>);
-    ...
-}
-
-# <span class="keyword">in</span> darwin.c 
-<span class="keyword">int</span> uv__platform_loop_init(uv_loop_t* <span class="keyword">loop</span>) {
-      <span class="keyword">loop</span>-&gt;cf_state = NULL;
-
-      <span class="keyword">if</span> (uv__kqueue_init(<span class="keyword">loop</span>))
-        <span class="keyword">return</span> -errno;
-
-      <span class="keyword">return</span> <span class="number">0</span>;
-}
-
-# <span class="keyword">in</span> kqueue.c
-<span class="keyword">int</span> uv__kqueue_init(uv_loop_t* <span class="keyword">loop</span>) {
-      <span class="keyword">loop</span>-&gt;backend_fd = kqueue();
-      ...
-  }
-</code></pre><p>本文在MacOSX上进行调试程序，所以平台相关的代码是基于darwin的。看到在loop进行初始化的时候，会对<strong>backend_fd</strong>参数赋值为kqueue()。</p>
-<h4 id="struct_kevent_初始化">struct kevent 初始化</h4><pre><code><span class="preprocessor"># in kqueue.c</span>
-
-<span class="keyword">while</span> (!QUEUE_EMPTY(&amp;loop-&gt;watcher_queue)) {
-    <span class="comment">// 【1】从watcher_queue中取出uv__io_t</span>
-    q = QUEUE_HEAD(&amp;loop-&gt;watcher_queue);
-    ...
-    w = QUEUE_DATA(q, <span class="keyword">uv__io_t</span>, watcher_queue);
-    ...
-    <span class="keyword">if</span> ((w-&gt;events &amp; UV__POLLIN) == <span class="number">0</span> &amp;&amp; (w-&gt;pevents &amp; UV__POLLIN) != <span class="number">0</span>) {
-      filter = EVFILT_READ;
-      fflags = <span class="number">0</span>;
-      op = EV_ADD;
-      <span class="comment">// 【2】初始化kevent，filter=EVFILT_READ，flags=EV_ADD</span>
-      EV_SET(events + nevents, w-&gt;fd, filter, op, fflags, <span class="number">0</span>, <span class="number">0</span>);
-
-      <span class="keyword">if</span> (++nevents == ARRAY_SIZE(events)) {
-        <span class="comment">// 【3】通过kevent函数注册时间</span>
-        <span class="keyword">if</span> (kevent(loop-&gt;backend_fd, events, nevents, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>))
-          <span class="built_in">abort</span>();
-        nevents = <span class="number">0</span>;
-      }
-    }
-
-    <span class="keyword">if</span> ((w-&gt;events &amp; UV__POLLOUT) == <span class="number">0</span> &amp;&amp; (w-&gt;pevents &amp; UV__POLLOUT) != <span class="number">0</span>) {
-      <span class="comment">// 【4】初始化kevent，filter=EVFILT_WRITE</span>
-      EV_SET(events + nevents, w-&gt;fd, EVFILT_WRITE, EV_ADD, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-
-      <span class="keyword">if</span> (++nevents == ARRAY_SIZE(events)) {
-        <span class="keyword">if</span> (kevent(loop-&gt;backend_fd, events, nevents, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>))
-          <span class="built_in">abort</span>();
-        nevents = <span class="number">0</span>;
-      }
-    }
-
-    w-&gt;events = w-&gt;pevents;
-}
-</code></pre><p>libuv中的对struct kevent还是蛮清晰的，对于POLLIN类型，加入EVFILT_READ类型的kevent(见【2】)，对于POLLOUT类型，加入EVFILT_WRITE类型的kevent(见【4】)。</p>
-<h4 id="数据监听">数据监听</h4><pre><code># <span class="keyword">in</span> kqueue.c
-
-nfds = kevent(<span class="keyword">loop</span>-&gt;backend_fd,
-              events,
-              nevents,
-              events,
-              ARRAY_SIZE(events),
-              timeout == -<span class="number">1</span> ? NULL : &amp;spec);
-...
-<span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nfds; i++) {
-  ...
-  w = <span class="keyword">loop</span>-&gt;watchers[fd];
-  ...
-  <span class="comment">//【1】 处理读数据</span>
-  <span class="keyword">if</span> (ev-&gt;filter == EVFILT_READ) {
-    <span class="keyword">if</span> (w-&gt;pevents &amp; UV__POLLIN) {
-      revents |= UV__POLLIN;
-      w-&gt;rcount = ev-&gt;data;
-    } <span class="keyword">else</span> {
-      ...
-    }
-  }
-  <span class="comment">//【2】 处理写状态</span>
-  <span class="keyword">if</span> (ev-&gt;filter == EVFILT_WRITE) {
-    <span class="keyword">if</span> (w-&gt;pevents &amp; UV__POLLOUT) {
-      revents |= UV__POLLOUT;
-      w-&gt;wcount = ev-&gt;data;
-    } <span class="keyword">else</span> {
-      ...
-    }
-  }
-  <span class="comment">//【3】处理错误</span>
-  <span class="keyword">if</span> (ev-&gt;flags &amp; EV_ERROR)
-    revents |= UV__POLLERR;
-
-  <span class="keyword">if</span> (revents == <span class="number">0</span>)
-    <span class="keyword">continue</span>;
-
-  <span class="comment">//【4】回调函数</span>
-  w-&gt;cb(<span class="keyword">loop</span>, w, revents);
-  ...
-}
-</code></pre><p>这里处理满足条件的事件，分别包括读数据、写数据、错误状态。最后回调callback。</p>
-<h3 id="3-参考资料">3.参考资料</h3><ol>
-<li>使用 kqueue 在 FreeBSD 上开发高性能应用服务器 - <a href="http://www.ibm.com/developerworks/cn/aix/library/1105_huangrg_kqueue/index.html" target="_blank" rel="external">http://www.ibm.com/developerworks/cn/aix/library/1105_huangrg_kqueue/index.html</a></li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -1842,7 +1719,7 @@ nfds = kevent(<span class="keyword">loop</span>-&gt;backend_fd,
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">36</span>
+              <span class="site-state-item-count">37</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
@@ -1856,7 +1733,7 @@ nfds = kevent(<span class="keyword">loop</span>-&gt;backend_fd,
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">19</span>
+              <span class="site-state-item-count">20</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>

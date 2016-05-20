@@ -237,6 +237,179 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/21/pattern-statem/" itemprop="url">
+                  状态机在游戏实现中的使用
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-01-21T15:54:44+08:00" content="2016-01-21">
+              2016-01-21
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/设计模式/" itemprop="url" rel="index">
+                    <span itemprop="name">设计模式</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/21/pattern-statem/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/21/pattern-statem/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>状态模式是在我们游戏开发中非常常用的一个设计模式。状态模式的特点就是将状态和行为分离，每一个状态下只执行当前状态的行为，这样就将复杂的行为逻辑分为一个个不同状态下的行为逻辑，代码可维护性大大提高。</p>
+</blockquote>
+<h3 id="1-游戏的应用场景">1.游戏的应用场景</h3><p>玩家可以控制角色在场景中移动，攻击，飞行，静止不动或者被敌人攻击。在每一个状态下，玩家的动画是不一样的，并且在飞行状态玩家不能进行攻击，在受击状态下，玩家不能移动。<br>这就是典型的状态模式的需求——在不同的状态下有不同的行为模式。</p>
+<p><img src="/images/state-pattern-p1.png" alt=""></p>
+<p>上图是各个状态之间的转化，有了状态转化图，我们就可以着手开始写状态机的代码了，但在这之前我们先复习一下状态模式的基础内容。</p>
+<h3 id="2-状态模式">2.状态模式</h3><p><img src="/images/state-pattern-p2.png" alt=""></p>
+<ul>
+<li>StateM：用于维护和调度所有State</li>
+<li>State：状态的基类</li>
+<li>Idle/Run：这里画出了Idle和Run两个状态</li>
+</ul>
+<p>这里我们只实现一个最基本的状态机，状态的转换会导致上一个状态结束(即调用leave)，状态的进入会调用enter方法。pause方法被调用的情况是在当前状态进行切换，但状态并没有结束，只是产生了一个子状态，当子状态结束后，当前状态又会恢复(resume)。</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">StateM</span><span class="params">(object)</span>:</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span>
+        self._states = {}
+        self._curr_state = <span class="keyword">None</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">add_state</span><span class="params">(self, name, state)</span>:</span>
+        self._states[name] = state
+        state.statem = self
+
+    <span class="function"><span class="keyword">def</span> <span class="title">get_curr_state</span><span class="params">(self)</span>:</span>
+        <span class="keyword">return</span> self._curr_state
+
+    <span class="function"><span class="keyword">def</span> <span class="title">call_method</span><span class="params">(self, method, *args, **kwargs)</span>:</span>
+        curr_state = self.get_curr_state()
+        <span class="keyword">if</span> curr_state <span class="keyword">and</span> hasattr(curr_state, methed):
+            getattr(curr_state, method)(*args, **kwargs)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">change_to</span><span class="params">(self, name, *args, **kwargs)</span>:</span>
+        <span class="keyword">if</span> self._curr_state:
+            self._curr_state.leave()
+        self._curr_state = self._states[name]
+        self._curr_state.enter(*args, **kwargs)
+</code></pre><p>StateM类<strong>change_to</strong>接口用于切换状态，<strong>call_method</strong>用于调用当前状态的方法。</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">State</span><span class="params">(object)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">enter</span><span class="params">(self, *args, **kwargs)</span>:</span>
+        <span class="keyword">pass</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">leave</span><span class="params">(self)</span>:</span>
+        <span class="keyword">pass</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">pause</span><span class="params">(self)</span>:</span>
+        <span class="keyword">pass</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">resume</span><span class="params">(self)</span>:</span>
+        <span class="keyword">pass</span>
+
+
+<span class="class"><span class="keyword">class</span> <span class="title">Idle</span><span class="params">(State)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">enter</span><span class="params">(self)</span>:</span>
+        super(Idle, self).enter()
+        <span class="comment"># 播放待机动画</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">play_fly</span><span class="params">(self)</span>:</span>
+        self.statem.change_to(<span class="string">"fly"</span>)
+
+    ...
+
+...
+
+<span class="comment"># main</span>
+self.statem = StateM()
+self.statem.add_state(<span class="string">"idle"</span>, Idle())
+self.statem.add_state(<span class="string">"fly"</span>,  Fly())
+self.statem.add_state(<span class="string">"atk"</span>,  Attack())
+...
+
+self.statem.change_to(<span class="string">"idle"</span>)
+</code></pre>
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/01/16/observer-pattern/" itemprop="url">
                   新手教学中的观察者模式
                 </a>
@@ -1982,265 +2155,6 @@ StopIteration
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/12/01/python-remote-debug-py/" itemprop="url">
-                  远程调试Python进程的小工具
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-12-01T12:47:36+08:00" content="2015-12-01">
-              2015-12-01
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/12/01/python-remote-debug-py/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/01/python-remote-debug-py/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <h3 id="起因">起因</h3><p>我们的游戏进程是用Python实现的，有时候为了调试一些游戏逻辑，我们不得不打印很多的log，并且有时候少打印了一些log还要补上这些log后重新走一遍游戏逻辑，甚是麻烦。<br>Python提供了pdb模块，是否可以随时调试一个Python进程的某段代码呢？</p>
-<h3 id="Python_Pdb模块">Python Pdb模块</h3><p>我们先从Python的Pdb模块入手，如下是Pdb的构造函数。</p>
-<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Pdb</span><span class="params">(bdb.Bdb, cmd.Cmd)</span>:</span>
-
-    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, completekey=<span class="string">'tab'</span>, stdin=None, stdout=None, skip=None)</span>:</span>
-        bdb.Bdb.__init__(self, skip=skip)
-        cmd.Cmd.__init__(self, completekey, stdin, stdout)
-</code></pre><p>Pdb的构造函数会传入<strong>stdin</strong>和<strong>stdout</strong>，如果为None则是真标准输入输出。好了，我传入一个其他的文件描述符这不就可以将pdb的调试信息重定向了嘛，pdb模块完全可扩展，不需要改pdb了。</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">runcall</span><span class="params">(*args, **kwds)</span>:</span>
-    <span class="keyword">return</span> Pdb().runcall(*args, **kwds)
-</code></pre><p>Pdb模块有runcall方法（其实runcall的实现是在bdb模块里面的），也好了，我们可以利用这个方法来实现debug一个函数了。</p>
-<h3 id="进程之间通信">进程之间通信</h3><p>我的目标是在同一台机器上实现两个进程之间的通信，服务端进程就是我们游戏的Game进程，客户端是一个Python程序。这里我使用了两个FIFO（有名管道）来实现了进程间的通信，参考了reference1。</p>
-<pre><code><span class="comment">#-*- coding:utf-8 -*-</span>
-
-<span class="string">"""\
-    使用FIFO模拟一个双工管道用于两个进程之间的通信
-"""</span>
-
-<span class="keyword">import</span> os
-<span class="keyword">import</span> tempfile
-
-__all__ = [<span class="string">"NamePipe"</span>]
-
-<span class="class"><span class="keyword">class</span> <span class="title">NamePipe</span><span class="params">(object)</span>:</span>
-
-    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, pid, is_client = True, mode = <span class="number">0666</span>)</span>:</span>
-        super(NamePipe, self).__init__()
-
-        name = self._get_pipe_name(pid)
-        self.in_name = name + <span class="string">".in"</span>
-        self.out_name = name + <span class="string">".out"</span>
-
-        <span class="keyword">try</span>:
-            os.mkfifo(self.in_name, mode)
-            os.chmod(self.in_name, mode)
-        <span class="keyword">except</span> OSError: <span class="keyword">pass</span>
-        <span class="keyword">try</span> : 
-            os.mkfifo(self.out_name, mode)
-            os.chmod(self.out_name, mode)
-        <span class="keyword">except</span> OSError: <span class="keyword">pass</span>
-
-        self.is_client = is_client
-
-        <span class="keyword">if</span> is_client:
-            <span class="comment"># client</span>
-            self.in_fd = open(self.in_name, <span class="string">"r"</span>)
-            self.out_fd = open(self.out_name, <span class="string">"w"</span>)
-        <span class="keyword">else</span>:
-            <span class="comment"># server</span>
-            self.out_fd = open(self.in_name, <span class="string">"w"</span>)
-            self.in_fd = open(self.out_name, <span class="string">"r"</span>)
-
-    <span class="function"><span class="keyword">def</span> <span class="title">write</span><span class="params">(self, msg)</span>:</span>
-        <span class="keyword">if</span> self.is_open():
-            self.out_fd.write(<span class="string">"%d\n"</span> % len(msg))
-            self.out_fd.write(msg)
-            self.out_fd.flush()
-            <span class="keyword">return</span> <span class="keyword">True</span>
-        <span class="keyword">else</span>:
-            <span class="keyword">return</span> <span class="keyword">False</span>
-
-    <span class="function"><span class="keyword">def</span> <span class="title">read</span><span class="params">(self)</span>:</span>
-        <span class="keyword">if</span> self.is_open():
-            sz = self.in_fd.readline()
-            <span class="keyword">if</span> sz:
-                <span class="keyword">return</span> self.in_fd.read(int(sz))
-            <span class="keyword">else</span>:
-                <span class="keyword">return</span> <span class="string">""</span>
-        <span class="keyword">else</span>:
-            <span class="keyword">return</span> <span class="keyword">None</span>
-
-    <span class="function"><span class="keyword">def</span> <span class="title">flush</span><span class="params">(self)</span>:</span>
-        <span class="keyword">pass</span>
-
-    <span class="function"><span class="keyword">def</span> <span class="title">readline</span><span class="params">(self)</span>:</span>
-        <span class="keyword">return</span> self.read()
-
-    <span class="function"><span class="keyword">def</span> <span class="title">is_open</span><span class="params">(self)</span>:</span>
-        <span class="comment">#return True</span>
-        <span class="keyword">return</span> <span class="keyword">not</span> (self.in_fd.closed <span class="keyword">or</span> self.out_fd.closed)
-
-    <span class="function"><span class="keyword">def</span> <span class="title">close</span><span class="params">(self)</span>:</span>
-        <span class="string">"""  只尝试unlink掉读端
-        """</span>
-        <span class="keyword">if</span> self.is_client:
-            <span class="keyword">try</span>: os.remove(self.in_name)
-            <span class="keyword">except</span> OSError: <span class="keyword">pass</span>
-        <span class="keyword">else</span>:
-            <span class="keyword">try</span>: os.remove(self.out_name)
-            <span class="keyword">except</span> OSError: <span class="keyword">pass</span>
-        self.in_fd.close()
-        self.out_fd.close()
-
-
-    <span class="function"><span class="keyword">def</span> <span class="title">_get_pipe_name</span><span class="params">(self, pid)</span>:</span>
-        <span class="keyword">return</span> os.path.join(tempfile.gettempdir(), <span class="string">"pipe-%d"</span> % pid)
-</code></pre><h3 id="Debug修饰器">Debug修饰器</h3><p>针对要Debug得函数，我们可以使用修饰器进行修饰。</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">remote_debug</span><span class="params">(func)</span>:</span>
-    <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">(*args, **kwargs)</span>:</span>
-        <span class="keyword">import</span> pdb
-        <span class="keyword">if</span> _pipe:
-            <span class="keyword">try</span>:
-                pdb.Pdb(stdin = _pipe, stdout = _pipe).runcall(func, *args, **kwargs)
-            <span class="keyword">except</span> IOError:
-                _pipe.close()
-                _pipe = <span class="keyword">None</span>
-        <span class="keyword">else</span>:
-            <span class="keyword">return</span> func(*args, **kwargs)
-    <span class="keyword">return</span> wrapper    
-</code></pre><h3 id="建立通信">建立通信</h3><p>客户端通过SIGUSR2信号来通知服务端建立通信。</p>
-<pre><code><span class="comment"># server</span>
-_pipe = <span class="keyword">None</span>
-
-<span class="function"><span class="keyword">def</span> <span class="title">remote_connect</span><span class="params">(sig, frame)</span>:</span>
-    <span class="keyword">if</span> _pipe:
-        _pipe.close()
-    _pipe = NamePipe.NamePipe(os.getpid(), <span class="keyword">False</span>)
-
-<span class="function"><span class="keyword">def</span> <span class="title">reg_listener</span><span class="params">()</span>:</span>
-    <span class="keyword">import</span> signal
-    signal.signal(signal.SIGUSR1, remote_connect)
-
--------------------------------------------------------
-
-<span class="comment"># clent</span>
-<span class="comment">#-*- coding:utf-8 -*-</span>
-
-<span class="keyword">import</span> signal
-<span class="keyword">import</span> os
-<span class="keyword">import</span> sys
-<span class="keyword">import</span> NamePipe
-<span class="keyword">import</span> pdb
-
-Prefix = pdb.Pdb().prompt
-
-pid = int(sys.argv[<span class="number">1</span>])
-
-os.kill(pid, signal.SIGUSR1)
-
-pipe = NamePipe.NamePipe(pid, <span class="keyword">True</span>)
-
-<span class="keyword">while</span> <span class="keyword">True</span>:
-
-    <span class="keyword">while</span> <span class="keyword">True</span>:
-        txt = pipe.read()
-        <span class="keyword">if</span> txt:
-            sys.stdout.write(<span class="string">"%s"</span> % txt)
-            sys.stdout.flush()
-            <span class="keyword">if</span> txt.startswith(Prefix):
-                <span class="keyword">break</span>
-
-
-    txt = raw_input(<span class="string">""</span>)
-    pipe.write(txt)
-</code></pre><h3 id="reference:">reference:</h3><ol>
-<li>Debugging a running python process - <a href="http://code.activestate.com/recipes/576515/" target="_blank" rel="external">http://code.activestate.com/recipes/576515/</a></li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2287,7 +2201,7 @@ pipe = NamePipe.NamePipe(pid, <span class="keyword">True</span>)
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">36</span>
+              <span class="site-state-item-count">37</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
@@ -2301,7 +2215,7 @@ pipe = NamePipe.NamePipe(pid, <span class="keyword">True</span>)
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">19</span>
+              <span class="site-state-item-count">20</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>
