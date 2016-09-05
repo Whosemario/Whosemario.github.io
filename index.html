@@ -241,6 +241,175 @@
             
               
                 
+                <a class="post-title-link" href="/2016/09/05/cpp-right-ref/" itemprop="url">
+                  C++11的右值引用
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-09-05T09:32:46+08:00" content="2016-09-05">
+              2016-09-05
+            </time>
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/09/05/cpp-right-ref/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/09/05/cpp-right-ref/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>好久没有写文章了，一是因为最近公司项目比较紧，二是在看c++，工作两年多c++的知识都忘记了，今天就来简单总结一下c++11的右值引用。<br>提前声明，本文参考了<a href="http://www.cnblogs.com/qicosmos/p/4283455.html" target="_blank" rel="external">从4行代码看右值引用</a></p>
+</blockquote>
+<h4 id="1-右值引用要解决的问题">1.右值引用要解决的问题</h4><p>c++11引入右值引用要解决C++98/03中遇到的两个问题，第一个问题就是临时对象非必要的昂贵的拷贝操作，第二个问题是在模板函数中如何按照参数的实际类型进行转发。<br>在c++11中所有的值分为三种类型：左值、将亡值、纯右值。纯右值是非引用返回的临时变量、运算表达式产生的临时变量、原始字面量和lambda表达式等；将亡值是将要被移动的对象、T&amp;&amp;函数返回值、std::move返回值和转换为T&amp;&amp;的类型的转换函数的返回值等。</p>
+<h4 id="2-几个尝试性的测试">2.几个尝试性的测试</h4><p>测试基本代码如下：</p>
+<pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span>
+<span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;
+
+<span class="keyword">int</span> g_contr_cnt = <span class="number">0</span>;
+<span class="keyword">int</span> g_decontr_cnt = <span class="number">0</span>;
+<span class="keyword">int</span> g_copy_cnt = <span class="number">0</span>;
+
+<span class="keyword">class</span> A {
+<span class="keyword">public</span>:
+    A() {
+        <span class="built_in">cout</span> &lt;&lt; <span class="string">"construct: "</span> &lt;&lt; ++g_contr_cnt &lt;&lt; endl;
+    }
+
+    A(<span class="keyword">const</span> A&amp; oth) {
+        <span class="built_in">cout</span> &lt;&lt; <span class="string">"copy: "</span> &lt;&lt; ++g_copy_cnt &lt;&lt; endl;
+    }
+
+    ~A() {
+        <span class="built_in">cout</span> &lt;&lt; <span class="string">"deconstruct: "</span> &lt;&lt; ++g_decontr_cnt &lt;&lt; endl;
+    }
+};
+
+<span class="function">A <span class="title">getVal</span><span class="params">()</span> </span>{
+    <span class="keyword">return</span> A();
+}
+</code></pre><h5 id="测试1：值拷贝">测试1：值拷贝</h5><pre><code><span class="keyword">A</span> x = getVal()<span class="comment">;</span>
+</code></pre><p>由于编辑器会对代码进行优化，因此我们在编译上面的代码的时候，加入-fno-elide-constructors，运行结果如下：</p>
+<pre><code><span class="attribute">construct</span>: <span class="string">1</span>
+<span class="attribute">copy</span>: <span class="string">1</span>
+<span class="attribute">deconstruct</span>: <span class="string">1</span>
+<span class="attribute">copy</span>: <span class="string">2</span>
+<span class="attribute">deconstruct</span>: <span class="string">2</span>
+<span class="attribute">deconstruct</span>: <span class="string">3</span>
+</code></pre><p>调用了两次复制构造函数，一次在返回值，一次在对x的赋值。如果A类的复制构造函数不是简简单单地打印信息，而是有大量内存的拷贝，那怎么办？两次复制构造函数性能开销就会很大，并且关键的是拷贝源实例是一个将亡值，留下它根本没有什么用。</p>
+<p><strong>换一种方案：const A&amp;</strong></p>
+<pre><code>const <span class="keyword">A</span>&amp; x = getVal()<span class="comment">;</span>
+</code></pre><p>这时候输出结果如下：</p>
+<pre><code><span class="attribute">construct</span>: <span class="string">1</span>
+<span class="attribute">copy</span>: <span class="string">1</span>
+<span class="attribute">deconstruct</span>: <span class="string">1</span>
+<span class="attribute">deconstruct</span>: <span class="string">2</span>
+</code></pre><p>但const reference是不能修改引用的内容的！</p>
+<p><strong>另一个方案：右值引用</strong></p>
+<pre><code><span class="keyword">A</span>&amp;&amp; x = getVal()<span class="comment">;</span>
+</code></pre><p>这样输出结果与上面一种方案是一样的，并且x并不是一个const类型。右值引用将返回的值“续命”了。</p>
+<h5 id="测试2：移动构造函数">测试2：移动构造函数</h5><p>我们现在类的定义中加入移动构造函数：</p>
+<pre><code><span class="literal">A</span>(<span class="literal">A</span>&amp;&amp; oth) {
+    cout &lt;&lt; <span class="string">"move: "</span> &lt;&lt; ++g_move_cnt &lt;&lt; endl<span class="comment">;</span>
+}
+</code></pre><p>这样子，我们再看一下输出结果：</p>
+<pre><code><span class="keyword">A</span> x = getVal()<span class="comment">;</span>
+</code></pre><p>输出结果如下：</p>
+<pre><code><span class="attribute">construct</span>: <span class="string">1</span>
+<span class="attribute">move</span>: <span class="string">1</span>
+<span class="attribute">deconstruct</span>: <span class="string">1</span>
+<span class="attribute">move</span>: <span class="string">2</span>
+<span class="attribute">deconstruct</span>: <span class="string">2</span>
+<span class="attribute">deconstruct</span>: <span class="string">3</span>
+</code></pre><p>没有拷贝构造函数了，与之代替的是移动构造函数，移动构造函数的实现，我们可以认为移动源实例是一个将亡值，这样我们在移动构造函数的内部实现中只需要将移动源实例move到新的实例中即可。</p>
+<h4 id="测试3：参数A&amp;&amp;">测试3：参数A&amp;&amp;</h4><pre><code><span class="function"><span class="keyword">void</span> <span class="title">setVal</span><span class="params">(A&amp;&amp;)</span></span>;
+<span class="function"><span class="keyword">void</span> <span class="title">setVal</span><span class="params">(<span class="keyword">const</span> A&amp;)</span></span>;
+</code></pre><p>这两个函数，编译器是怎样判断的呢？做了一些尝试：</p>
+<pre><code>A x<span class="comment">;</span>
+setVal<span class="list">(<span class="keyword">x</span>)</span><span class="comment">;   // 左值</span>
+setVal<span class="list">(<span class="keyword">std</span>:<span class="keyword">:move</span><span class="list">(<span class="keyword">x</span>)</span>)</span><span class="comment">;   // 右值</span>
+setVal<span class="list">(<span class="keyword">A</span><span class="list">()</span>)</span><span class="comment">;   // 右值</span>
+A&amp;&amp; y = getVal<span class="list">()</span><span class="comment">;</span>
+setVal<span class="list">(<span class="keyword">y</span>)</span><span class="comment">;  // 左值</span>
+</code></pre><h4 id="测试4：std::move">测试4：std::move</h4><p>std::move是c++11提供移动实例的方式，测试代码如下：</p>
+<pre><code><span class="keyword">A</span> x<span class="comment">;</span>
+<span class="keyword">A</span> y = st<span class="number">d::</span>move(x)<span class="comment">;</span>
+</code></pre><p>y的初始化使用了移动构造函数：</p>
+<pre><code><span class="attribute">construct</span>: <span class="string">1</span>
+<span class="attribute">move</span>: <span class="string">1</span>
+<span class="attribute">deconstruct</span>: <span class="string">1</span>
+<span class="attribute">deconstruct</span>: <span class="string">2</span>
+</code></pre><p>如果类A没有移动构造函数，将会使用复制构造函数。</p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/05/20/lscpu-cmd/" itemprop="url">
                   lscpu中的 socket、core、thread的意义
                 </a>
@@ -1535,144 +1704,6 @@ print <span class="string">"total time:"</span>, end_ts - start_ts
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/02/25/learn-redis-1/" itemprop="url">
-                  大家一起学Redis (一) —— Redis安装
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-02-25T17:12:54+08:00" content="2016-02-25">
-              2016-02-25
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/redis/" itemprop="url" rel="index">
-                    <span itemprop="name">redis</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/02/25/learn-redis-1/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/25/learn-redis-1/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>Redis的安装还是很简单的，但作为学习Redis的第一篇文章，还是简单介绍一下Redis的安装</p>
-</blockquote>
-<h3 id="1-下载Redis">1.下载Redis</h3><p>下载地址：<a href="http://download.redis.io/releases/redis-2.8.24.tar.gz" target="_blank" rel="external">http://download.redis.io/releases/redis-2.8.24.tar.gz</a></p>
-<h3 id="2-安装Redis">2.安装Redis</h3><h4 id="简单安装">简单安装</h4><pre><code><span class="comment">% make</span>
-</code></pre><p>make就可以简单安装了。</p>
-<h4 id="内存分配器">内存分配器</h4><p>想选择一个非默认的内存分配器，可以定义MALLOC环境变量<br>使用libc malloc：</p>
-<pre><code><span class="comment">% make MALLOC=libc</span>
-</code></pre><p>使用jemalloc：</p>
-<pre><code><span class="comment">% make MALLOC=jemalloc</span>
-</code></pre><h4 id="更多的输出信息">更多的输出信息</h4><p>如果希望看到更多的输出信息，使用下面方式安装</p>
-<pre><code>% make V=<span class="number">1</span>
-</code></pre><h3 id="3-使用Redis">3.使用Redis</h3><p>开启服务端</p>
-<pre><code><span class="comment">% cd src/</span>
-<span class="comment">% ./redis-server</span>
-</code></pre><p>我们可以通过一个配置文件启动redis服务器</p>
-<pre><code>% <span class="keyword">cd</span> src/
-% ./redis-server /path/<span class="keyword">to</span>/redis.<span class="keyword">conf</span>
-</code></pre><p>也可以直接输入参数</p>
-<pre><code>% ./redis-server --port <span class="number">9999</span> --slaveof <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">6379</span>
-% ./redis-server /etc/redis/<span class="number">6379.</span>conf --loglevel debug
-</code></pre><p>开启客户端</p>
-<pre><code>% cd src
-% ./redis-cli
-redis&gt; ping
-PONG
-redis&gt; <span class="keyword">set</span> foo bar
-OK
-redis&gt; <span class="keyword">get</span> foo
-<span class="string">"bar"</span>
-redis&gt; incr mycounter
-(<span class="type">integer</span>) <span class="number">1</span>
-redis&gt; incr mycounter
-(<span class="type">integer</span>) <span class="number">2</span>
-redis&gt;
-</code></pre><p>Redis命令说明：<br>    <a href="http://redis.io/commands" target="_blank" rel="external">http://redis.io/commands</a></p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -1719,7 +1750,7 @@ redis&gt;
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-count">38</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
@@ -1733,7 +1764,7 @@ redis&gt;
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">20</span>
+              <span class="site-state-item-count">21</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>
