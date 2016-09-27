@@ -237,6 +237,207 @@
             
               
                 
+                <a class="post-title-link" href="/2016/01/24/pytracemalloc-install/" itemprop="url">
+                  pytracemalloc安装与使用
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-01-24T18:14:55+08:00" content="2016-01-24">
+              2016-01-24
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/性能优化/" itemprop="url" rel="index">
+                    <span itemprop="name">性能优化</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/24/pytracemalloc-install/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/24/pytracemalloc-install/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>pytracemalloc用于跟踪Python内存的分配情况，在我们的项目中用于在后期优化性能使用。</p>
+</blockquote>
+<h3 id="1-安装">1.安装</h3><p>pytracemalloc的安装需要修改Python的源码，我们创建一个名为pytracemalloc的目录，进入目录，运行如下命令：</p>
+<pre><code>&gt; wget http:<span class="comment">//www.python.org/ftp/python/2.7.8/Python-2.7.8.tgz</span>
+&gt; wget https:<span class="comment">//pypi.python.org/packages/source/p/pytracemalloc/pytracemalloc-1.2.tar.gz</span>
+&gt; tar -xf Python-<span class="number">2.7</span>.<span class="number">8</span><span class="class">.tgz</span>
+&gt; tar -xf pytracemalloc-<span class="number">1.2</span><span class="class">.tar</span><span class="class">.gz</span>
+&gt; cd Python-<span class="number">2.7</span>.<span class="number">8</span>
+&gt; patch -p1 &lt; ../pytracemalloc-<span class="number">1.2</span>/patches/<span class="number">2.7</span>/pep445<span class="class">.patch</span>
+&gt; ./configure --prefix=../build/
+&gt; make &amp;&amp; make install
+&gt; cd ../pytracemalloc-<span class="number">1.2</span>
+&gt; ../bin/python setup<span class="class">.py</span> install
+</code></pre><h3 id="2-简单的实例">2.简单的实例</h3><h4 id="显示最占用内存的10行代码">显示最占用内存的10行代码</h4><pre><code><span class="number">1</span> <span class="comment"># -*- coding:utf-8 -*-</span>
+  <span class="number">2</span>
+  <span class="number">3</span> <span class="keyword">import</span> os
+  <span class="number">4</span> <span class="keyword">import</span> sys
+  <span class="number">5</span> <span class="keyword">import</span> tracemalloc
+  <span class="number">6</span>
+  <span class="number">7</span> tracemalloc.start()
+  <span class="number">8</span>
+  <span class="number">9</span> li = []
+<span class="number">10</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">100000</span>):
+<span class="number">11</span>     li.append(i)
+<span class="number">12</span>
+<span class="number">13</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span>
+<span class="number">14</span>     <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span>
+<span class="number">15</span>         self.m = {}
+<span class="number">16</span>         <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">10</span>):
+<span class="number">17</span>             self.m[i] = i * i
+<span class="number">18</span>
+<span class="number">19</span> obj_li = []
+<span class="number">20</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">100000</span>):
+<span class="number">21</span>     obj_li.append(A())
+<span class="number">22</span>
+<span class="number">23</span> snapshot = tracemalloc.take_snapshot()
+<span class="number">24</span> top_stats = snapshot.statistics(<span class="string">"lineno"</span>)
+<span class="number">25</span>
+<span class="number">26</span> <span class="keyword">for</span> line <span class="keyword">in</span> top_stats[:<span class="number">10</span>]:
+<span class="number">27</span>     <span class="keyword">print</span> line
+</code></pre><p>运行结果如下：</p>
+<pre><code>test.py:<span class="number">17</span>: size=<span class="number">73.0</span> MiB, count=<span class="number">100000</span>, average=<span class="number">768</span> B
+test.py:<span class="number">15</span>: size=<span class="number">53.0</span> MiB, count=<span class="number">199999</span>, average=<span class="number">280</span> B
+test.py:<span class="number">21</span>: size=<span class="number">7055</span> KiB, count=<span class="number">100004</span>, average=<span class="number">72</span> B
+test.py:<span class="number">10</span>: size=<span class="number">2356</span> KiB, count=<span class="number">2432</span>, average=<span class="number">992</span> B
+test.py:<span class="number">11</span>: size=<span class="number">805</span> KiB, count=<span class="number">1</span>, average=<span class="number">805</span> KiB
+test.py:<span class="number">13</span>: size=<span class="number">1952</span> B, count=<span class="number">7</span>, average=<span class="number">278</span> B
+test.py:<span class="number">23</span>: size=<span class="number">456</span> B, count=<span class="number">1</span>, average=<span class="number">456</span> B
+test.py:<span class="number">14</span>: size=<span class="number">120</span> B, count=<span class="number">1</span>, average=<span class="number">120</span> B
+test.py:<span class="number">16</span>: size=<span class="number">72</span> B, count=<span class="number">1</span>, average=<span class="number">72</span> B
+</code></pre><h4 id="比较两个snapshot的不同">比较两个snapshot的不同</h4><pre><code><span class="number">1</span> <span class="comment"># -*- coding:utf-8 -*-</span>
+  <span class="number">2</span>
+  <span class="number">3</span> <span class="keyword">import</span> os
+  <span class="number">4</span> <span class="keyword">import</span> sys
+  <span class="number">5</span> <span class="keyword">import</span> tracemalloc
+  <span class="number">6</span>
+  <span class="number">7</span> tracemalloc.start()
+  <span class="number">8</span>
+  <span class="number">9</span> li = []
+<span class="number">10</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">100000</span>):
+<span class="number">11</span>     li.append(i)
+<span class="number">12</span>
+<span class="number">13</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span>
+<span class="number">14</span>     <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span>
+<span class="number">15</span>         self.m = {}
+<span class="number">16</span>         <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">10</span>):
+<span class="number">17</span>             self.m[i] = i * i
+<span class="number">18</span>
+<span class="number">19</span> obj_li = []
+<span class="number">20</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">100000</span>):
+<span class="number">21</span>     obj_li.append(A())
+<span class="number">22</span>
+<span class="number">23</span> snapshot1 = tracemalloc.take_snapshot()
+<span class="number">24</span>
+<span class="number">25</span> <span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>, <span class="number">1000</span>):
+<span class="number">26</span>     obj_li.append(A())
+<span class="number">27</span>
+<span class="number">28</span> snapshot2 = tracemalloc.take_snapshot()
+<span class="number">29</span>
+<span class="number">30</span> top_stats = snapshot2.compare_to(snapshot1, <span class="string">"lineno"</span>)
+<span class="number">31</span>
+<span class="number">32</span> <span class="keyword">for</span> line <span class="keyword">in</span> top_stats[:<span class="number">10</span>]:
+<span class="number">33</span>     <span class="keyword">print</span> line
+</code></pre><p>下面是输出结果：</p>
+<pre><code>test.py:<span class="number">17</span>: size=<span class="number">73.0</span> MiB (+<span class="number">750</span> KiB), count=<span class="number">101000</span> (+<span class="number">1000</span>), average=<span class="number">768</span> B
+test.py:<span class="number">15</span>: size=<span class="number">53.0</span> MiB (+<span class="number">546</span> KiB), count=<span class="number">201999</span> (+<span class="number">2000</span>), average=<span class="number">280</span> B
+test.py:<span class="number">26</span>: size=<span class="number">62.0</span> KiB (+<span class="number">62.0</span> KiB), count=<span class="number">1000</span> (+<span class="number">1000</span>), average=<span class="number">64</span> B
+/Users/whosemario/MyApplications/pytracemalloc/build/lib/python2<span class="number">.7</span>/site-packages/tracemalloc.py:<span class="number">380</span>: size=<span class="number">1008</span> B (+<span class="number">1008</span> B), count=<span class="number">6</span> (+<span class="number">6</span>), average=<span class="number">168</span> B
+/Users/whosemario/MyApplications/pytracemalloc/build/lib/python2<span class="number">.7</span>/site-packages/tracemalloc.py:<span class="number">518</span>: size=<span class="number">672</span> B (+<span class="number">672</span> B), count=<span class="number">4</span> (+<span class="number">4</span>), average=<span class="number">168</span> B
+/Users/whosemario/MyApplications/pytracemalloc/build/lib/python2<span class="number">.7</span>/site-packages/tracemalloc.py:<span class="number">308</span>: size=<span class="number">280</span> B (+<span class="number">280</span> B), count=<span class="number">1</span> (+<span class="number">1</span>), average=<span class="number">280</span> B
+/Users/whosemario/MyApplications/pytracemalloc/build/lib/python2<span class="number">.7</span>/site-packages/tracemalloc.py:<span class="number">306</span>: size=<span class="number">64</span> B (+<span class="number">64</span> B), count=<span class="number">1</span> (+<span class="number">1</span>), average=<span class="number">64</span> B
+test.py:<span class="number">21</span>: size=<span class="number">7055</span> KiB (+<span class="number">0</span> B), count=<span class="number">100004</span> (+<span class="number">0</span>), average=<span class="number">72</span> B
+test.py:<span class="number">10</span>: size=<span class="number">2356</span> KiB (+<span class="number">0</span> B), count=<span class="number">2432</span> (+<span class="number">0</span>), average=<span class="number">992</span> B
+test.py:<span class="number">11</span>: size=<span class="number">805</span> KiB (+<span class="number">0</span> B), count=<span class="number">1</span> (+<span class="number">0</span>), average=<span class="number">805</span> KiB
+</code></pre><p>果然python的dict是很耗内存的，这让我想到了原来的项目的优化。</p>
+<h3 id="3-Reference">3.Reference</h3><ol>
+<li>pytracemalloc官网 - <a href="http://pytracemalloc.readthedocs.org/index.html#" target="_blank" rel="external">http://pytracemalloc.readthedocs.org/index.html#</a></li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/01/22/pattern-singleton/" itemprop="url">
                   Python中的单例模式实现
                 </a>
@@ -1844,337 +2045,6 @@ _PyObject_GC_Malloc(<span class="keyword">size_t</span> basicsize)
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2015/12/19/python-gevent/" itemprop="url">
-                  Python gevent (1) 之 greenlet模块
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2015-12-19T20:56:21+08:00" content="2015-12-19">
-              2015-12-19
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2015/12/19/python-gevent/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/19/python-gevent/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <h2 id="1-起因">1.起因</h2><p>异步模型的一个问题是导致代码分裂，要使用好多的callback才能把逻辑串联。协程恰恰可以解决这个问题，但使用Python的人都知道Python2.x是没有原生的协程支持的，yield关键字的支持也称不上完全的协程。好在Python有gevent呀，它可以解决Python协程的问题。<br>gevent模块依赖一个叫做greenlet的模块，greenlet是Stackless python的分拆(spin-off)，或者说是其的一个子集，greenlet每一个”tasklet”需要自己主动的去进行切换(switch)。本文主要对greenlet进行介绍，并对其内部实现进行解剖。</p>
-<p>阅读本文之前尽量熟悉greenlet的基本用法，本文不会对greenlet的用法做详细介绍。</p>
-<h2 id="2-greenlet的使用">2.greenlet的使用</h2><pre><code><span class="keyword">from</span> greenlet <span class="keyword">import</span> greenlet
-
-<span class="function"><span class="keyword">def</span> <span class="title">test1</span><span class="params">()</span>:</span>
-    <span class="keyword">print</span> <span class="number">12</span>
-    gr2.switch()
-    <span class="keyword">print</span> <span class="number">34</span>
-
-<span class="function"><span class="keyword">def</span> <span class="title">test2</span><span class="params">()</span>:</span>
-    <span class="keyword">print</span> <span class="number">56</span>
-    gr1.switch()
-    <span class="keyword">print</span> <span class="number">78</span>
-
-gr1 = greenlet(test1)
-gr2 = greenlet(test2)
-gr1.switch()
-</code></pre><p>上面的代码将会输出12、56、34，唯独78将不会输出。</p>
-<h2 id="3-内部实现原理">3.内部实现原理</h2><h3 id="3-1_顶层的greenlet">3.1 顶层的greenlet</h3><p>我们在import greenlet的时候会自动生成一个顶层的PyGreenlet实例，具体的实现如下：</p>
-<pre><code><span class="function"><span class="keyword">static</span> PyGreenlet* <span class="title">green_create_main</span><span class="params">(<span class="keyword">void</span>)</span>
-</span>{
-    PyGreenlet* gmain;
-    PyObject* dict = PyThreadState_GetDict();
-    <span class="keyword">if</span> (dict == <span class="literal">NULL</span>) {
-        <span class="keyword">if</span> (!PyErr_Occurred())
-            PyErr_NoMemory();
-        <span class="keyword">return</span> <span class="literal">NULL</span>;
-    }
-
-    <span class="comment">/* create the main greenlet for this thread */</span>
-    gmain = (PyGreenlet*) PyType_GenericAlloc(&amp;PyGreenlet_Type, <span class="number">0</span>);
-    <span class="keyword">if</span> (gmain == <span class="literal">NULL</span>)
-        <span class="keyword">return</span> <span class="literal">NULL</span>;
-    gmain-&gt;stack_start = (<span class="keyword">char</span>*) <span class="number">1</span>;  【<span class="number">1</span>】
-    gmain-&gt;stack_stop = (<span class="keyword">char</span>*) -<span class="number">1</span>;  【<span class="number">2</span>】
-    gmain-&gt;run_info = dict;    【<span class="number">3</span>】
-    Py_INCREF(dict);
-    <span class="keyword">return</span> gmain;
-}
-</code></pre><p>我们看到stack_stop的地址被赋值为-1，其实就是一个非常大得地址，我们可以认为其他的greenlet的stack_stop都无法大于这个地址了。gmain-&gt;stack_start被赋值为1，这个可以不用去管，在greenlet切换的时候会将其赋值为esp的值。run_info是PyThreadState的Dict，用于存储一些信息。此时我们的栈空间很简单，如下：</p>
-<pre><code>ts_current
-     |<span class="string">_______________</span>|<span class="string">  ______ gmain-&gt;stack_stop(OxFFFFFFFF)
-   </span>|<span class="string">               </span>|
-   |<span class="string"> main greenlet </span>|
-   |<span class="string">   in stack    </span>|
-   |<span class="string">               </span>|<span class="string"> </span>
-</code></pre><p>目前我们只有一个GreentLet，并赋值给了ts_current。</p>
-<h3 id="3-2_创建第一个greenlet，并进行switch">3.2 创建第一个greenlet，并进行switch</h3><p>现在我们将创建第一个greenlet，代码如下：</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">test1</span><span class="params">()</span>:</span>
-    <span class="keyword">print</span> <span class="number">12</span>
-    gr2.switch()
-    <span class="keyword">print</span> <span class="number">34</span>
-
-gr1 = greenlet(test1)
-gr1.switch()
-</code></pre><p>gr1的创建有两个参数，一个是gr1将要运行的实体，这里是test1；另一个是gr1的父greenlet，如果不填则为当前的greenlet，这里就是我们在import greenlet的时候创建的那个main greenlet。之后，开始进行两个greenlet之间的切换(switch)。</p>
-<pre><code><span class="value">static</span> PyObject* <span class="function">green_switch</span>(
-PyGreenlet* self,
-PyObject* args,
-PyObject* kwargs)
-{
-    <span class="function">Py_INCREF</span>(args);
-    <span class="function">Py_XINCREF</span>(kwargs);
-    return <span class="function">single_result</span>(<span class="function">g_switch</span>(self, args, kwargs));
-}
-</code></pre><p>入口就是上面的函数，并没有做什么处理，直接进入了g_switch方法。</p>
-<pre><code><span class="keyword">static</span> PyObject *
-g_switch(PyGreenlet* <span class="keyword">target</span>, PyObject* args, PyObject* kwargs)
-{
-    ...
-    run_info = green_statedict(<span class="keyword">target</span>);
-    ...
-    <span class="comment">/* find the real target by ignoring dead greenlets,
-           and if necessary starting a greenlet. */</span>
-    <span class="keyword">while</span> (<span class="keyword">target</span>) {
-        <span class="keyword">if</span> (PyGreenlet_ACTIVE(<span class="keyword">target</span>)) {   <span class="comment">// 此greenlet已经被激活了，就是说它在运行了</span>
-            ts_target = <span class="keyword">target</span>;
-            err = g_switchstack();
-            <span class="keyword">break</span>;
-        }
-        <span class="keyword">if</span> (!PyGreenlet_STARTED(<span class="keyword">target</span>)) {    <span class="comment">// 此greenlet是一个新的greenlet，还没有开始运行</span>
-            <span class="keyword">void</span>* dummymarker;
-            ts_target = <span class="keyword">target</span>;
-            err = g_initialstub(&amp;dummymarker);
-            <span class="keyword">if</span> (err == <span class="number">1</span>) {
-                <span class="keyword">continue</span>; <span class="comment">/* retry the switch */</span>
-            }
-            <span class="keyword">break</span>;
-        }
-        <span class="keyword">target</span> = <span class="keyword">target</span>-&gt;parent;
-    }
-    ...
-}
-</code></pre><p>greenlet的切换分两个分支：</p>
-<ol>
-<li>target greenlet已经被激活，在运行中</li>
-<li>target greenlet未被激活</li>
-</ol>
-<p>先从第二种情况说起，从上面的代码可以看出代码进入g_initialstub函数，参数是一个本地变量的地址<strong>&amp;dummymarker</strong>，接下来我们会看到dummymarker的地址将会作为target greenlet的stack_stop使用。</p>
-<pre><code>static int GREENLET_NOINLINE(g_initialstub)(<span class="literal">void</span>* mark) 
-{
-    <span class="attribute">...</span>
-    <span class="comment">// 获取target greenlet的run函数，上下文切换后将会被调用</span>
-    run = PyObject_GetAttrString((PyObject*) <span class="built_in">self</span>, <span class="string">"run"</span>);
-    <span class="attribute">...</span>
-    <span class="comment">/*  这里有几点比较重要
-        1. stack_stop被赋值为mark
-        2. target greenlet的stack_prev被赋值为当前的greenlet
-        3. target greenlet保存的PyThreadState信息置空，只留recursion_depth
-     */</span>
-    <span class="built_in">self</span><span class="subst">-&gt;</span>stack_start = <span class="built_in">NULL</span>;            <span class="comment">// stack_start = Null</span>
-    <span class="built_in">self</span><span class="subst">-&gt;</span>stack_stop = (char*) mark;    <span class="comment">// stack_stop = mark</span>
-    <span class="keyword">if</span> (ts_current<span class="subst">-&gt;</span>stack_start == <span class="built_in">NULL</span>) {
-        <span class="comment">/* ts_current is dying */</span>
-        <span class="built_in">self</span><span class="subst">-&gt;</span>stack_prev = ts_current<span class="subst">-&gt;</span>stack_prev;
-    }
-    <span class="keyword">else</span> {
-        <span class="built_in">self</span><span class="subst">-&gt;</span>stack_prev = ts_current;        <span class="comment">// 指向上一个greenlet</span>
-    }
-    <span class="built_in">self</span><span class="subst">-&gt;</span>top_frame = <span class="built_in">NULL</span>;
-    <span class="built_in">self</span><span class="subst">-&gt;</span>exc_type = <span class="built_in">NULL</span>;
-    <span class="built_in">self</span><span class="subst">-&gt;</span>exc_value = <span class="built_in">NULL</span>;
-    <span class="built_in">self</span><span class="subst">-&gt;</span>exc_traceback = <span class="built_in">NULL</span>;
-    <span class="built_in">self</span><span class="subst">-&gt;</span>recursion_depth = PyThreadState_GET()<span class="subst">-&gt;</span>recursion_depth; 
-
-    <span class="comment">/* restore arguments in case they are clobbered */</span>
-    ts_target = <span class="built_in">self</span>;
-    ts_passaround_args = args;
-    ts_passaround_kwargs = kwargs;
-
-    <span class="comment">/* perform the initial switch */</span>
-    err = g_switchstack();   <span class="comment">// 开始进行切换</span>
-    <span class="attribute">...</span>
-    <span class="comment">/* returns twice!
-           The 1st time with err=1: we are in the new greenlet
-           The 2nd time with err=0: back in the caller's greenlet
-           将会被返回两次
-           err = 1 说明在新的greenlet的上下文里面
-           err = 0 说明我们回到了刚才调用switch的caller的上下文里面了
-    */</span>
-    <span class="keyword">if</span> (err == <span class="number">1</span>) {
-        <span class="attribute">...</span>
-        <span class="built_in">self</span><span class="subst">-&gt;</span>stack_start = (char*) <span class="number">1</span>;  <span class="comment">// 这里的stack_start的赋值只是临时性的</span>
-        <span class="attribute">...</span>
-        <span class="keyword">if</span> (args == <span class="built_in">NULL</span>) {
-            <span class="comment">/* pending exception */</span>
-            result = <span class="built_in">NULL</span>;
-        } <span class="keyword">else</span> {
-            <span class="comment">/* call g.run(*args, **kwargs) */</span>
-            <span class="comment">/*  运行我们在构造greenlet时注册的func
-             */</span>
-            result = PyEval_CallObjectWithKeywords(
-                run, args, kwargs);
-            Py_DECREF(args);
-            Py_XDECREF(kwargs);
-        }
-        Py_DECREF(run);
-        result = g_handle_exit(result);
-        <span class="comment">/* jump back to parent */</span>
-        <span class="built_in">self</span><span class="subst">-&gt;</span>stack_start = <span class="built_in">NULL</span>;  <span class="comment">/* dead */</span>
-        <span class="comment">// 此greenlet已经结束了，现在要切换到父greenlet运行</span>
-        f<span class="subst">or</span> (<span class="keyword">parent</span> = <span class="built_in">self</span><span class="subst">-&gt;</span><span class="keyword">parent</span>; <span class="keyword">parent</span> != <span class="built_in">NULL</span>; <span class="keyword">parent</span> = <span class="keyword">parent</span><span class="subst">-&gt;</span><span class="keyword">parent</span>) {
-            result = g_switch(<span class="keyword">parent</span>, result, <span class="built_in">NULL</span>);
-            <span class="comment">/* Return here means switch to parent failed,
-              * in which case we throw *current* exception
-              * to the next parent in chain.
-              */</span>
-            assert(result == <span class="built_in">NULL</span>);
-        }
-        <span class="comment">// 这里应该不会被运行到</span>
-    }
-</code></pre><p>接下来我们看一下g_switchstack都做了什么。g_switchstack主要做三件事：</p>
-<ol>
-<li>首先保存当前的PyThreadState的内容到当前的greenlet</li>
-<li>进行上下文切换</li>
-<li>切换成功后，ts_current=target，ts_origin=last_greenlet，target相关的PyThreadState信息赋值给PyThreadState </li>
-</ol>
-<p>static int g_switchstack(void)<br>{<br>    …<br>    err = slp_switch();  // slp_switch 是平台相关的函数<br>    …<br>}</p>
-<p>到目前为止，C的栈空间的格局如下：</p>
-<pre><code>            |<span class="string">           </span>|
-            |<span class="string">           </span>|
-            |<span class="string">___________</span>|<span class="string">  &lt;---- ts_current-&gt;stack_stop
-            </span>|<span class="string">           </span>|
-            |<span class="string">           </span>|
-dummymarker    |<span class="string">___________</span>|<span class="string">  &lt;---- ts_target-&gt;stack_stop
-            </span>|<span class="string">           </span>|
-            |<span class="string"> will be   </span>|
-            |<span class="string"> save ..   </span>|
-        ESP |<span class="string">___________</span>|<span class="string">  &lt;---- ts_current-&gt;stack_start
-            </span>|<span class="string">           </span>|
-</code></pre><p>slp_switch函数将会进行上下文切换，首先就是将上图显示的<strong>will</strong> <strong>be</strong> <strong>save</strong>的栈内容保存。具体的实现在<strong>slp_save_state</strong>方法内。</p>
-<pre><code><span class="comment">/*  
-    此函数的内容不列出了，主要做了下面一件事情
-
-    检查当前greenlet(ts_current)的每一个前置greenlet
-    如果它的stack_stop小于target的stack_stop（也就是
-    说target得栈会覆盖老的greenlet），那么我们就将这些
-    老的greenlet的栈进行保存(g_save)
- */</span>
-<span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">GREENLET_NOINLINE</span><span class="params">(slp_save_state)</span><span class="params">(<span class="keyword">char</span>* stackref)</span>
-</span>{
-    ... ...
-} 
-</code></pre><p>之后，如果当前的ts_target没有被激活，我们的上下文切换会立即返回1，具体的逻辑在<strong>SLP_SAVE_STATE</strong>的宏定义内。</p>
-<pre><code><span class="preprocessor">#<span class="keyword">define</span> SLP_SAVE_STATE(stackref, stsizediff)            \</span>
-    stackref += STACK_MAGIC;                        \
-    <span class="keyword">if</span> (slp_save_state((<span class="keyword">char</span>*)stackref)) <span class="keyword">return</span> -<span class="number">1</span>; \
-    <span class="keyword">if</span> (!PyGreenlet_ACTIVE(ts_target)) <span class="keyword">return</span> <span class="number">1</span>;    \
-    stsizediff = ts_target-&gt;stack_start - (<span class="keyword">char</span>*)stackref
-</code></pre><p>如果ts_target已经被激活了，会计算<strong>stsizediff</strong>，即target的栈顶指针与当前esp的差值，并在平台相关代码内将esp偏移到对于的target-&gt;stack_start的位置。之后方法<strong>slp_restore_state
-</strong>将会被调用，用于恢复ts_target的栈信息。</p>
-<pre><code><span class="comment">/*  此函数主要做下面两件操作
-
-    1. 把target保存的栈数据拷贝到栈里面
-    2. 对current向上回溯，找到第一个stack_stop &gt; target-&gt;stack_stop的greenlet，并对target-&gt;stack_prev赋值
- */</span>
-<span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">GREENLET_NOINLINE</span><span class="params">(slp_restore_state)</span><span class="params">(<span class="keyword">void</span>)</span>
-</span>{
-    ...
-}
-</code></pre><p>OK，其实greenlet的上下文切换都在这里了，唯一没有讲得就是slp_switch内部的汇编代码。每一个平台都不同，但主要是对esp的操作。</p>
-<p>现在回到最初的函数<strong>g_switch</strong>，上面将到有两个分支，另一个分支是ts_target已经被激活了，逻辑上会直接调用<strong>g_switchstack</strong>函数，函数内的逻辑我们已经都讲到了。</p>
-<h2 id="reference:">reference:</h2><ol>
-<li>说说这篇「我为什么从python转向go」- <a href="http://www.jianshu.com/p/xiQzpL" target="_blank" rel="external">http://www.jianshu.com/p/xiQzpL</a></li>
-<li>Mac OS 10.9安装gevent - <a href="https://www.phodal.com/blog/mac-os-x-10-9-install-gevent-greenlet/" target="_blank" rel="external">https://www.phodal.com/blog/mac-os-x-10-9-install-gevent-greenlet/</a></li>
-<li>GCC-Inline-Assembly-HOWTO - <a href="http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html" target="_blank" rel="external">http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html</a></li>
-<li>greenlet 实现原理 - <a href="https://code.google.com/p/libhjw/wiki/notes_on_greenlet" target="_blank" rel="external">https://code.google.com/p/libhjw/wiki/notes_on_greenlet</a></li>
-<li>【Linux学习笔记】Linux C中内联汇编的语法格式及使用方法（Inline Assembly in Linux C）- <a href="http://blog.csdn.net/slvher/article/details/8864996" target="_blank" rel="external">http://blog.csdn.net/slvher/article/details/8864996</a></li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -2221,7 +2091,7 @@ dummymarker    |<span class="string">___________</span>|<span class="string">  &
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">38</span>
+              <span class="site-state-item-count">39</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>

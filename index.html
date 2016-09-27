@@ -241,6 +241,130 @@
             
               
                 
+                <a class="post-title-link" href="/2016/09/27/google-preftool-1/" itemprop="url">
+                  Google Perftools Mac OS 安装与使用
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-09-27T12:52:15+08:00" content="2016-09-27">
+              2016-09-27
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index">
+                    <span itemprop="name">c++</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/09/27/google-preftool-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/09/27/google-preftool-1/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>项目用到了tcmalloc，然后发现项目有内存泄露，因此略微玩了一下Google Perftools</p>
+</blockquote>
+<h3 id="1-安装">1.安装</h3><p>目前Google Perftools的Repo在<a href="https://github.com/gperftools/gperftools/tree/master" target="_blank" rel="external">https://github.com/gperftools/gperftools/tree/master</a></p>
+<p>我们可以下载8.0的Release版本 <a href="https://github.com/gperftools/gperftools/tree/at8_0-release" target="_blank" rel="external">https://github.com/gperftools/gperftools/tree/at8_0-release</a></p>
+<p>下载之后进行解压:</p>
+<pre><code><span class="blockquote">&gt; cd google-perftool</span>
+<span class="blockquote">&gt; ./autogen.sh</span>
+<span class="blockquote">&gt; ./configure --prefix=&lt;build_path&gt;</span>
+<span class="blockquote">&gt; make</span>
+<span class="blockquote">&gt; make install</span>
+</code></pre><p>安装成功！</p>
+<h3 id="2-使用">2.使用</h3><p>使用方法很简单，目前我们项目使用方式如下(Linux下)：</p>
+<pre><code><span class="keyword">export</span> LD_PRELOAD=&lt;build_path&gt;<span class="regexp">/lib/</span>libtcmalloc.so
+</code></pre><h3 id="3-Heap_Profile">3.Heap Profile</h3><p>我们可以将tcmalloc使用Heap的信息dump出来，通过pprof工具进行查看。</p>
+<pre><code>env HEAPPROFILE=<span class="string">"./perf_log/game.log"</span> HEAP_PROFILE_ALLOCATION_INTERVAL=<span class="number">10000000</span> &lt;program&gt;
+</code></pre><p><strong>HEAPPROFILE</strong>: 用于指明dump出来的log信息的前缀<br><strong>HEAP_PROFILE_ALLOCATION_INTERVAL</strong>: 定义采样频率，默认是1G，当tcmalloc分配内存到达配置值时，将会dump出log</p>
+<h5 id="查看信息">查看信息</h5><p>比如我们的<program>是python</program></p>
+<pre><code>pporf --<span class="keyword">text</span> /usr/bin/<span class="keyword">python</span> game.<span class="keyword">log</span><span class="number">.0001</span>.heap
+</code></pre><h3 id="4-References">4.References</h3><ol>
+<li><a href="http://dirtysalt.info/gperftools.html#orgheadline2" target="_blank" rel="external">http://dirtysalt.info/gperftools.html#orgheadline2</a> – 对log信息的说明</li>
+</ol>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/09/05/cpp-right-ref/" itemprop="url">
                   C++11的右值引用
                 </a>
@@ -1548,177 +1672,6 @@ MutexGuard guard(mutex);    <span class="comment">// 写数据全场加锁</span
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/02/29/python-double-link-queue/" itemprop="url">
-                  Python实现一个C版本的双向循环队列listex
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-02-29T14:06:51+08:00" content="2016-02-29">
-              2016-02-29
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/02/29/python-double-link-queue/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/29/python-double-link-queue/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>周末在家花了半天时间写了一个简单的双向循环链表，为什么要这样做，一是想比较一下Python原生的list和双向链表的性能差距是怎样的；二是看libuv的QUEUE源码，感觉libuv实现双向循环链表的方式还是很优雅的，打算借用一下。</p>
-</blockquote>
-<p>代码地址：<a href="https://github.com/Whosemario/ThinkIdeaEx/tree/master/python_list_ex" target="_blank" rel="external">https://github.com/Whosemario/ThinkIdeaEx/tree/master/python_list_ex</a></p>
-<h3 id="安装">安装</h3><pre><code>&gt; python setup<span class="class">.py</span> build_ext --inplace
-</code></pre><p>本地会生成一个listex.so的动态链接库。</p>
-<h3 id="性能对比">性能对比</h3><h4 id="1-append方法">1.append方法</h4><p>双向循环链表测试代码：</p>
-<pre><code>import <span class="tag">time</span>
-import listex
-
-<span class="tag">li</span> = listex.<span class="function"><span class="title">listex</span><span class="params">()</span></span>
-
-start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
-<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">10000000</span>)</span></span>:
-    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
-end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
-
-print <span class="string">"total time:"</span>, end_ts - start_ts
-</code></pre><p>输出结果如下：</p>
-<pre><code>total <span class="tag">time</span>: <span class="number">2.71579694748</span>
-</code></pre><p>原生Python List测试代码：</p>
-<pre><code>import <span class="tag">time</span>
-import listex
-
-<span class="tag">li</span> = listex.<span class="function"><span class="title">listex</span><span class="params">()</span></span>
-
-start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
-<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">10000000</span>)</span></span>:
-    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
-end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
-
-print <span class="string">"total time:"</span>, end_ts - start_ts
-</code></pre><p>输出结果如下：</p>
-<pre><code>total <span class="tag">time</span>: <span class="number">1.8892519474</span>
-</code></pre><p>上面的结果可以看出来Python List的append的效率更高，这个是在意料之中的，Python List向后插入本来性能就不差，原因是Python List在容量不足时候会扩容，容量足够的时候append的内部实现就是<strong>数组赋值</strong>，性能肯定不差；而我的listex，在每次插入一个PyObject的时候，都要malloc一个队列节点（ListexNode）, 这个性能就会差很多了。</p>
-<h4 id="2-pop方法">2.pop方法</h4><p>原生Python List从下标为0的地方pop出值：</p>
-<pre><code>import <span class="tag">time</span>
-import listex
-
-<span class="tag">li</span> = []
-<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
-    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
-
-start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
-<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
-    <span class="tag">li</span>.<span class="function"><span class="title">pop</span><span class="params">(<span class="number">0</span>)</span></span>
-end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
-
-print <span class="string">"total time:"</span>, end_ts - start_ts
-</code></pre><p>输出结果如下：</p>
-<pre><code>total <span class="tag">time</span>: <span class="number">2.07851791382</span>
-</code></pre><p>使用listex，获取第一个listex node，并从队列中剔除：</p>
-<pre><code>import <span class="tag">time</span>
-import listex
-
-<span class="tag">li</span> = listex.<span class="function"><span class="title">listex</span><span class="params">()</span></span>
-<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
-    <span class="tag">li</span>.<span class="function"><span class="title">append</span><span class="params">(i)</span></span>
-
-start_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
-<span class="keyword">for</span> <span class="tag">i</span> <span class="keyword">in</span> <span class="function"><span class="title">xrange</span><span class="params">(<span class="number">0</span>, <span class="number">100000</span>)</span></span>:
-    <span class="tag">li</span>.<span class="function"><span class="title">get_head</span><span class="params">()</span></span>.<span class="function"><span class="title">remove</span><span class="params">()</span></span>
-end_ts = <span class="tag">time</span>.<span class="function"><span class="title">time</span><span class="params">()</span></span>
-
-print <span class="string">"total time:"</span>, end_ts - start_ts
-</code></pre><p>输出几个如下：</p>
-<pre><code>total <span class="tag">time</span>: <span class="number">0.0255160331726</span>
-</code></pre><p>这种情况双向链表的优势就很明显了，Python List每次都要从头部pop出一个值，因此每次都要进行数据的整体移动，性能就很耗了。</p>
-<h3 id="关于此工程">关于此工程</h3><p>现在这个双向链表的代码还是不完整，后面将会持续更新。</p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -1765,7 +1718,7 @@ print <span class="string">"total time:"</span>, end_ts - start_ts
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">38</span>
+              <span class="site-state-item-count">39</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
