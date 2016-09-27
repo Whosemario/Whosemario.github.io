@@ -209,15 +209,6 @@
 
     
     
-      
-      
-        
-        
-        
-      
-
-      
-    
 
     
       
@@ -320,7 +311,11 @@
 </code></pre><p><strong>HEAPPROFILE</strong>: 用于指明dump出来的log信息的前缀<br><strong>HEAP_PROFILE_ALLOCATION_INTERVAL</strong>: 定义采样频率，默认是1G，当tcmalloc分配内存到达配置值时，将会dump出log</p>
 <h5 id="查看信息">查看信息</h5><p>比如我们的<program>是python</program></p>
 <pre><code>pporf --<span class="keyword">text</span> /usr/bin/<span class="keyword">python</span> game.<span class="keyword">log</span><span class="number">.0001</span>.heap
-</code></pre><h3 id="4-References">4.References</h3><ol>
+</code></pre><h3 id="4-Heap_Leak_Profile">4.Heap Leak Profile</h3><p>我们可以使用tcmalloc的Heap Checker去检查内存泄露</p>
+<pre><code>env HEAPCHECK=normal &lt;<span class="function"><span class="keyword">program</span></span>&gt;
+</code></pre><p>Heap Checker会在程序结束的时候打印出leak数据，并会提示使用什么指令进行详细信息的查看。</p>
+<p>–text: 文本数据<br>–pdf: 调用栈的信息</p>
+<h3 id="5-References">5.References</h3><ol>
 <li><a href="http://dirtysalt.info/gperftools.html#orgheadline2" target="_blank" rel="external">http://dirtysalt.info/gperftools.html#orgheadline2</a> – 对log信息的说明</li>
 </ol>
 

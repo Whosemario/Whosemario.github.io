@@ -65,7 +65,7 @@
 
 1.安装目前Google Perftools的Repo在https://github.com/gperftools/gperftools/tree/master
 我们可以下载8.0的Release版本 https://github.com/gperftools/gperftools/tree/a">
-<meta property="og:updated_time" content="2016-09-27T05:45:08.000Z">
+<meta property="og:updated_time" content="2016-09-27T07:59:17.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Google Perftools Mac OS 安装与使用">
 <meta name="twitter:description" content="项目用到了tcmalloc，然后发现项目有内存泄露，因此略微玩了一下Google Perftools
@@ -307,7 +307,11 @@
 </code></pre><p><strong>HEAPPROFILE</strong>: 用于指明dump出来的log信息的前缀<br><strong>HEAP_PROFILE_ALLOCATION_INTERVAL</strong>: 定义采样频率，默认是1G，当tcmalloc分配内存到达配置值时，将会dump出log</p>
 <h5 id="查看信息">查看信息</h5><p>比如我们的<program>是python</program></p>
 <pre><code>pporf --<span class="keyword">text</span> /usr/bin/<span class="keyword">python</span> game.<span class="keyword">log</span><span class="number">.0001</span>.heap
-</code></pre><h3 id="4-References">4.References</h3><ol>
+</code></pre><h3 id="4-Heap_Leak_Profile">4.Heap Leak Profile</h3><p>我们可以使用tcmalloc的Heap Checker去检查内存泄露</p>
+<pre><code>env HEAPCHECK=normal &lt;<span class="function"><span class="keyword">program</span></span>&gt;
+</code></pre><p>Heap Checker会在程序结束的时候打印出leak数据，并会提示使用什么指令进行详细信息的查看。</p>
+<p>–text: 文本数据<br>–pdf: 调用栈的信息</p>
+<h3 id="5-References">5.References</h3><ol>
 <li><a href="http://dirtysalt.info/gperftools.html#orgheadline2" target="_blank" rel="external">http://dirtysalt.info/gperftools.html#orgheadline2</a> – 对log信息的说明</li>
 </ol>
 </span>
@@ -480,7 +484,7 @@
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-安装"><span class="nav-number">1.</span> <span class="nav-text">1.安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-使用"><span class="nav-number">2.</span> <span class="nav-text">2.使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Heap_Profile"><span class="nav-number">3.</span> <span class="nav-text">3.Heap Profile</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#查看信息"><span class="nav-number">3.0.1.</span> <span class="nav-text">查看信息</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-References"><span class="nav-number">4.</span> <span class="nav-text">4.References</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-安装"><span class="nav-number">1.</span> <span class="nav-text">1.安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-使用"><span class="nav-number">2.</span> <span class="nav-text">2.使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Heap_Profile"><span class="nav-number">3.</span> <span class="nav-text">3.Heap Profile</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#查看信息"><span class="nav-number">3.0.1.</span> <span class="nav-text">查看信息</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Heap_Leak_Profile"><span class="nav-number">4.</span> <span class="nav-text">4.Heap Leak Profile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-References"><span class="nav-number">5.</span> <span class="nav-text">5.References</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
