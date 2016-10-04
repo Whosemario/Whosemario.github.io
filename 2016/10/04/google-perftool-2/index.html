@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Python," />
+  <meta name="keywords" content="c++," />
 
 
 
@@ -53,43 +53,25 @@
 
 
 
-<meta name="description" content="本文只分析Python类实例的创建，不涉及类本身的构建（类本身的构建将会在接下来的文章中介绍）。
+<meta name="description" content="前一阵子在项目中使用tcmalloc的heap-checker查找内存泄露的问题，今天翻译一下官方文档的一篇heap-checker相关的文章，由于时间有限，没有完全翻译完，只翻译了比较重要的部分，后续将会补全。
 
-# example
-class A(object):
-    pass
-obj_a = A()
-上面这一段代码对应的opcode如下：
- 0 LOAD_CONST               1 (&apos;A&apos;)
- 3 LOAD_GLOBAL              0 (object)
- 6 BUIL">
+在Google，我们使用heap checker检查C++程序的内存泄露。使用heap checker分三步：将lib库链接到应用中；运行代码；分析输出结果。
+链接tcmalloche">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python源码解析——Class实例创建">
-<meta property="og:url" content="http://whosemario.github.io/2016/01/05/python-class-instance/index.html">
+<meta property="og:title" content="【翻译】heap-checking using tcmalloc">
+<meta property="og:url" content="http://whosemario.github.io/2016/10/04/google-perftool-2/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="本文只分析Python类实例的创建，不涉及类本身的构建（类本身的构建将会在接下来的文章中介绍）。
+<meta property="og:description" content="前一阵子在项目中使用tcmalloc的heap-checker查找内存泄露的问题，今天翻译一下官方文档的一篇heap-checker相关的文章，由于时间有限，没有完全翻译完，只翻译了比较重要的部分，后续将会补全。
 
-# example
-class A(object):
-    pass
-obj_a = A()
-上面这一段代码对应的opcode如下：
- 0 LOAD_CONST               1 (&apos;A&apos;)
- 3 LOAD_GLOBAL              0 (object)
- 6 BUIL">
-<meta property="og:updated_time" content="2016-01-05T02:06:23.000Z">
+在Google，我们使用heap checker检查C++程序的内存泄露。使用heap checker分三步：将lib库链接到应用中；运行代码；分析输出结果。
+链接tcmalloche">
+<meta property="og:updated_time" content="2016-10-04T12:32:00.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python源码解析——Class实例创建">
-<meta name="twitter:description" content="本文只分析Python类实例的创建，不涉及类本身的构建（类本身的构建将会在接下来的文章中介绍）。
+<meta name="twitter:title" content="【翻译】heap-checking using tcmalloc">
+<meta name="twitter:description" content="前一阵子在项目中使用tcmalloc的heap-checker查找内存泄露的问题，今天翻译一下官方文档的一篇heap-checker相关的文章，由于时间有限，没有完全翻译完，只翻译了比较重要的部分，后续将会补全。
 
-# example
-class A(object):
-    pass
-obj_a = A()
-上面这一段代码对应的opcode如下：
- 0 LOAD_CONST               1 (&apos;A&apos;)
- 3 LOAD_GLOBAL              0 (object)
- 6 BUIL">
+在Google，我们使用heap checker检查C++程序的内存泄露。使用heap checker分三步：将lib库链接到应用中；运行代码；分析输出结果。
+链接tcmalloche">
 
 
 
@@ -101,7 +83,7 @@ obj_a = A()
   };
 </script>
 
-  <title> Python源码解析——Class实例创建 | Whosemario的家 </title>
+  <title> 【翻译】heap-checking using tcmalloc | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -251,7 +233,7 @@ obj_a = A()
             
             
               
-                Python源码解析——Class实例创建
+                【翻译】heap-checking using tcmalloc
               
             
           </h1>
@@ -260,8 +242,8 @@ obj_a = A()
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2016-01-05T09:12:28+08:00" content="2016-01-05">
-              2016-01-05
+            <time itemprop="dateCreated" datetime="2016-10-04T19:20:08+08:00" content="2016-10-04">
+              2016-10-04
             </time>
           </span>
 
@@ -270,8 +252,8 @@ obj_a = A()
               &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
+                  <a href="/categories/性能优化/" itemprop="url" rel="index">
+                    <span itemprop="name">性能优化</span>
                   </a>
                 </span>
 
@@ -286,8 +268,8 @@ obj_a = A()
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2016/01/05/python-class-instance/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/05/python-class-instance/" itemprop="commentsCount"></span>
+                <a href="/2016/10/04/google-perftool-2/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/04/google-perftool-2/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -307,66 +289,37 @@ obj_a = A()
 
       
         <span itemprop="articleBody"><blockquote>
-<p>本文只分析Python类实例的创建，不涉及类本身的构建（类本身的构建将会在接下来的文章中介绍）。</p>
+<p>前一阵子在项目中使用tcmalloc的heap-checker查找内存泄露的问题，今天翻译一下官方文档的一篇heap-checker相关的文章，由于时间有限，没有完全翻译完，只翻译了比较重要的部分，后续将会补全。</p>
 </blockquote>
-<pre><code><span class="comment"># example</span>
-<span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span>
-    <span class="keyword">pass</span>
-obj_a = A()
-</code></pre><p>上面这一段代码对应的opcode如下：</p>
-<pre><code> <span class="number">0</span> LOAD_CONST               <span class="number">1</span> (<span class="string">'A'</span>)
- <span class="number">3</span> LOAD_GLOBAL              <span class="number">0</span> (object)
- <span class="number">6</span> BUILD_TUPLE              <span class="number">1</span>
- <span class="number">9</span> LOAD_CONST               <span class="number">2</span> (&lt;code object A at <span class="number">0x104f367b0</span>, file <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">2</span>&gt;)
-<span class="number">12</span> MAKE_FUNCTION            <span class="number">0</span>
-<span class="number">15</span> CALL_FUNCTION            <span class="number">0</span>
-<span class="number">18</span> BUILD_CLASS
-<span class="number">19</span> STORE_FAST               <span class="number">0</span> (A)
-
-<span class="number">22</span> LOAD_FAST                <span class="number">0</span> (A)
-<span class="number">25</span> CALL_FUNCTION            <span class="number">0</span>
-<span class="number">28</span> STORE_FAST               <span class="number">1</span> (obj_a)
-</code></pre><p>说明几个关键的opcode，<strong>BUILD_CLASS</strong>用于创建一个名为<strong>A</strong>的Class，在<strong>LOAD_FAST</strong>的时候Python虚拟机加载<strong>A</strong>，然后执行<strong>CALL_FUNCTION</strong>。</p>
-<h4 id="1-从CALL_FUNCTION机器码看起">1.从CALL_FUNCTION机器码看起</h4><p>下面是从CALL_FUNCTION开始的函数调用流程:</p>
-<pre><code>CALL_FUNCTION<span class="subst">-&gt;</span>call_function<span class="subst">-&gt;</span>do_call<span class="subst">-&gt;</span>PyObject_Call<span class="attribute">...</span>
-</code></pre><p><strong>PyObject_Call</strong>从函数命名很容易理解，这个函数是对PyObject进行调用。</p>
-<pre><code><span class="type">PyObject</span> *
-<span class="type">PyObject_Call</span>(<span class="type">PyObject</span> *func, <span class="type">PyObject</span> *arg, <span class="type">PyObject</span> *kw) {
-    <span class="keyword">if</span> ((call = func-&gt;ob_type-&gt;tp_call) != <span class="type">NULL</span>) {
-        ...
-        <span class="literal">result</span> = (*call)(func, arg, kw);
-        ...
-    }
-    ...
-</code></pre><p>func在这里对应的就是<strong>类A</strong>，当然我们在创建obj_a的时候是没有参数的，因此arg和kw便没有任何东西。在if语句中获取func-&gt;ob_type-&gt;tp_call，func就是A，那么ob_type在这里是PyType_Type。</p>
-<pre><code><span class="comment"># in typeobject.c</span>
-PyTypeObject PyType_Type = {
-    ....
-    (ternaryfunc)type_call,                     /<span class="keyword">*</span> tp_call <span class="keyword">*</span>/
-    ....
-</code></pre><p>就是上面这个实例，其对应的tp_call是<strong>type_call</strong>这个函数。</p>
-<pre><code><span class="keyword">static</span> PyObject *
-type_call(PyTypeObject *<span class="class"><span class="keyword">type</span>, <span class="title">PyObject</span> *<span class="title">args</span>, <span class="title">PyObject</span> *<span class="title">kwds</span>) {</span>
-    ....
-    obj = <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_new</span></span>(<span class="class"><span class="keyword">type</span>, <span class="title">args</span>, <span class="title">kwds</span>);</span>
-    ....
-</code></pre><p>type-&gt;tp_new中的type还是<strong>类A</strong>，tp_new则是其基类object的tp<em>new（原因很简单，我们在A的定义中并没有重载\</em>_new__函数），object的真面目就是PyBaseObject_Type。</p>
-<pre><code><span class="comment"># in typeobject.c</span>
-PyTypeObject PyBaseObject_Type = { 
-    ....
-    object_new,                                 /<span class="keyword">*</span> tp_new <span class="keyword">*</span>/
-    ....
-</code></pre><h4 id="2-object_new都做了什么">2.object_new都做了什么</h4><pre><code><span class="keyword">static</span> PyObject *
-object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, <span class="title">PyObject</span> *<span class="title">args</span>, <span class="title">PyObject</span> *<span class="title">kwds</span>) {</span>
-    ....
-    <span class="keyword">return</span> <span class="class"><span class="keyword">type</span>-&gt;<span class="title">tp_alloc</span></span>(<span class="class"><span class="keyword">type</span>, 0);</span>
-}
-</code></pre><p>object_new做的事情很简单，就是调用类A的tp_alloc，这里的tp_alloc的实现是PyType_GenericAlloc函数，我们在<a href="http://whosemario.github.io/2016/01/03/python-PyType-GenericAlloc/">前文</a>也提到过。</p>
-<h4 id="3-总结">3.总结</h4><p>到这里obj_a的创建流程基本走完，无非后面会调用tp<em>new（如果我们定义了\</em>_init__就会调用我们的这个方法），但obj_a在内存中的形式已经确定，就是一个简单的PyObject。</p>
-<pre><code><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">object</span> </span>{
-    PyObject_HEAD
-} PyObject;
-</code></pre><p>其ob_type对应的就是<strong>类A</strong>。    </p>
+<p>在Google，我们使用heap checker检查C++程序的内存泄露。使用heap checker分三步：将lib库链接到应用中；运行代码；分析输出结果。</p>
+<h3 id="链接tcmalloc">链接tcmalloc</h3><p>heap-checker是tcmalloc的一部分，为了在应用程序中安装heap checker，在程序链接阶段需要加入-ltcmalloc。但上面这种方法并不是唯一的方式，我们可以使用LD_PRELOAD宏在程序运行时加入tcmalloc：</p>
+<pre><code><span class="comment">% env LD_PRELOAD="/usr/lib/libtcmalloc.so"</span>
+</code></pre><p>上面这种方式并没有打开heap checking；仅仅将代码插入到程序中。因此，在开发阶段我们建议使用链接tcmalloc库的方法，这也是我们在Google使用的方法（然而，我们也可以使用环境变量开启profiler，因此通过链接tcmalloc库并不是必须的。）。需要注意的是为了使用heap checker必须使用tcmalloc内存分配库。</p>
+<h3 id="运行代码">运行代码</h3><p>注意：由于一些安全原因，对于setuid程序，heap profiler在使用的过程中并不会写文件。</p>
+<h2 id="对整个程序进行内存泄露检查">对整个程序进行内存泄露检查</h2><p>我们推荐使用heap-checker的方式是“全程序”模式。在这种模式下，heap-checker在main()函数开始之前跟踪内存分配，在程序介绍的时候再次检查。如果发现有内存泄露（任何已经分配的内存在程序结束的时候并没有对象引用它们），程序将会中断（通过exit(1)）并且打印怎样跟踪内存泄露的信息（使用pprof）</p>
+<p>heap-checker会记录每一次内存分配的调用栈，因此开启heap-checker会导致程序的内存增长并影响程序的性能。</p>
+<p>下面介绍怎么开启全程序模式的内存泄露检查：</p>
+<ol>
+<li><p>定义环境变量 HEAPCHECK 声明内存泄露检查的模式。例如下面的方式：   </p>
+<p> % env HEAPCHECK=normal /usr/local/bin/my_binary_compiled_with_tcmalloc</p>
+</li>
+</ol>
+<p>没有其他的操作了。</p>
+<p>需要注意的是heap-checker使用heap-profiling的架构，因此不可能同时运行heap-checker和heap-profiler。</p>
+<h3 id="内存检查的特性">内存检查的特性</h3><p>如下是在使用全程序内存检查的合法变量：</p>
+<ol>
+<li>minimal</li>
+<li>normal</li>
+<li>strict</li>
+<li>draconian</li>
+</ol>
+<p>“minimal”的模式开始内存泄露检查尽可能晚，意味着你可以在初始化例程存在一些内存泄露（在main()函数前），但并不会让heap-checker记录。如果你在全局初始化时候存在内存泄露，“minimal”模式就很适合。否则，你应该使用更加严格的模式。</p>
+<p>“normal”模式跟踪存活对象（live objects）并报告其内存泄露信息（在程序结束时，无法通过存活对象找到的内存空间都是内存泄露）</p>
+<p>“strict”模式与“normal”模式很相似，但“strict”模式会监控全局变量析构函数的内存泄露。例如，如果你有一个全局变量，在运行时申请了部分内存，在析构函数中忘记释放内存，在“strict”模式下将会被监控到，在“normal”模式下将不会。</p>
+<p>“draconian”模式适合想清晰了解应用程序内存管理的情况，其希望heap-checker去帮助他们优化内存管理。在“draconian”模式，heap-checker并不会只检查存活对象，只要有内存泄露，其都会报告。</p>
+<p>“normal”模式是最常用的模式。</p>
+<p>as-is”是一个更加灵活的模式；它允许你自定义heap-checker的一些特性。“local”激活“显式heap-check指令”，但并不会开启任何全程序内存泄露检查。</p>
+<h2 id="用于调试内存泄露的小方法">用于调试内存泄露的小方法</h2><h3 id="工作原理">工作原理</h3><p>当一个HeapLeakChecker对象被构造的时候，它会在tmp文件夹输出一个名为<prefix>.<name>-beg.heap的记录内存使用信息的文件。当NoLeak()被调用的时候（对于全程序检查，其发生在程序结束），它将输出一个名为<prefix>.<name>-end.heap的文件（<prefix>是自动诊断的，<name>是argv[0]的内容）。heap-checker将会对比这两个文件。如果第二个文件使用了过多的内存使用量，NoLeaks()函数将会返回false。对于全程序，这种情况将会引起程序中断。所有情况下都将会打印如何处理dump文件的信息。</name></prefix></name></prefix></name></prefix></p>
 </span>
       
     </div>
@@ -375,7 +328,7 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
       
         <div class="post-tags">
           
-            <a href="/tags/Python/" rel="tag">#Python</a>
+            <a href="/tags/c/" rel="tag">#c++</a>
           
         </div>
       
@@ -384,17 +337,13 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/01/03/python-PyType-GenericAlloc/" rel="next" title="Python源码解析——PyType_GenericAlloc">
-                <i class="fa fa-chevron-left"></i> Python源码解析——PyType_GenericAlloc
+              <a href="/2016/09/27/google-preftool-1/" rel="next" title="Google Perftools Mac OS 安装与使用">
+                <i class="fa fa-chevron-left"></i> Google Perftools Mac OS 安装与使用
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2016/01/10/python-import/" rel="prev" title="Python Import机制（一）">
-                Python Import机制（一） <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -409,10 +358,10 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2016/01/05/python-class-instance/"
-     data-title="Python源码解析——Class实例创建"
+        <div class="ds-share flat" data-thread-key="2016/10/04/google-perftool-2/"
+     data-title="【翻译】heap-checking using tcmalloc"
      data-content=""
-     data-url="http://whosemario.github.io/2016/01/05/python-class-instance/">
+     data-url="http://whosemario.github.io/2016/10/04/google-perftool-2/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -440,8 +389,8 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2016/01/05/python-class-instance/"
-           data-title="Python源码解析——Class实例创建" data-url="http://whosemario.github.io/2016/01/05/python-class-instance/">
+      <div class="ds-thread" data-thread-key="2016/10/04/google-perftool-2/"
+           data-title="【翻译】heap-checking using tcmalloc" data-url="http://whosemario.github.io/2016/10/04/google-perftool-2/">
       </div>
     
   </div>
@@ -541,7 +490,7 @@ object_new(PyTypeObject *<span class="class"><span class="keyword">type</span>, 
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-从CALL_FUNCTION机器码看起"><span class="nav-number">1.</span> <span class="nav-text">1.从CALL_FUNCTION机器码看起</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-object_new都做了什么"><span class="nav-number">2.</span> <span class="nav-text">2.object_new都做了什么</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-总结"><span class="nav-number">3.</span> <span class="nav-text">3.总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#链接tcmalloc"><span class="nav-number">1.</span> <span class="nav-text">链接tcmalloc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行代码"><span class="nav-number">2.</span> <span class="nav-text">运行代码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对整个程序进行内存泄露检查"><span class="nav-number"></span> <span class="nav-text">对整个程序进行内存泄露检查</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内存检查的特性"><span class="nav-number">1.</span> <span class="nav-text">内存检查的特性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用于调试内存泄露的小方法"><span class="nav-number"></span> <span class="nav-text">用于调试内存泄露的小方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#工作原理"><span class="nav-number">1.</span> <span class="nav-text">工作原理</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
