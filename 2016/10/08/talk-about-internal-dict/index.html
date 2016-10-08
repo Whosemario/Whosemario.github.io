@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="libuv," />
+  <meta name="keywords" content="python," />
 
 
 
@@ -53,37 +53,34 @@
 
 
 
-<meta name="description" content="libuv是一个轻量级的异步IO库，学习它这件事情已经打算好久了，那么从今天开始，我尝试使用libuv写一些教程性质的代码
+<meta name="description" content="今天看了一下Python源码，简单了解获取__dict__的流程，这里做一下简单的总结，为后续回头查看提供方便
 
-1.下载与编译从github上clone下源码，编译lib库。
-&amp;gt; cd libuv/
-&amp;gt; ./autogen.sh
-&amp;gt; ./configure
-&amp;gt; make
-编译之后会在.libs文件夹存在libuv.a的库文件，当前根目录下有include头文件">
+Class的__dict__先看一个例子：
+&amp;gt; class A(object): pass
+&amp;gt; ...
+&amp;gt; A.__dict__
+dict_proxy({&apos;__dict__&apos;: &amp;lt;attribute &apos;__dict__&apos; of &apos;A&apos; objects&amp;gt;,">
 <meta property="og:type" content="article">
-<meta property="og:title" content="一起玩玩libuv (一)">
-<meta property="og:url" content="http://whosemario.github.io/2016/01/26/libuv-tutorial-1/index.html">
+<meta property="og:title" content="浅谈__dict__">
+<meta property="og:url" content="http://whosemario.github.io/2016/10/08/talk-about-internal-dict/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="libuv是一个轻量级的异步IO库，学习它这件事情已经打算好久了，那么从今天开始，我尝试使用libuv写一些教程性质的代码
+<meta property="og:description" content="今天看了一下Python源码，简单了解获取__dict__的流程，这里做一下简单的总结，为后续回头查看提供方便
 
-1.下载与编译从github上clone下源码，编译lib库。
-&amp;gt; cd libuv/
-&amp;gt; ./autogen.sh
-&amp;gt; ./configure
-&amp;gt; make
-编译之后会在.libs文件夹存在libuv.a的库文件，当前根目录下有include头文件">
-<meta property="og:updated_time" content="2016-01-27T12:44:16.000Z">
+Class的__dict__先看一个例子：
+&amp;gt; class A(object): pass
+&amp;gt; ...
+&amp;gt; A.__dict__
+dict_proxy({&apos;__dict__&apos;: &amp;lt;attribute &apos;__dict__&apos; of &apos;A&apos; objects&amp;gt;,">
+<meta property="og:updated_time" content="2016-10-08T12:23:12.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="一起玩玩libuv (一)">
-<meta name="twitter:description" content="libuv是一个轻量级的异步IO库，学习它这件事情已经打算好久了，那么从今天开始，我尝试使用libuv写一些教程性质的代码
+<meta name="twitter:title" content="浅谈__dict__">
+<meta name="twitter:description" content="今天看了一下Python源码，简单了解获取__dict__的流程，这里做一下简单的总结，为后续回头查看提供方便
 
-1.下载与编译从github上clone下源码，编译lib库。
-&amp;gt; cd libuv/
-&amp;gt; ./autogen.sh
-&amp;gt; ./configure
-&amp;gt; make
-编译之后会在.libs文件夹存在libuv.a的库文件，当前根目录下有include头文件">
+Class的__dict__先看一个例子：
+&amp;gt; class A(object): pass
+&amp;gt; ...
+&amp;gt; A.__dict__
+dict_proxy({&apos;__dict__&apos;: &amp;lt;attribute &apos;__dict__&apos; of &apos;A&apos; objects&amp;gt;,">
 
 
 
@@ -95,7 +92,7 @@
   };
 </script>
 
-  <title> 一起玩玩libuv (一) | Whosemario的家 </title>
+  <title> 浅谈__dict__ | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -245,7 +242,7 @@
             
             
               
-                一起玩玩libuv (一)
+                浅谈__dict__
               
             
           </h1>
@@ -254,8 +251,8 @@
         <div class="post-meta">
           <span class="post-time">
             отправлено
-            <time itemprop="dateCreated" datetime="2016-01-26T23:32:01+08:00" content="2016-01-26">
-              2016-01-26
+            <time itemprop="dateCreated" datetime="2016-10-08T18:38:23+08:00" content="2016-10-08">
+              2016-10-08
             </time>
           </span>
 
@@ -264,8 +261,8 @@
               &nbsp; | &nbsp; в
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/libuv/" itemprop="url" rel="index">
-                    <span itemprop="name">libuv</span>
+                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
+                    <span itemprop="name">python的那些事</span>
                   </a>
                 </span>
 
@@ -280,8 +277,8 @@
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2016/01/26/libuv-tutorial-1/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/26/libuv-tutorial-1/" itemprop="commentsCount"></span>
+                <a href="/2016/10/08/talk-about-internal-dict/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/08/talk-about-internal-dict/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -301,56 +298,90 @@
 
       
         <span itemprop="articleBody"><blockquote>
-<p>libuv是一个轻量级的异步IO库，学习它这件事情已经打算好久了，那么从今天开始，我尝试使用libuv写一些教程性质的代码</p>
+<p>今天看了一下Python源码，简单了解获取__dict__的流程，这里做一下简单的总结，为后续回头查看提供方便</p>
 </blockquote>
-<h3 id="1-下载与编译">1.下载与编译</h3><p>从<a href="https://github.com/libuv/libuv" target="_blank" rel="external">github</a>上clone下源码，编译lib库。</p>
-<pre><code><span class="blockquote">&gt; cd libuv/</span>
-<span class="blockquote">&gt; ./autogen.sh</span>
-<span class="blockquote">&gt; ./configure</span>
-<span class="blockquote">&gt; make</span>
-</code></pre><p>编译之后会在.libs文件夹存在libuv.a的库文件，当前根目录下有include头文件夹。</p>
-<h3 id="2-Hello_World">2.Hello World</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span>
-<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span>
-<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;uv.h&gt;</span></span>
+<h3 id="Class的__dict__">Class的__dict__</h3><p>先看一个例子：</p>
+<pre><code>&gt; class <span class="function"><span class="title">A</span><span class="params">(object)</span></span>: pass
+&gt; ...
+&gt; A.__dict__
+<span class="function"><span class="title">dict_proxy</span><span class="params">({<span class="string">'__dict__'</span>: &lt;attribute <span class="string">'__dict__'</span> of <span class="string">'A'</span> objects&gt;, <span class="string">'__module__'</span>: <span class="string">'__main__'</span>, <span class="string">'__weakref__'</span>: &lt;attribute <span class="string">'__weakref__'</span> of <span class="string">'A'</span> objects&gt;, <span class="string">'__doc__'</span>: None})</span></span>
+</code></pre><p>发现dict是一个<strong>dict_proxy</strong>类型，为何不是一个简单的python dict呢？跟一下代码看一下：</p>
+<pre><code>case LOAD_ATTR:
+    w = GETITEM(names, oparg)<span class="comment">;</span>
+    v = TOP()<span class="comment">;</span>
+    x = PyObject_GetAttr(v, w)<span class="comment">;</span>
+    Py_DECREF(v)<span class="comment">;</span>
+    SET_TOP(x)<span class="comment">;</span>
+    if (x != NULL) continue<span class="comment">;</span>
+    break<span class="comment">;</span>
+</code></pre><p>获取变量会执行<strong>LOAD_ATTR</strong>的机器码，对于Class A会走到如下函数：</p>
+<pre><code># in typeobject.c
+static PyObject *
+type_getattro(PyTypeObject *type, PyObject *name) {
+    ...
+    met<span class="built_in">a_attribute</span> = _PyType_Lookup(metatype, name)<span class="comment">;  【1】</span>
+    <span class="keyword">if</span> (met<span class="built_in">a_attribute</span> != NULL) {
+    met<span class="built_in">a_get</span> = Py_TYPE(met<span class="built_in">a_attribute</span>)-&gt;tp_descr_get<span class="comment">;</span>
 
-<span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>{
-    <span class="keyword">uv_loop_t</span> *loop = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">uv_loop_t</span>));
-    uv_loop_init(loop);
+    <span class="keyword">if</span> (met<span class="built_in">a_get</span> != NULL &amp;&amp; PyDescr_IsData(met<span class="built_in">a_attribute</span>)) {
+        /* Data descriptors implement tp_descr_set to intercept
+         * writes. Assume the attribute is <span class="literal">not</span> overridden in
+<span class="label">         * type's tp_dict (and bases):</span> call the descriptor now.
+         */
+        <span class="keyword">return</span> met<span class="built_in">a_get</span>(met<span class="built_in">a_attribute</span>, (PyObject *)type,
+                        (PyObject *)metatype)<span class="comment">;   【2】</span>
+    }
 
-    <span class="built_in">printf</span>(<span class="string">"Now quitting.\n"</span>);
-    uv_run(loop, UV_RUN_DEFAULT);
-
-    uv_loop_close(loop);
-    <span class="built_in">free</span>(loop);
-    <span class="keyword">return</span> <span class="number">0</span>;
 }
-</code></pre><p>loop需要手动的分配空间，并在结束的时候释放空间。<br><strong>uv_run</strong>用于运行主循环，但在主循环里面其实什么都没做就又跳出主循环了，简单讲一下为什么。</p>
-<pre><code><span class="keyword">int</span> uv_run(uv_loop_t* <span class="keyword">loop</span>, uv_run_mode mode) {
-      <span class="keyword">int</span> timeout;
-      <span class="keyword">int</span> r;
-      <span class="keyword">int</span> ran_pending;
-
-      r = uv__loop_alive(<span class="keyword">loop</span>);
-      <span class="keyword">if</span> (!r)
-        uv__update_time(<span class="keyword">loop</span>);
-
-      <span class="keyword">while</span> (r != <span class="number">0</span> &amp;&amp; <span class="keyword">loop</span>-&gt;stop_flag == <span class="number">0</span>) {
-          ....
-      }
-      ....
-      <span class="keyword">return</span> r;
-  }
-</code></pre><p>此时loop里面都是空的，在uv__loop_alive函数中有如下判断：</p>
-<pre><code><span class="keyword">static</span> <span class="keyword">int</span> uv__loop_alive(<span class="keyword">const</span> uv_loop_t* <span class="keyword">loop</span>) {
-      <span class="keyword">return</span> uv__has_active_handles(<span class="keyword">loop</span>) ||
-             uv__has_active_reqs(<span class="keyword">loop</span>) ||
-             <span class="keyword">loop</span>-&gt;closing_handles != NULL;
+</code></pre><p><strong>metatype</strong>：对于一个Class的Metatype是<strong>type</strong>，对于Class，会在type中寻找__dict__（参考1），返回一个描述符，并调用描述符get函数（参考2）。</p>
+<p>最终会运行到下面的代码：</p>
+<pre><code># <span class="keyword">in</span> typeobject.c
+<span class="title">static</span> <span class="type">PyObject</span> *
+<span class="title">type_dict</span>(<span class="type">PyTypeObject</span> *<span class="typedef"><span class="keyword">type</span>, void *context)</span>
+{
+    <span class="keyword">if</span> (<span class="typedef"><span class="keyword">type</span>-&gt;tp_dict == <span class="type">NULL</span>) <span class="container">{
+        <span class="type">Py_INCREF(Py_None)</span>;
+        return <span class="type">Py_None</span>;
+    }</span></span>
+    return <span class="type">PyDictProxy_New</span>(<span class="typedef"><span class="keyword">type</span>-&gt;tp_dict); 【1】</span>
 }
-</code></pre><p>此时上面三个判断条件都不满足，因此r为0，不会进入while循环，直接跳出uv_run函数。</p>
-<h3 id="3-Reference">3.Reference</h3><ol>
-<li>An Introduction to libuv - <a href="http://nikhilm.github.io/uvbook/" target="_blank" rel="external">http://nikhilm.github.io/uvbook/</a></li>
-</ol>
-</span>
+</code></pre><p>【1】这里type就是Class A，所有就是读取Class A的tp_dict</p>
+<h3 id="Instance的__dict__">Instance的__dict__</h3><p>读取一个类的实例的__dict__会调用到如下方法：</p>
+<pre><code><span class="comment"># in object.c</span>
+PyObject <span class="keyword">*</span>
+_PyObject_GenericGetAttrWithDict(PyObject <span class="keyword">*</span>obj, PyObject <span class="keyword">*</span>name, PyObject <span class="keyword">*</span>dict) {
+    ....
+    descr = _PyType_Lookup(tp, name);   【1】
+
+}
+</code></pre><p>这里<strong>tp</strong>就是Class A，因此我们需要在Class A的tp<em>dict寻找\</em>_dict__变量，ok，使用下面的方式看一下：</p>
+<pre><code>&gt; A.__dict__[<span class="string">"__dict__"</span>]
+&lt;attribute '__dict__' <span class="keyword">of</span> <span class="attribute">'A</span>' objects&gt;
+&gt; <span class="class"><span class="keyword">type</span></span>(A.__dict__[<span class="string">"__dict__"</span>])
+&lt;<span class="class"><span class="keyword">type</span> '<span class="title">getset_descriptor</span>'&gt;</span>
+</code></pre><p>这样会调用到对应的descriptor</p>
+<pre><code><span class="preprocessor"># in typeobject.c</span>
+<span class="function"><span class="keyword">static</span> PyObject *
+<span class="title">subtype_dict</span><span class="params">(PyObject *obj, <span class="keyword">void</span> *context)</span> </span>{
+    ....
+    dictptr = _PyObject_GetDictPtr(obj);
+    ....
+    dict = *dictptr;
+    ....
+    <span class="keyword">return</span> dict;
+}
+</code></pre><p>上面的obj就是Class A的实例。</p>
+<h3 id="Module的__dict__">Module的__dict__</h3><p>Module的基本逻辑与Instance相似，也是调用<strong>_PyObject_GenericGetAttrWithDict</strong>方法。</p>
+<pre><code>&gt; <span class="class"><span class="keyword">type</span></span>(a_p).__dict__['__dict__']
+&lt;<span class="keyword">member</span> '__dict__' <span class="keyword">of</span> '<span class="keyword">module</span>' objects&gt;
+&gt; <span class="class"><span class="keyword">type</span></span>(<span class="class"><span class="keyword">type</span></span>(a_p).__dict__['__dict__'])
+&lt;<span class="class"><span class="keyword">type</span> '<span class="title">member_descriptor</span>'&gt;</span>
+</code></pre><p>会拿到module的__dict__，然后调用描述符对应的get函数。</p>
+<pre><code><span class="comment"># in structmember.c</span>
+PyObject <span class="keyword">*</span>
+PyMember_GetOne(const char <span class="keyword">*</span>addr, PyMemberDef <span class="keyword">*</span>l) 
+....
+</code></pre></span>
       
     </div>
 
@@ -358,7 +389,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/libuv/" rel="tag">#libuv</a>
+            <a href="/tags/python/" rel="tag">#python</a>
           
         </div>
       
@@ -367,17 +398,13 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/01/24/pytracemalloc-install/" rel="next" title="pytracemalloc安装与使用">
-                <i class="fa fa-chevron-left"></i> pytracemalloc安装与使用
+              <a href="/2016/10/04/google-perftool-2/" rel="next" title="【翻译】heap-checking using tcmalloc">
+                <i class="fa fa-chevron-left"></i> 【翻译】heap-checking using tcmalloc
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2016/01/27/libuv-tutorial-2/" rel="prev" title="一起玩玩libuv(二)">
-                一起玩玩libuv(二) <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -392,10 +419,10 @@
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2016/01/26/libuv-tutorial-1/"
-     data-title="一起玩玩libuv (一)"
+        <div class="ds-share flat" data-thread-key="2016/10/08/talk-about-internal-dict/"
+     data-title="浅谈__dict__"
      data-content=""
-     data-url="http://whosemario.github.io/2016/01/26/libuv-tutorial-1/">
+     data-url="http://whosemario.github.io/2016/10/08/talk-about-internal-dict/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -423,8 +450,8 @@
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2016/01/26/libuv-tutorial-1/"
-           data-title="一起玩玩libuv (一)" data-url="http://whosemario.github.io/2016/01/26/libuv-tutorial-1/">
+      <div class="ds-thread" data-thread-key="2016/10/08/talk-about-internal-dict/"
+           data-title="浅谈__dict__" data-url="http://whosemario.github.io/2016/10/08/talk-about-internal-dict/">
       </div>
     
   </div>
@@ -524,7 +551,7 @@
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-下载与编译"><span class="nav-number">1.</span> <span class="nav-text">1.下载与编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Hello_World"><span class="nav-number">2.</span> <span class="nav-text">2.Hello World</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Reference"><span class="nav-number">3.</span> <span class="nav-text">3.Reference</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Class的__dict__"><span class="nav-number">1.</span> <span class="nav-text">Class的__dict__</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Instance的__dict__"><span class="nav-number">2.</span> <span class="nav-text">Instance的__dict__</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Module的__dict__"><span class="nav-number">3.</span> <span class="nav-text">Module的__dict__</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
