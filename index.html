@@ -241,6 +241,176 @@
             
               
                 
+                <a class="post-title-link" href="/2016/10/14/about-socket-api-1/" itemprop="url">
+                  Socket API 总结
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-10-14T15:31:03+08:00" content="2016-10-14">
+              2016-10-14
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/10/14/about-socket-api-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/14/about-socket-api-1/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>总是反反复复在用socket api，但每次都要查询manual，接下来就总结一下这些api吧</p>
+</blockquote>
+<h2 id="基本的Socket_API">基本的Socket API</h2><h3 id="socket">socket</h3><pre><code>#incldue &lt;sys/socket.<span class="keyword">h</span>&gt;
+<span class="keyword">int</span> socket(<span class="keyword">int</span> domain, <span class="keyword">int</span> <span class="built_in">type</span>, <span class="keyword">int</span> protocal);
+                Return <span class="keyword">file</span> descriptor <span class="keyword">on</span> success, <span class="built_in">or</span> -<span class="number">1</span> <span class="keyword">on</span> error
+</code></pre><p><strong>domain:</strong> </p>
+<ol>
+<li>AF_INET用于IPv4, sockaddr_in, 32bit IPv4 address + 16bit port number</li>
+<li>AF_INET6用于IPv6，sockaddr_in6， 128bit IPv6 address + 16bit port number</li>
+</ol>
+<p><strong>type:</strong></p>
+<ol>
+<li>SOCK_STREAM: TCP相关</li>
+<li>SOCK_DGRAM: UDP相关</li>
+</ol>
+<p><strong>protocal:</strong><br>基本为0</p>
+<h3 id="bind">bind</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span>
+<span class="function"><span class="keyword">int</span> <span class="title">bind</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">const</span> <span class="keyword">struct</span> sockaddr* addr, socklen_t addrlen)</span></span>;
+                        Return <span class="number">0</span> on sucess, or -<span class="number">1</span> on error
+</code></pre><p>关于struct sockaddr，其是一个通用的地址结构，sa_family用于指明是哪种类型（IPv4 or IPv6），sa_data就根据不同的结构进行调整</p>
+<pre><code><span class="keyword">struct</span> sockaddr {
+    <span class="keyword">sa_family_t</span> sa_family;   <span class="comment">/* Address family (AF_* constant) */</span>
+    <span class="keyword">char</span> sa_data[<span class="number">14</span>];        <span class="comment">/* Socket address (size varies according to socket domain) */</span>
+};
+
+<span class="comment">/* IPv4 address */</span>
+<span class="keyword">struct</span> in_addr {                <span class="comment">/* IPv4 4-byte address */</span>
+    <span class="keyword">in_addr_t</span> s_addr;           <span class="comment">/* Unsigned 32-bit integer */</span>
+};
+
+<span class="keyword">struct</span> sockaddr_in {            <span class="comment">/* IPv4 socket address */</span>
+    <span class="keyword">sa_family_t</span>    sin_family;  <span class="comment">/* Address family (AF_INET) */</span>
+    <span class="keyword">in_port_t</span>      sin_port;    <span class="comment">/* Port number */</span>
+    <span class="keyword">struct</span> in_addr sin_addr;    <span class="comment">/* IPv4 address */</span>
+    <span class="keyword">unsigned</span> <span class="keyword">char</span>  __pad[X];    <span class="comment">/* Pad to size of 'sockaddr' structure (16 bytes) */</span>
+};
+</code></pre><h3 id="listen">listen</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span>
+<span class="function"><span class="keyword">int</span> <span class="title">listen</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">int</span> backlog)</span></span>;
+                     Return <span class="number">0</span> on success, or -<span class="number">1</span> on error
+</code></pre><p>关于backlog:简单说就是定义pending队列的长度</p>
+<h3 id="accept">accept</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span>
+<span class="function"><span class="keyword">int</span> <span class="title">accept</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">struct</span> sockaddr *addr, socklen_t *addrlen)</span></span>;
+                     Return file descriptor on success, or -<span class="number">1</span> on error
+</code></pre><p>accept的三个参数就比较好理解了，accept后面两个参数是链接过来的ip和port</p>
+<h3 id="connect">connect</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span>
+<span class="function"><span class="keyword">int</span> <span class="title">connect</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">struct</span> sockaddr *addr, socklen_t addrlen)</span></span>;
+                     Return <span class="number">0</span> on success, or -<span class="number">1</span> on error
+</code></pre><h2 id="网络格式">网络格式</h2><p>网络传输都是大端传输的，所有我们需要对ip和port进行转换（转为大端）。<br>大端：高位在低地址<br>小端：高位在高地址   </p>
+<pre><code><span class="preprocessor">#include &lt;arpa/inet.h&gt;</span>
+
+uint16_t htons(uint16_t host_uint16);  /* host <span class="keyword">to</span> net */
+                     <span class="keyword">Return</span> host_uint16 converted <span class="keyword">to</span> network <span class="built_in">byte</span> <span class="keyword">order</span>
+uint32_t htonl(uint32_t host_uint32);  /* host <span class="keyword">to</span> net */
+                     <span class="keyword">Return</span> host_uint32 converted <span class="keyword">to</span> network <span class="built_in">byte</span> <span class="keyword">order</span>
+uint16_t ntohs(uint16_t net_uint16);   /* net <span class="keyword">to</span> host */
+                     <span class="keyword">Return</span> net_uint16 coverted <span class="keyword">to</span> host <span class="built_in">byte</span> <span class="keyword">order</span>
+uint32_t ntohl(uint32_t net_uint32);   /* net <span class="keyword">to</span> host */
+                     <span class="keyword">Return</span> net_uint32 converted <span class="keyword">to</span> host <span class="built_in">byte</span> <span class="keyword">order</span>
+</code></pre><h3 id="inet_pton和inet_ntop函数">inet_pton和inet_ntop函数</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span>
+
+<span class="function"><span class="keyword">int</span> <span class="title">inet_pton</span><span class="params">(<span class="keyword">int</span> domain, <span class="keyword">const</span> <span class="keyword">char</span> * src_str, <span class="keyword">void</span> *addrptr)</span></span>;
+                     Return <span class="number">1</span> on successful conversion, <span class="number">0</span> <span class="keyword">if</span> src_str is not in 
+                     presentation format, or -<span class="number">1</span> <span class="function">on error
+
+<span class="keyword">const</span> <span class="keyword">char</span> *<span class="title">inet_ntop</span><span class="params">(<span class="keyword">int</span> domain, <span class="keyword">const</span> <span class="keyword">void</span>* addrptr, <span class="keyword">char</span> *dst_str, size_t len)</span></span>;
+                     Returns pointer to dst_str on success, or <span class="literal">NULL</span> on error
+</code></pre><p>inet_pton是将字符串转为<strong>in_addr</strong>或者<strong>in6_addr</strong>，因此两个函数的addrptr传入的就是上面这两个addr类型；另外第二个api的<strong>len</strong>参数是表示dst_str长度的</p>
+<h2 id="持续更新中…">持续更新中…</h2>
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/10/08/talk-about-internal-dict/" itemprop="url">
                   浅谈__dict__
                 </a>
@@ -1536,133 +1706,6 @@ For more examples <span class="operator">and</span> ideas, visit:
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/03/23/net-io-model/" itemprop="url">
-                  网络IO模型
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-03-23T19:36:12+08:00" content="2016-03-23">
-              2016-03-23
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/网络模型/" itemprop="url" rel="index">
-                    <span itemprop="name">网络模型</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/03/23/net-io-model/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/23/net-io-model/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>这里对网络IO做一次总结</p>
-</blockquote>
-<p>《Unix网络编程》一书中对网络IO模型的总结如下：</p>
-<ul>
-<li>同步模型（synchronous I/O）<ul>
-<li>阻塞I/O（bloking I/O）</li>
-<li>非阻塞I/O（non-blocking I/O）</li>
-<li>多路复用I/O（multiplexing I/O）</li>
-<li>信号驱动式I/O（signal-driven I/O）</li>
-</ul>
-</li>
-<li>异步I/O（asynchronous I/O）</li>
-</ul>
-<h3 id="阻塞I/O">阻塞I/O</h3><p>阻塞IO是最常用的模式，进程发起<strong>recvfrom</strong>系统调用后，进程就被阻塞了，然后等待数据准备好，数据从内核态拷贝到用户态后，进程再进行处理。     </p>
-<p><img src="/images/net-io-1.jpg" alt=""></p>
-<h3 id="非阻塞I/O">非阻塞I/O</h3><p>非阻塞IO正好相反，进程发起<strong>recvfrom</strong>系统调用后不会阻塞，马上会得到返回结果，如果此时没有数据，会返回EWOULDBLOCK，用户进程可以不断地尝试<strong>recefrom</strong>，然后有数据处理的时候，函数调用仍然是阻塞的。</p>
-<p><img src="/images/net-io-2.jpg" alt=""></p>
-<h3 id="多路复用I/O">多路复用I/O</h3><p>多路复用有两个系统调用<strong>select</strong>和<strong>poll</strong>，就<strong>select</strong>函数来说，其可以监听多个文件描述符，当有数据可以处理的时候，系统调用将会返回，然后用户进行可以调用<strong>recvfrom</strong>进行数据读取。</p>
-<p><img src="/images/net-io-3.jpg" alt=""></p>
-<h3 id="异步I/O">异步I/O</h3><p>用户进程进行<strong>aio_read</strong>系统调用之后，无论内核数据是否准备好，都会直接返回给用户进程，然后用户态进程可以去做别的事情。等到socket数据准备好了，内核直接复制数据给进程，然后从内核向进程发送通知。</p>
-<p><img src="/images/net-io-4.jpg" alt=""></p>
-<h3 id="同步和异步模型的区别">同步和异步模型的区别</h3><p><img src="/images/net-io-5.jpg" alt=""></p>
-<p>关于同步和异步，我的理解是数据的获取方式：同步模型，数据是用户态尝试去向内核态获取数据的；异步模型，数据是从内核态拷贝到用户态，并通知用户进程数据ok了。</p>
-<h3 id="关于epoll">关于epoll</h3><p><strong>epoll</strong>到底是同步还是异步的呢？<br>我们知道<strong>epoll</strong>属于多路复用IO，那么它应该是同步的。但是，<strong>epoll</strong>因为采用mmap的机制，使得内核socket buffer和用户空间的buffer共享，从而省去了数据拷贝，这也意味着，当<strong>epoll</strong>回调上层的 callback函数来处理socket数据时，数据已经从内核层“自动“”到了用户空间。<br>stevens老爷子写《Unix网络编程》已经是上个世纪的事情了，当时<strong>epoll</strong>还没有，我觉得<strong>epoll</strong>不属于任何一种吧。</p>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -1709,7 +1752,7 @@ For more examples <span class="operator">and</span> ideas, visit:
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">41</span>
+              <span class="site-state-item-count">42</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
@@ -1723,7 +1766,7 @@ For more examples <span class="operator">and</span> ideas, visit:
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">21</span>
+              <span class="site-state-item-count">22</span>
               <span class="site-state-item-name">標籤</span>
               </a>
           </div>

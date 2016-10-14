@@ -37,7 +37,7 @@
 <link href="/css/main.css?v=0.4.5.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python," />
+  <meta name="keywords" content="socket," />
 
 
 
@@ -53,19 +53,28 @@
 
 
 
-<meta name="description" content="平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：
-https://github.com/Whosemario/python2x-xcodeproj">
+<meta name="description" content="总是反反复复在用socket api，但每次都要查询manual，接下来就总结一下这些api吧
+
+基本的Socket APIsocket#incldue &amp;lt;sys/socket.h&amp;gt;
+int socket(int domain, int type, int protocal);
+                Return file descriptor on success, or">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python2.7 Xcode Project">
-<meta property="og:url" content="http://whosemario.github.io/2015/12/27/python-xcode/index.html">
+<meta property="og:title" content="Socket API 总结">
+<meta property="og:url" content="http://whosemario.github.io/2016/10/14/about-socket-api-1/index.html">
 <meta property="og:site_name" content="Whosemario的家">
-<meta property="og:description" content="平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：
-https://github.com/Whosemario/python2x-xcodeproj">
-<meta property="og:updated_time" content="2015-12-27T07:22:12.000Z">
+<meta property="og:description" content="总是反反复复在用socket api，但每次都要查询manual，接下来就总结一下这些api吧
+
+基本的Socket APIsocket#incldue &amp;lt;sys/socket.h&amp;gt;
+int socket(int domain, int type, int protocal);
+                Return file descriptor on success, or">
+<meta property="og:updated_time" content="2016-10-14T08:23:00.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python2.7 Xcode Project">
-<meta name="twitter:description" content="平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：
-https://github.com/Whosemario/python2x-xcodeproj">
+<meta name="twitter:title" content="Socket API 总结">
+<meta name="twitter:description" content="总是反反复复在用socket api，但每次都要查询manual，接下来就总结一下这些api吧
+
+基本的Socket APIsocket#incldue &amp;lt;sys/socket.h&amp;gt;
+int socket(int domain, int type, int protocal);
+                Return file descriptor on success, or">
 
 
 
@@ -77,7 +86,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
   };
 </script>
 
-  <title> Python2.7 Xcode Project | Whosemario的家 </title>
+  <title> Socket API 总结 | Whosemario的家 </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="">
@@ -227,7 +236,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
             
             
               
-                Python2.7 Xcode Project
+                Socket API 总结
               
             
           </h1>
@@ -236,8 +245,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
         <div class="post-meta">
           <span class="post-time">
             發表於
-            <time itemprop="dateCreated" datetime="2015-12-27T15:16:25+08:00" content="2015-12-27">
-              2015-12-27
+            <time itemprop="dateCreated" datetime="2016-10-14T15:31:03+08:00" content="2016-10-14">
+              2016-10-14
             </time>
           </span>
 
@@ -246,8 +255,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
               &nbsp; | &nbsp; 分類於
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/python的那些事/" itemprop="url" rel="index">
-                    <span itemprop="name">python的那些事</span>
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
                   </a>
                 </span>
 
@@ -262,8 +271,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2015/12/27/python-xcode/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/27/python-xcode/" itemprop="commentsCount"></span>
+                <a href="/2016/10/14/about-socket-api-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/14/about-socket-api-1/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -282,9 +291,75 @@ https://github.com/Whosemario/python2x-xcodeproj">
       
 
       
-        <span itemprop="articleBody"><p>平时用mac来看Python的源码，如果不能Debug Python源码看起来很费劲，Python2.7的源码有VS的工程文件，但却没有Xcode的工程文件，因此自己创建了一个Xcode的功能文件，代码已经放到Github上了，地址如下：</p>
-<p><a href="https://github.com/Whosemario/python2x-xcodeproj" target="_blank" rel="external">https://github.com/Whosemario/python2x-xcodeproj</a></p>
-</span>
+        <span itemprop="articleBody"><blockquote>
+<p>总是反反复复在用socket api，但每次都要查询manual，接下来就总结一下这些api吧</p>
+</blockquote>
+<h2 id="基本的Socket_API">基本的Socket API</h2><h3 id="socket">socket</h3><pre><code>#incldue &lt;sys/socket.<span class="keyword">h</span>&gt;
+<span class="keyword">int</span> socket(<span class="keyword">int</span> domain, <span class="keyword">int</span> <span class="built_in">type</span>, <span class="keyword">int</span> protocal);
+                Return <span class="keyword">file</span> descriptor <span class="keyword">on</span> success, <span class="built_in">or</span> -<span class="number">1</span> <span class="keyword">on</span> error
+</code></pre><p><strong>domain:</strong> </p>
+<ol>
+<li>AF_INET用于IPv4, sockaddr_in, 32bit IPv4 address + 16bit port number</li>
+<li>AF_INET6用于IPv6，sockaddr_in6， 128bit IPv6 address + 16bit port number</li>
+</ol>
+<p><strong>type:</strong></p>
+<ol>
+<li>SOCK_STREAM: TCP相关</li>
+<li>SOCK_DGRAM: UDP相关</li>
+</ol>
+<p><strong>protocal:</strong><br>基本为0</p>
+<h3 id="bind">bind</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span>
+<span class="function"><span class="keyword">int</span> <span class="title">bind</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">const</span> <span class="keyword">struct</span> sockaddr* addr, socklen_t addrlen)</span></span>;
+                        Return <span class="number">0</span> on sucess, or -<span class="number">1</span> on error
+</code></pre><p>关于struct sockaddr，其是一个通用的地址结构，sa_family用于指明是哪种类型（IPv4 or IPv6），sa_data就根据不同的结构进行调整</p>
+<pre><code><span class="keyword">struct</span> sockaddr {
+    <span class="keyword">sa_family_t</span> sa_family;   <span class="comment">/* Address family (AF_* constant) */</span>
+    <span class="keyword">char</span> sa_data[<span class="number">14</span>];        <span class="comment">/* Socket address (size varies according to socket domain) */</span>
+};
+
+<span class="comment">/* IPv4 address */</span>
+<span class="keyword">struct</span> in_addr {                <span class="comment">/* IPv4 4-byte address */</span>
+    <span class="keyword">in_addr_t</span> s_addr;           <span class="comment">/* Unsigned 32-bit integer */</span>
+};
+
+<span class="keyword">struct</span> sockaddr_in {            <span class="comment">/* IPv4 socket address */</span>
+    <span class="keyword">sa_family_t</span>    sin_family;  <span class="comment">/* Address family (AF_INET) */</span>
+    <span class="keyword">in_port_t</span>      sin_port;    <span class="comment">/* Port number */</span>
+    <span class="keyword">struct</span> in_addr sin_addr;    <span class="comment">/* IPv4 address */</span>
+    <span class="keyword">unsigned</span> <span class="keyword">char</span>  __pad[X];    <span class="comment">/* Pad to size of 'sockaddr' structure (16 bytes) */</span>
+};
+</code></pre><h3 id="listen">listen</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span>
+<span class="function"><span class="keyword">int</span> <span class="title">listen</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">int</span> backlog)</span></span>;
+                     Return <span class="number">0</span> on success, or -<span class="number">1</span> on error
+</code></pre><p>关于backlog:简单说就是定义pending队列的长度</p>
+<h3 id="accept">accept</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span>
+<span class="function"><span class="keyword">int</span> <span class="title">accept</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">struct</span> sockaddr *addr, socklen_t *addrlen)</span></span>;
+                     Return file descriptor on success, or -<span class="number">1</span> on error
+</code></pre><p>accept的三个参数就比较好理解了，accept后面两个参数是链接过来的ip和port</p>
+<h3 id="connect">connect</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span>
+<span class="function"><span class="keyword">int</span> <span class="title">connect</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">struct</span> sockaddr *addr, socklen_t addrlen)</span></span>;
+                     Return <span class="number">0</span> on success, or -<span class="number">1</span> on error
+</code></pre><h2 id="网络格式">网络格式</h2><p>网络传输都是大端传输的，所有我们需要对ip和port进行转换（转为大端）。<br>大端：高位在低地址<br>小端：高位在高地址   </p>
+<pre><code><span class="preprocessor">#include &lt;arpa/inet.h&gt;</span>
+
+uint16_t htons(uint16_t host_uint16);  /* host <span class="keyword">to</span> net */
+                     <span class="keyword">Return</span> host_uint16 converted <span class="keyword">to</span> network <span class="built_in">byte</span> <span class="keyword">order</span>
+uint32_t htonl(uint32_t host_uint32);  /* host <span class="keyword">to</span> net */
+                     <span class="keyword">Return</span> host_uint32 converted <span class="keyword">to</span> network <span class="built_in">byte</span> <span class="keyword">order</span>
+uint16_t ntohs(uint16_t net_uint16);   /* net <span class="keyword">to</span> host */
+                     <span class="keyword">Return</span> net_uint16 coverted <span class="keyword">to</span> host <span class="built_in">byte</span> <span class="keyword">order</span>
+uint32_t ntohl(uint32_t net_uint32);   /* net <span class="keyword">to</span> host */
+                     <span class="keyword">Return</span> net_uint32 converted <span class="keyword">to</span> host <span class="built_in">byte</span> <span class="keyword">order</span>
+</code></pre><h3 id="inet_pton和inet_ntop函数">inet_pton和inet_ntop函数</h3><pre><code><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span>
+
+<span class="function"><span class="keyword">int</span> <span class="title">inet_pton</span><span class="params">(<span class="keyword">int</span> domain, <span class="keyword">const</span> <span class="keyword">char</span> * src_str, <span class="keyword">void</span> *addrptr)</span></span>;
+                     Return <span class="number">1</span> on successful conversion, <span class="number">0</span> <span class="keyword">if</span> src_str is not in 
+                     presentation format, or -<span class="number">1</span> <span class="function">on error
+
+<span class="keyword">const</span> <span class="keyword">char</span> *<span class="title">inet_ntop</span><span class="params">(<span class="keyword">int</span> domain, <span class="keyword">const</span> <span class="keyword">void</span>* addrptr, <span class="keyword">char</span> *dst_str, size_t len)</span></span>;
+                     Returns pointer to dst_str on success, or <span class="literal">NULL</span> on error
+</code></pre><p>inet_pton是将字符串转为<strong>in_addr</strong>或者<strong>in6_addr</strong>，因此两个函数的addrptr传入的就是上面这两个addr类型；另外第二个api的<strong>len</strong>参数是表示dst_str长度的</p>
+<h2 id="持续更新中…">持续更新中…</h2></span>
       
     </div>
 
@@ -292,7 +367,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/socket/" rel="tag">#socket</a>
           
         </div>
       
@@ -301,17 +376,13 @@ https://github.com/Whosemario/python2x-xcodeproj">
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/12/19/python-gevent/" rel="next" title="Python gevent (1) 之 greenlet模块">
-                <i class="fa fa-chevron-left"></i> Python gevent (1) 之 greenlet模块
+              <a href="/2016/10/08/talk-about-internal-dict/" rel="next" title="浅谈__dict__">
+                <i class="fa fa-chevron-left"></i> 浅谈__dict__
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2015/12/31/summary-2015/" rel="prev" title="2015年终总结">
-                2015年终总结 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -326,10 +397,10 @@ https://github.com/Whosemario/python2x-xcodeproj">
 
     <div class="post-spread">
       
-        <div class="ds-share flat" data-thread-key="2015/12/27/python-xcode/"
-     data-title="Python2.7 Xcode Project"
+        <div class="ds-share flat" data-thread-key="2016/10/14/about-socket-api-1/"
+     data-title="Socket API 总结"
      data-content=""
-     data-url="http://whosemario.github.io/2015/12/27/python-xcode/">
+     data-url="http://whosemario.github.io/2016/10/14/about-socket-api-1/">
   <div class="ds-share-inline">
     <ul  class="ds-share-icons-16">
 
@@ -357,8 +428,8 @@ https://github.com/Whosemario/python2x-xcodeproj">
         
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2015/12/27/python-xcode/"
-           data-title="Python2.7 Xcode Project" data-url="http://whosemario.github.io/2015/12/27/python-xcode/">
+      <div class="ds-thread" data-thread-key="2016/10/14/about-socket-api-1/"
+           data-title="Socket API 总结" data-url="http://whosemario.github.io/2016/10/14/about-socket-api-1/">
       </div>
     
   </div>
@@ -458,7 +529,7 @@ https://github.com/Whosemario/python2x-xcodeproj">
               
             
             
-              <p class="post-toc-empty">此文章未包含目錄</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本的Socket_API"><span class="nav-number">1.</span> <span class="nav-text">基本的Socket API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#socket"><span class="nav-number">1.1.</span> <span class="nav-text">socket</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bind"><span class="nav-number">1.2.</span> <span class="nav-text">bind</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#listen"><span class="nav-number">1.3.</span> <span class="nav-text">listen</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#accept"><span class="nav-number">1.4.</span> <span class="nav-text">accept</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#connect"><span class="nav-number">1.5.</span> <span class="nav-text">connect</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络格式"><span class="nav-number">2.</span> <span class="nav-text">网络格式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#inet_pton和inet_ntop函数"><span class="nav-number">2.1.</span> <span class="nav-text">inet_pton和inet_ntop函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#持续更新中…"><span class="nav-number">3.</span> <span class="nav-text">持续更新中…</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator">
