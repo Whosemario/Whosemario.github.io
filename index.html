@@ -241,6 +241,157 @@
             
               
                 
+                <a class="post-title-link" href="/2016/11/19/effective-cpp-new-delete/" itemprop="url">
+                  读《Effective C++》（一）
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            發表於
+            <time itemprop="dateCreated" datetime="2016-11-19T09:48:01+08:00" content="2016-11-19">
+              2016-11-19
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分類於
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/c/" itemprop="url" rel="index">
+                    <span itemprop="name">c++</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/11/19/effective-cpp-new-delete/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/11/19/effective-cpp-new-delete/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="articleBody">
+            
+              <blockquote>
+<p>关于operator new的一些理解，算是重读《Effective C++》有感</p>
+</blockquote>
+<h3 id="1-_operator_new的实现">1. operator new的实现</h3><pre><code><span class="preprocessor"># in gcc/libstdc++-v3/libsupc++/new_op.cc</span>
+....
+<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;bits/c++config.h&gt;</span></span>
+<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;cstdlib&gt;</span></span>
+<span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;bits/exception_defines.h&gt;</span></span>
+<span class="preprocessor">#<span class="keyword">include</span> <span class="string">"new"</span></span>
+
+<span class="keyword">using</span> <span class="built_in">std</span>::new_handler;
+<span class="keyword">using</span> <span class="built_in">std</span>::bad_alloc;
+<span class="preprocessor">#<span class="keyword">if</span> _GLIBCXX_HOSTED</span>
+<span class="keyword">using</span> <span class="built_in">std</span>::<span class="built_in">malloc</span>;
+<span class="preprocessor">#<span class="keyword">else</span></span>
+<span class="comment">// A freestanding C runtime may not provide "malloc" -- but there is no</span>
+<span class="comment">// other reasonable way to implement "operator new".</span>
+<span class="keyword">extern</span> <span class="string">"C"</span> <span class="function"><span class="keyword">void</span> *<span class="title">malloc</span> <span class="params">(<span class="built_in">std</span>::size_t)</span></span>;
+<span class="preprocessor">#<span class="keyword">endif</span></span>
+
+_<span class="function">GLIBCXX_WEAK_DEFINITION <span class="keyword">void</span> *
+<span class="keyword">operator</span> <span class="title">new</span> <span class="params">(<span class="built_in">std</span>::size_t sz)</span> _<span class="title">GLIBCXX_THROW</span> <span class="params">(<span class="built_in">std</span>::bad_alloc)</span>
+</span>{
+    <span class="keyword">void</span> *p;
+
+    <span class="comment">/* malloc (0) is unpredictable; avoid it.  */</span>
+    <span class="keyword">if</span> (sz == <span class="number">0</span>)
+        sz = <span class="number">1</span>;
+
+    <span class="keyword">while</span> (__builtin_expect ((p = <span class="built_in">malloc</span> (sz)) == <span class="number">0</span>, <span class="literal">false</span>))
+    {
+        new_handler handler = <span class="built_in">std</span>::get_new_handler ();
+        <span class="keyword">if</span> (! handler)
+        _GLIBCXX_THROW_OR_ABORT(bad_alloc());
+        handler ();
+    }
+
+    <span class="keyword">return</span> p;
+}
+</code></pre><h3 id="2-_我们看到并需要理解的">2. 我们看到并需要理解的</h3><h4 id="2-1_handler函数是循环调用的">2.1 handler函数是循环调用的</h4><p>如果malloc没有成功，handler函数会循环调用，除非我们将handler设置为空，或者在handler中抛出异常。这样我们再去看<strong>条款49</strong>也就比较好理解了。</p>
+<h3 id="3-_placement_new">3. placement new</h3><p>如果operator new接受的参数除了一定会有的那个size_t之外，还有其他的参数，这便是所谓的placement new。</p>
+<pre><code><span class="preprocessor"># in gcc/libstdc++-v3/libsupc++/new</span>
+<span class="comment">// Default placement versions of operator new.</span>
+<span class="function"><span class="keyword">inline</span> <span class="keyword">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(<span class="built_in">std</span>::size_t, <span class="keyword">void</span>* __p)</span> _GLIBCXX_USE_NOEXCEPT
+</span>{ <span class="keyword">return</span> __p; }
+</code></pre><p>说到placement new，最先想到的就是上面这个版本，输入一个内存区域指针。看到实现发现，如此简单，就直接返回了。</p>
+<h4 id="3-1_placement_new_/_delete">3.1 placement new / delete</h4><p>如果实现了placement new，则需要实现对应的placement delete。因为如果类构造函数出异常了，c++内部会调用对应的placement delete。 </p>
+<h3 id="4-_关于构造函数和析构函数出问题需要怎么处理">4. 关于构造函数和析构函数出问题需要怎么处理</h3><p>参考：<a href="https://isocpp.org/wiki/faq/exceptions#ctors-can-throw" target="_blank" rel="external">https://isocpp.org/wiki/faq/exceptions#ctors-can-throw</a></p>
+<p>在构造函数中，抛出异常；在析构函数中，中断程序。</p>
+
+            
+          </span>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/10/14/about-socket-api-1/" itemprop="url">
                   Socket API 总结
                 </a>
@@ -1529,183 +1680,6 @@ CharacterDatabaseInfo  = "<span class="number">127.0.0.1</span><span class="comm
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/03/26/docker-tutorial/" itemprop="url">
-                  Mac OSX Docker 教程 (一)
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            發表於
-            <time itemprop="dateCreated" datetime="2016-03-26T19:09:32+08:00" content="2016-03-26">
-              2016-03-26
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp; 分類於
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/Docker/" itemprop="url" rel="index">
-                    <span itemprop="name">Docker</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/03/26/docker-tutorial/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/26/docker-tutorial/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody">
-            
-              <blockquote>
-<p>本文基于Docker官方网站的<a href="https://docs.docker.com/mac/" target="_blank" rel="external">Mac OSX教程</a>所写。</p>
-</blockquote>
-<h3 id="安装Docker_Toolbox">安装Docker Toolbox</h3><p>Docker Toolbox包含如下的Docker工具：</p>
-<ul>
-<li>Docker CLI 用于创建Docker镜像和Docker容器</li>
-<li>Docker Machine 让你可以在Mac OSX以命令行的方式操作Docker引擎</li>
-<li>Docker Compose用于运行docker-compose命令</li>
-<li>Kitematic —— Docker的GUI组件</li>
-<li>Docker快速启动shell</li>
-<li>Oracle VM 虚拟机</li>
-</ul>
-<h4 id="步骤一：检查系统版本号">步骤一：检查系统版本号</h4><p>检查操作系统版本号，版本号必须 &gt;= 10.8</p>
-<h4 id="步骤二：安装Docker_Tool">步骤二：安装Docker Tool</h4><p>下载<a href="https://www.docker.com/products/docker-toolbox" target="_blank" rel="external">Docker Toolbox</a>并开始进行安装，安装很傻瓜，一路next就可以。</p>
-<h4 id="步骤三：检查是否安装成功">步骤三：检查是否安装成功</h4><ol>
-<li><p>首先开启Docker Quickstart Terminal</p>
-<p> <img src="/images/docker-tutorial-1-p1.png" alt=""></p>
-</li>
-<li><p>终端会有如下输出</p>
-<pre><code><span class="type">Last</span> login: <span class="type">Sat</span> <span class="type">Jul</span> <span class="number">11</span> <span class="number">20</span>:<span class="number">09</span>:<span class="number">45</span> on ttys002
-bash '/<span class="type">Applications</span>/<span class="type">Docker</span> <span class="type">Quickstart</span> <span class="type">Terminal</span>.app/<span class="type">Contents</span>/<span class="type">Resources</span>/<span class="type">Scripts</span>/    start.sh'
-<span class="type">Get</span> http:<span class="comment">///var/run/docker.sock/v1.19/images/json?all=1&amp;filters=%7B%22dangling%22%3A%5B%22true%22%5D%7D: dial unix /var/run/docker.sock: no such file or directory. Are you trying to connect to a TLS-enabled daemon without TLS?</span>
-<span class="type">Get</span> http:<span class="comment">///var/run/docker.sock/v1.19/images/json?all=1: dial unix /var/run/docker.sock: no such file or directory. Are you trying to connect to a TLS-enabled daemon without TLS?</span>
--bash: lolcat: command not found
-
-mary at meepers in ~
-$ bash '/<span class="type">Applications</span>/<span class="type">Docker</span> <span class="type">Quickstart</span> <span class="type">Terminal</span>.app/<span class="type">Contents</span>/<span class="type">Resources</span>/<span class="type">Scripts</span>/start.sh'
-<span class="type">Creating</span> <span class="type">Machine</span> dev...
-<span class="type">Creating</span> <span class="type">VirtualBox</span> <span class="type">VM</span>...
-<span class="type">Creating</span> <span class="type">SSH</span> key...
-<span class="type">Starting</span> <span class="type">VirtualBox</span> <span class="type">VM</span>...
-<span class="type">Starting</span> <span class="type">VM</span>...
-<span class="type">To</span> see how to connect <span class="type">Docker</span> to <span class="keyword">this</span> machine, run: docker-machine env dev
-<span class="type">Starting</span> machine dev...
-<span class="type">Setting</span> environment variables <span class="keyword">for</span> machine dev...
-
-                    ##         .
-              ## ## ##        ==
-           ## ## ## ## ##    ===
-       /<span class="string">""""""</span><span class="string">""""""</span><span class="string">"""""\___/ ===
-  ~~~ {~~ ~~~~ ~~~ ~~~~ ~~~ ~ /  ===- ~~~
-       \______ o           __/
-         \    \         __/
-          \____\_______/
-
-The Docker Quick Start Terminal is configured to use Docker with the “default” VM.</span>
-</code></pre></li>
-<li><p>键入<strong>docker run hello-world</strong></p>
-<pre><code>$ docker run hello-world
-Unable <span class="built_in">to</span> find image <span class="string">'hello-world:latest'</span> locally
-latest: Pulling <span class="built_in">from</span> library/hello-world
-<span class="number">535020</span>c3e8ad: Pull complete
-af340544ed62: Pull complete
-Digest: sha256:a68868bfe696c00866942e8f5ca39e3e31b79c1e50feaee4ce5e28df2f051d5c
-Status: Downloaded newer image <span class="keyword">for</span> hello-world:latest
-
-Hello <span class="built_in">from</span> Docker.
-This message shows that your installation appears <span class="built_in">to</span> be working correctly.
-
-To generate this message, Docker took <span class="operator">the</span> following steps:
-<span class="number">1.</span> The Docker Engine CLI client contacted <span class="operator">the</span> Docker Engine daemon.
-<span class="number">2.</span> The Docker Engine daemon pulled <span class="operator">the</span> <span class="string">"hello-world"</span> image <span class="built_in">from</span> <span class="operator">the</span> Docker Hub.
-<span class="number">3.</span> The Docker Engine daemon created <span class="operator">a</span> <span class="built_in">new</span> container <span class="built_in">from</span> that image which runs <span class="operator">the</span> executable that produces <span class="operator">the</span> output you are currently reading.
-<span class="number">4.</span> The Docker Engine daemon streamed that output <span class="built_in">to</span> <span class="operator">the</span> Docker Engine CLI client, which sent <span class="keyword">it</span> <span class="built_in">to</span> your terminal.
-
-To <span class="keyword">try</span> something more ambitious, you can run <span class="operator">an</span> Ubuntu container <span class="operator">with</span>:
-$ docker run -<span class="keyword">it</span> ubuntu bash
-
-Share images, automate workflows, <span class="operator">and</span> more <span class="operator">with</span> <span class="operator">a</span> free Docker Hub account:
-<span class="keyword">https</span>://hub.docker.com
-
-For more examples <span class="operator">and</span> ideas, visit:
-<span class="keyword">https</span>://docs.docker.com/userguide/
-</code></pre></li>
-</ol>
-
-            
-          </span>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
 
   </section>
 
@@ -1752,7 +1726,7 @@ For more examples <span class="operator">and</span> ideas, visit:
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">42</span>
+              <span class="site-state-item-count">43</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
